@@ -104,7 +104,7 @@
     <button class="btn" onclick="openModal('create')">+ 新增 Issue</button>
   </div>
 
-  <!-- 資料表格 -->
+  <!-- 資料表格 (完全對齊 Template) -->
   <div class="table-responsive">
     <table>
       <thead>
@@ -112,9 +112,9 @@
           <th>狀態</th>
           <th>日期 / 週別</th>
           <th>Company</th>
-          <th>Model</th>
+          <th>Model Type</th>
           <th>Tool ID</th>
-          <th>負責人 (AR)</th>
+          <th>負責人 (Owner)</th>
           <th style="width: 18%;">Issue Description</th>
           <th style="width: 18%;">Actions Done</th>
           <th style="width: 18%;">Plan to Do / Remain</th>
@@ -178,7 +178,7 @@
       </div>
 
       <div class="form-group">
-        <label for="owner">負責人 (AR / Owner):</label>
+        <label for="owner">負責人 (Owner / AR):</label>
         <input type="text" id="owner" placeholder="例如: Alex / John" required>
       </div>
 
@@ -204,7 +204,7 @@
 
       <div class="form-row">
         <div class="form-group">
-          <label for="partsCategory">Parts Category:</label>
+          <label for="partsCategory">Replace Parts Category:</label>
           <select id="partsCategory">
             <option value="None">None</option>
             <option value="Mechanical Parts">Mechanical Parts</option>
@@ -216,7 +216,7 @@
           </select>
         </div>
         <div class="form-group">
-          <label for="partsPN">Parts PN (料號):</label>
+          <label for="partsPN">Replace Parts PN (料號):</label>
           <input type="text" id="partsPN">
         </div>
       </div>
@@ -425,9 +425,7 @@
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify(payload)
     })
-    .then(() => {
-      if (callback) callback();
-    })
+    .then(() => { if (callback) callback(); })
     .catch(err => {
       console.error(err);
       if (callback) callback();

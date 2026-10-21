@@ -98,7 +98,7 @@
     <button class="btn" onclick="openModal('create')">+ 新增 Issue</button>
   </div>
 
-  <!-- 資料表格 (完美對齊 13 欄表頭) -->
+  <!-- 資料表格 -->
   <div class="table-responsive">
     <table>
       <thead>
@@ -179,12 +179,12 @@
 
       <div class="form-group">
         <label for="planToDo">Plan to Do (後續計畫):</label>
-        <textarea id="planToDo" placeholder="若有未完成事項請填寫此處（將亮紅燈）..."></textarea>
+        <textarea id="planToDo" placeholder="若有未完成事項請填寫此處（將自動亮紅燈）..."></textarea>
       </div>
 
       <div class="form-group">
         <label for="remainIssue">Remain Issue (殘留問題):</label>
-        <textarea id="remainIssue" placeholder="若有殘留議題請填寫此處（將亮紅燈）..."></textarea>
+        <textarea id="remainIssue" placeholder="若有殘留議題請填寫此處（將自動亮紅燈）..."></textarea>
       </div>
 
       <div class="form-row">
@@ -228,7 +228,7 @@
     return { year: date.getUTCFullYear(), week: weekNo, tag: `W${weekNo}` };
   }
 
-  // 自動動態判斷：只要 Plan to Do 或 Remain Issue 任何一個欄位有填寫非 NA 內容，即標示紅燈
+  // 自動動態判斷紅燈：只要 Plan to Do 或 Remain Issue 任何一個欄位有填寫非 NA 內容，即標示紅燈
   function isIssueOpen(item) {
     const remain = (item.remainIssue || '').toString().trim().toUpperCase();
     const plan = (item.planToDo || '').toString().trim().toUpperCase();
@@ -237,6 +237,30 @@
     const hasPlan = plan !== '' && plan !== 'NA' && plan !== 'N/A' && plan !== 'NONE';
 
     return hasRemain || hasPlan;
+  }
+
+  function requestJSONP(params, callback) {
+    const cbName = 'gas_cb_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+    params.callback = cbName;
+
+    const queryString = new URLSearchParams(params).toString();
+    const script = document.createElement('script');
+    script.src = `${GAS_WEB_APP_URL}?${queryString}`;
+
+    window[cbName] = function(data) {
+      delete window[cbName];
+      if (document.body.contains(script)) document.body.removeChild(script);
+      if (callback) callback(data);
+    };
+
+    script.onerror = function() {
+      delete window[cbName];
+      if (document.body.contains(script)) document.body.removeChild(script);
+      console.error("JSONP Request error");
+      if (callback) callback({ status: "error" });
+    };
+
+    document.body.appendChild(script);
   }
 
   function switchProduct(product) {
@@ -251,19 +275,11 @@
     const tbody = document.getElementById("tableBody");
     tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;">資料讀取中...</td></tr>`;
 
-    fetch(`${GAS_WEB_APP_URL}?action=read&product=${currentProduct}`)
-      .then(res => res.json())
-      .then(data => {
-        rawData = Array.isArray(data) ? data : [];
-        populateWeekDropdown();
-        filterData();
-      })
-      .catch(err => {
-        console.error(err);
-        rawData = [];
-        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;">尚無資料，請點擊「+ 新增 Issue」建立。</td></tr>`;
-        updateDashboard([]);
-      });
+    requestJSONP({ action: "read", product: currentProduct }, function(data) {
+      rawData = Array.isArray(data) ? data : [];
+      populateWeekDropdown();
+      filterData();
+    });
   }
 
   function populateWeekDropdown() {
@@ -412,34 +428,14 @@
     document.getElementById("formModal").style.display = "none";
   }
 
-  // 使用標準化 URL-encoded POST 傳輸，100% 被 GAS 接收
-  function sendDataToGAS(payloadObj, callback) {
-    const params = new URLSearchParams(payloadObj);
-
-    fetch(GAS_WEB_APP_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: params.toString()
-    })
-    .then(() => { if (callback) callback(); })
-    .catch(err => {
-      console.error(err);
-      if (callback) callback();
-    });
-  }
-
-  // 100% 抹除資料的刪除邏輯
   function deleteIssue(id) {
     if (!confirm("確定要刪除這筆 Issue 紀錄嗎？")) return;
 
-    // 前端即時秒抹除
     rawData = rawData.filter(item => String(item.id).trim() !== String(id).trim());
     filterData();
 
-    // 發送給後端刪除命令
-    sendDataToGAS({ action: "delete", product: currentProduct, id: id }, function() {
-      setTimeout(loadData, 1200);
+    requestJSONP({ action: "delete", product: currentProduct, id: id }, function(res) {
+      loadData();
     });
   }
 
@@ -466,12 +462,12 @@
       partsPN: document.getElementById("partsPN").value
     };
 
-    sendDataToGAS(payload, function() {
+    requestJSONP(payload, function(res) {
       alert("儲存成功！");
       closeModal();
       submitBtn.disabled = false;
       submitBtn.innerText = "儲存紀錄";
-      setTimeout(loadData, 1200);
+      loadData();
     });
   });
 

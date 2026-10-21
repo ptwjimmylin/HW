@@ -230,7 +230,6 @@
 </div>
 
 <script>
-  // ⚠️ 請確保這裡替換為全新的部署 URL
   const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyV6lG4YX9BxNY1TKYAMdwuAclTPQeY_cWk6otAm1-7pDp4ueDA_5MjjQL2tOBwwEZaFg/exec";
   let currentProduct = "Hitachi";
   let rawData = [];
@@ -256,7 +255,7 @@
     const tbody = document.getElementById("tableBody");
     tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;">資料讀取中...</td></tr>`;
 
-    fetch(`${GAS_WEB_APP_URL}?action=read&product=${currentProduct}`)
+    fetch(`${GAS_WEB_APP_URL}?product=${currentProduct}`)
       .then(res => res.json())
       .then(data => {
         rawData = Array.isArray(data) ? data : [];
@@ -419,35 +418,38 @@
     document.getElementById("formModal").style.display = "none";
   }
 
+  function sendDataToGAS(payload, callback) {
+    fetch(GAS_WEB_APP_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    })
+    .then(() => {
+      if (callback) callback();
+    })
+    .catch(err => {
+      console.error(err);
+      if (callback) callback();
+    });
+  }
+
   function deleteIssue(id) {
     if (!confirm("確定要刪除這筆 Issue 紀錄嗎？")) return;
 
-    const urlParams = new URLSearchParams({
-      action: "delete",
-      product: currentProduct,
-      id: id
+    sendDataToGAS({ action: "delete", product: currentProduct, id: id }, function() {
+      alert("刪除要求已發送！");
+      setTimeout(loadData, 1200);
     });
-
-    fetch(`${GAS_WEB_APP_URL}?${urlParams.toString()}`)
-      .then(res => res.json())
-      .then(() => {
-        alert("刪除成功！");
-        loadData();
-      })
-      .catch(() => {
-        alert("刪除指令已傳送！");
-        setTimeout(loadData, 1000);
-      });
   }
 
-  // 採用必勝的以 GET 帶參數傳送機制 (直接突破 Chrome & GAS CORS 快取封鎖)
   document.getElementById("ptwForm").addEventListener("submit", function(e) {
     e.preventDefault();
     const submitBtn = document.getElementById("submitBtn");
     submitBtn.disabled = true;
     submitBtn.innerText = "資料儲存中...";
 
-    const params = {
+    const payload = {
       action: document.getElementById("formAction").value,
       product: document.getElementById("modalProduct").value,
       id: document.getElementById("editId").value,
@@ -465,24 +467,13 @@
       partsPN: document.getElementById("partsPN").value
     };
 
-    const urlParams = new URLSearchParams(params);
-
-    fetch(`${GAS_WEB_APP_URL}?${urlParams.toString()}`)
-      .then(res => res.json())
-      .then(res => {
-        alert("儲存成功！狀態已更新為: " + params.status);
-        closeModal();
-        loadData();
-      })
-      .catch(err => {
-        alert("儲存完成！");
-        closeModal();
-        setTimeout(loadData, 1200);
-      })
-      .finally(() => {
-        submitBtn.disabled = false;
-        submitBtn.innerText = "儲存紀錄";
-      });
+    sendDataToGAS(payload, function() {
+      alert("儲存成功！");
+      closeModal();
+      submitBtn.disabled = false;
+      submitBtn.innerText = "儲存紀錄";
+      setTimeout(loadData, 1200);
+    });
   });
 
   function escapeHtml(text) {

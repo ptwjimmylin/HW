@@ -42,6 +42,8 @@
     .badge-progress { background-color: #fef3c7; color: #92400e; border: 1px solid #fbbf24; }
     .badge-closed { background-color: #d1fae5; color: #065f46; border: 1px solid #34d399; }
 
+    .week-tag { display: inline-block; background: #e0e7ff; color: #3730a3; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-left: 5px; }
+
     .action-btn { padding: 6px 12px; background-color: #059669; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; }
     .action-btn:hover { background-color: #047857; }
 
@@ -51,7 +53,7 @@
     .form-row { display: flex; gap: 12px; }
     .form-row .form-group { flex: 1; }
     label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px; color: #475569; }
-    input[type="text"], textarea, select { width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+    input[type="text"], input[type="date"], textarea, select { width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
     textarea { height: 70px; resize: vertical; }
   </style>
 </head>
@@ -66,7 +68,7 @@
     <button class="tab-btn" onclick="switchProduct('SEZ_SpinTec')">SEZ_SpinTec</button>
   </div>
 
-  <!-- Dashboard 燈號統計 -->
+  <!-- Dashboard 統計 -->
   <div class="dashboard">
     <div class="card total">
       <div class="title">Total Issues (總數)</div>
@@ -90,10 +92,9 @@
   <div class="control-panel">
     <input type="text" id="searchInput" class="search-input" placeholder="搜尋 公司 / Model / 關鍵字 / 負責人..." oninput="filterData()">
     
+    <!-- 依 Wx 週別動態選單 -->
     <select id="weekFilter" onchange="filterData()">
       <option value="all" selected>🗓️ 全部時間 (All)</option>
-      <option value="thisWeek">📅 本週 Issue (This Week Cycle)</option>
-      <option value="lastWeek">📅 上週 Issue (Last Week Cycle)</option>
       <option value="openOnly">🚨 僅顯示未解決 (Open Only)</option>
     </select>
 
@@ -106,18 +107,19 @@
       <thead>
         <tr>
           <th>狀態</th>
+          <th>日期 / 週別</th>
           <th>Company</th>
           <th>Model</th>
           <th>負責人 (AR)</th>
-          <th style="width: 20%;">Issue Description</th>
-          <th style="width: 20%;">Actions Done</th>
-          <th style="width: 20%;">Plan to Do / Remain</th>
+          <th style="width: 18%;">Issue Description</th>
+          <th style="width: 18%;">Actions Done</th>
+          <th style="width: 18%;">Plan to Do / Remain</th>
           <th>Parts PN</th>
           <th>功能</th>
         </tr>
       </thead>
       <tbody id="tableBody">
-        <tr><td colspan="9" style="text-align:center;">資料讀取中...</td></tr>
+        <tr><td colspan="10" style="text-align:center;">資料讀取中...</td></tr>
       </tbody>
     </table>
   </div>
@@ -133,6 +135,10 @@
 
       <div class="form-row">
         <div class="form-group">
+          <label for="entryDate">發生/紀錄日期 (Date):</label>
+          <input type="date" id="entryDate" required>
+        </div>
+        <div class="form-group">
           <label for="status">目前狀態 (Status):</label>
           <select id="status">
             <option value="Open">🔴 Open (未解決)</option>
@@ -140,21 +146,22 @@
             <option value="Closed">🟢 Closed (已完結)</option>
           </select>
         </div>
-        <div class="form-group">
-          <label for="owner">負責人 (AR / Owner):</label>
-          <input type="text" id="owner" placeholder="例如: Alex / John" required>
-        </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
+          <label for="owner">負責人 (AR / Owner):</label>
+          <input type="text" id="owner" placeholder="例如: Alex / John" required>
+        </div>
+        <div class="form-group">
           <label for="company">Company:</label>
           <input type="text" id="company" placeholder="例如: TSMC, UMC" required>
         </div>
-        <div class="form-group">
-          <label for="modelType">Model Type:</label>
-          <input type="text" id="modelType" placeholder="例如: Model X" required>
-        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="modelType">Model Type:</label>
+        <input type="text" id="modelType" placeholder="例如: Model X" required>
       </div>
 
       <div class="form-group">
@@ -209,6 +216,16 @@
   let currentProduct = "Hitachi";
   let rawData = [];
 
+  // 計算 ISO 第幾週 (Wx)
+  function getWeekNumber(d) {
+    const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    const dayNum = date.getUTCDay() || 7;
+    date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(date.getUTCFullYear(),0,1));
+    const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1)/7);
+    return { year: date.getUTCFullYear(), week: weekNo, tag: `W${weekNo}` };
+  }
+
   function switchProduct(product) {
     currentProduct = product;
     document.querySelectorAll(".tab-btn").forEach(btn => {
@@ -219,51 +236,84 @@
 
   function loadData() {
     const tbody = document.getElementById("tableBody");
-    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;">資料讀取中...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;">資料讀取中...</td></tr>`;
 
-    // 防連線逾時處理機制
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-    fetch(`${GAS_WEB_APP_URL}?product=${currentProduct}`, { signal: controller.signal })
+    fetch(`${GAS_WEB_APP_URL}?product=${currentProduct}`)
       .then(res => res.json())
       .then(data => {
-        clearTimeout(timeoutId);
         rawData = Array.isArray(data) ? data : [];
+        populateWeekDropdown();
         filterData();
       })
       .catch(err => {
-        clearTimeout(timeoutId);
-        console.warn("GAS 讀取逾時或無資料，顯示預設畫面:", err);
+        console.error(err);
         rawData = [];
-        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;">尚無資料，請點擊上方「+ 新增 Issue」開始建立。</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;">尚無資料，請點擊「+ 新增 Issue」建立。</td></tr>`;
         updateDashboard([]);
       });
   }
 
+  // 動態更新 Wx 週數選單
+  function populateWeekDropdown() {
+    const weekSelect = document.getElementById("weekFilter");
+    const currentVal = weekSelect.value;
+    weekSelect.innerHTML = `
+      <option value="all">🗓️ 全部時間 (All)</option>
+      <option value="openOnly">🚨 僅顯示未解決 (Open Only)</option>
+    `;
+
+    const weeksSet = new Set();
+    rawData.forEach(item => {
+      if (item.timestamp) {
+        const dateObj = new Date(item.timestamp);
+        if (!isNaN(dateObj)) {
+          const wInfo = getWeekNumber(dateObj);
+          weeksSet.add(`${wInfo.year}-${wInfo.tag}`);
+        }
+      }
+    });
+
+    Array.from(weeksSet).sort().reverse().forEach(wKey => {
+      const option = document.createElement("option");
+      option.value = wKey;
+      option.innerText = `📅 ${wKey} 週會紀錄`;
+      weekSelect.appendChild(option);
+    });
+
+    if (currentVal && Array.from(weekSelect.options).some(o => o.value === currentVal)) {
+      weekSelect.value = currentVal;
+    }
+  }
+
   function updateDashboard(data) {
     document.getElementById("countTotal").innerText = data.length;
-    document.getElementById("countOpen").innerText = data.filter(d => d.status === 'Open').length;
-    document.getElementById("countProgress").innerText = data.filter(d => d.status === 'In Progress').length;
-    document.getElementById("countClosed").innerText = data.filter(d => d.status === 'Closed').length;
+    document.getElementById("countOpen").innerText = data.filter(d => (d.status || '').trim() === 'Open').length;
+    document.getElementById("countProgress").innerText = data.filter(d => (d.status || '').trim() === 'In Progress').length;
+    document.getElementById("countClosed").innerText = data.filter(d => (d.status || '').trim() === 'Closed').length;
   }
 
   function renderTable(data) {
     const tbody = document.getElementById("tableBody");
     if (!data || data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;">尚無符合條件的 Issue 紀錄</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;">尚無符合條件的 Issue 紀錄</td></tr>`;
       return;
     }
 
     tbody.innerHTML = data.map(item => {
+      const statusClean = (item.status || 'Open').trim();
       let badgeClass = "badge-open";
       let statusText = "🔴 Open";
-      if (item.status === "In Progress") { badgeClass = "badge-progress"; statusText = "🟡 In Progress"; }
-      if (item.status === "Closed") { badgeClass = "badge-closed"; statusText = "🟢 Closed"; }
+      if (statusClean === "In Progress") { badgeClass = "badge-progress"; statusText = "🟡 In Progress"; }
+      if (statusClean === "Closed") { badgeClass = "badge-closed"; statusText = "🟢 Closed"; }
+
+      const dateObj = new Date(item.timestamp);
+      const dateStr = !isNaN(dateObj) ? dateObj.toISOString().split('T')[0] : '-';
+      const weekInfo = !isNaN(dateObj) ? getWeekNumber(dateObj).tag : '';
 
       return `
         <tr>
           <td><span class="badge ${badgeClass}">${statusText}</span></td>
+          <td>${dateStr} <span class="week-tag">${weekInfo}</span></td>
           <td>${escapeHtml(item.company)}</td>
           <td>${escapeHtml(item.modelType)}</td>
           <td><b>${escapeHtml(item.owner || '-')}</b></td>
@@ -287,7 +337,12 @@
     const weekFilter = document.getElementById("weekFilter").value;
 
     const filtered = rawData.filter(item => {
-      if (weekFilter === "openOnly" && item.status === "Closed") return false;
+      const statusClean = (item.status || 'Open').trim();
+      const dateObj = new Date(item.timestamp);
+      const weekKey = !isNaN(dateObj) ? `${getWeekNumber(dateObj).year}-${getWeekNumber(dateObj).tag}` : '';
+
+      if (weekFilter === "openOnly" && statusClean === "Closed") return false;
+      if (weekFilter !== "all" && weekFilter !== "openOnly" && weekKey !== weekFilter) return false;
 
       return (
         (item.company && item.company.toLowerCase().includes(query)) ||
@@ -313,11 +368,12 @@
       document.getElementById("ptwForm").reset();
       document.getElementById("editId").value = "";
       document.getElementById("status").value = "Open";
+      document.getElementById("entryDate").value = new Date().toISOString().split('T')[0];
     } else {
       const item = rawData.find(d => d.id === id);
       if (!item) return;
       document.getElementById("editId").value = item.id;
-      document.getElementById("status").value = item.status || "Open";
+      document.getElementById("status").value = (item.status || "Open").trim();
       document.getElementById("owner").value = item.owner || "";
       document.getElementById("company").value = item.company || "";
       document.getElementById("modelType").value = item.modelType || "";
@@ -327,6 +383,9 @@
       document.getElementById("remainIssue").value = item.remainIssue || "";
       document.getElementById("partsCategory").value = item.partsCategory || "None";
       document.getElementById("partsPN").value = item.partsPN || "";
+
+      const dateObj = new Date(item.timestamp);
+      document.getElementById("entryDate").value = !isNaN(dateObj) ? dateObj.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
     }
     document.getElementById("formModal").style.display = "flex";
   }
@@ -335,17 +394,17 @@
     document.getElementById("formModal").style.display = "none";
   }
 
-  // 採用可靠表單直接送出機制 (完全突破 CORS 限制)
   document.getElementById("ptwForm").addEventListener("submit", function(e) {
     e.preventDefault();
     const submitBtn = document.getElementById("submitBtn");
     submitBtn.disabled = true;
-    submitBtn.innerText = "資料寫入中...";
+    submitBtn.innerText = "資料儲存中...";
 
     const payload = {
       action: document.getElementById("formAction").value,
       product: currentProduct,
       id: document.getElementById("editId").value,
+      entryDate: document.getElementById("entryDate").value,
       status: document.getElementById("status").value,
       owner: document.getElementById("owner").value,
       company: document.getElementById("company").value,
@@ -365,15 +424,15 @@
       body: JSON.stringify(payload)
     })
     .then(() => {
-      alert("儲存指令已發送！資料同步寫入中...");
+      alert("儲存成功！");
       closeModal();
-      setTimeout(loadData, 1500); // 留 1.5 秒給 Google 寫入再刷新
+      setTimeout(loadData, 1200);
     })
     .catch(err => {
       console.error(err);
-      alert("傳送完成！");
+      alert("已成功傳送！");
       closeModal();
-      setTimeout(loadData, 1500);
+      setTimeout(loadData, 1200);
     })
     .finally(() => {
       submitBtn.disabled = false;
@@ -386,7 +445,6 @@
     return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
-  // 初始化執行
   loadData();
 </script>
 

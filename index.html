@@ -3,40 +3,68 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PTW Service Issue Tracer</title>
+  <title>PTW Service Issue Tracer - Weekly Review</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f6f9; }
-    .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    h2, h3 { text-align: center; color: #333; }
-    .tab-bar { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ddd; }
-    .tab-btn { padding: 10px 20px; cursor: pointer; border: none; background: none; font-size: 16px; font-weight: bold; color: #666; }
-    .tab-btn.active { color: #007bff; border-bottom: 3px solid #007bff; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f6f9; color: #333; }
+    .container { max-width: 1200px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    h2 { margin-top: 0; color: #1a202c; text-align: center; font-size: 24px; }
     
-    .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
-    .search-box input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
-    .btn { padding: 10px 18px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-    .btn:hover { background-color: #0056b3; }
-    .btn-secondary { background-color: #6c757d; }
-    .btn-secondary:hover { background-color: #5a6268; }
+    /* Dashboard 數據卡片 */
+    .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
+    .card { padding: 15px; border-radius: 8px; background: #f8fafc; border-left: 5px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .card.total { border-left-color: #3b82f6; }
+    .card.open { border-left-color: #ef4444; background: #fef2f2; }
+    .card.progress { border-left-color: #f59e0b; background: #fffbeb; }
+    .card.closed { border-left-color: #10b981; background: #f0fdf4; }
+    .card .title { font-size: 13px; color: #64748b; font-weight: 600; text-transform: uppercase; }
+    .card .value { font-size: 28px; font-weight: bold; margin-top: 5px; color: #0f172a; }
 
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 14px; }
-    th { background-color: #f8f9fa; }
-    .action-btn { padding: 5px 10px; background-color: #28a745; color: white; border: none; border-radius: 3px; cursor: pointer; }
+    /* Tab 導覽 */
+    .tab-bar { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
+    .tab-btn { padding: 12px 24px; cursor: pointer; border: none; background: none; font-size: 16px; font-weight: bold; color: #64748b; border-bottom: 3px solid transparent; transition: all 0.2s; }
+    .tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; }
 
-    /* Modal 彈窗樣式 */
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
-    .modal-content { background: white; padding: 25px; border-radius: 8px; width: 90%; max-width: 600px; max-height: 85vh; overflow-y: auto; }
-    .form-group { margin-bottom: 12px; }
-    label { display: block; font-weight: bold; margin-bottom: 4px; font-size: 14px; }
-    input[type="text"], textarea, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-    textarea { height: 60px; }
+    /* 搜尋與篩選列 */
+    .control-panel { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; align-items: center; background: #f8fafc; padding: 15px; border-radius: 8px; }
+    .control-panel input, .control-panel select { padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+    .search-input { flex: 1; min-width: 200px; }
+    
+    .btn { padding: 9px 18px; background-color: #2563eb; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn:hover { background-color: #1d4ed8; }
+    .btn-secondary { background-color: #64748b; }
+    .btn-secondary:hover { background-color: #475569; }
+
+    /* 表格樣式 */
+    .table-responsive { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+    th, td { border: 1px solid #e2e8f0; padding: 12px 10px; text-align: left; vertical-align: top; }
+    th { background-color: #f1f5f9; color: #475569; font-weight: 600; white-space: nowrap; }
+    tr:nth-child(even) { background-color: #f8fafc; }
+
+    /* 燈號 Status Badges */
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+    .badge-open { background-color: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+    .badge-progress { background-color: #fef3c7; color: #92400e; border: 1px solid #fbbf24; }
+    .badge-closed { background-color: #d1fae5; color: #065f46; border: 1px solid #34d399; }
+
+    .action-btn { padding: 6px 12px; background-color: #059669; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; }
+    .action-btn:hover { background-color: #047857; }
+
+    /* Modal 彈窗 */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); justify-content: center; align-items: center; z-index: 1000; }
+    .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 650px; max-height: 85vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .form-group { margin-bottom: 14px; }
+    .form-row { display: flex; gap: 12px; }
+    .form-row .form-group { flex: 1; }
+    label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px; color: #475569; }
+    input[type="text"], textarea, select { width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+    textarea { height: 70px; resize: vertical; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h2>PTW Service Issue Tracer</h2>
+  <h2>PTW Service Issue Tracer (週會 Review Dashboard)</h2>
 
   <!-- 產品選擇 Tab -->
   <div class="tab-bar">
@@ -44,233 +72,72 @@
     <button class="tab-btn" onclick="switchProduct('SEZ_SpinTec')">SEZ_SpinTec</button>
   </div>
 
-  <!-- 搜尋列與新增按鈕 -->
-  <div class="search-box">
-    <input type="text" id="searchInput" placeholder="搜尋 Issue Description, Model, Company..." oninput="filterData()">
+  <!-- Dashboard 燈號統計概覽 -->
+  <div class="dashboard">
+    <div class="card total">
+      <div class="title">Total Issues (總數)</div>
+      <div class="value" id="countTotal">0</div>
+    </div>
+    <div class="card open">
+      <div class="title">🔴 Open (未解決)</div>
+      <div class="value" id="countOpen">0</div>
+    </div>
+    <div class="card progress">
+      <div class="title">🟡 In Progress (處理中)</div>
+      <div class="value" id="countProgress">0</div>
+    </div>
+    <div class="card closed">
+      <div class="title">🟢 Closed (已完結)</div>
+      <div class="value" id="countClosed">0</div>
+    </div>
+  </div>
+
+  <!-- 搜尋與週會控制面板 -->
+  <div class="control-panel">
+    <input type="text" id="searchInput" class="search-input" placeholder="搜尋 公司 / Model / 關鍵字 / 負責人..." oninput="filterData()">
+    
+    <select id="weekFilter" onchange="filterData()">
+      <option value="all">🗓️ 全部時間 (All)</option>
+      <option value="thisWeek" selected>📅 本週 Issue (This Week Cycle)</option>
+      <option value="lastWeek">📅 上週 Issue (Last Week Cycle)</option>
+      <option value="openOnly">🚨 僅顯示未解決 (Open Only)</option>
+    </select>
+
     <button class="btn" onclick="openModal('create')">+ 新增 Issue</button>
   </div>
 
   <!-- 資料列表 -->
-  <table id="issueTable">
-    <thead>
-      <tr>
-        <th>Company</th>
-        <th>Model Type</th>
-        <th>Issue Description</th>
-        <th>Remain Issue</th>
-        <th>Parts PN</th>
-        <th>操作</th>
-      </tr>
-    </thead>
-    <tbody id="tableBody">
-      <tr><td colspan="6" style="text-align:center;">載入中...</td></tr>
-    </tbody>
-  </table>
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>狀態</th>
+          <th>Company</th>
+          <th>Model</th>
+          <th>負責人 (AR)</th>
+          <th style="width: 20%;">Issue Description</th>
+          <th style="width: 20%;">Actions Done</th>
+          <th style="width: 20%;">Plan to Do / Remain</th>
+          <th>Parts PN</th>
+          <th>功能</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr><td colspan="9" style="text-align:center;">載入中...</td></tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <!-- 新增/編輯 模態彈窗 -->
 <div class="modal" id="formModal">
   <div class="modal-content">
-    <h3 id="modalTitle">新增 Issue</h3>
+    <h3 id="modalTitle" style="margin-top:0;">新增 Issue</h3>
     <form id="ptwForm">
       <input type="hidden" id="editId">
       <input type="hidden" id="formAction" value="create">
 
-      <div class="form-group">
-        <label for="company">Company:</label>
-        <input type="text" id="company" required>
-      </div>
-      <div class="form-group">
-        <label for="modelType">Model Type:</label>
-        <input type="text" id="modelType" required>
-      </div>
-      <div class="form-group">
-        <label for="issueDesc">Issue Description:</label>
-        <textarea id="issueDesc" required></textarea>
-      </div>
-      <div class="form-group">
-        <label for="actionsDone">Actions Done:</label>
-        <textarea id="actionsDone"></textarea>
-      </div>
-      <div class="form-group">
-        <label for="planToDo">Plan to Do:</label>
-        <textarea id="planToDo"></textarea>
-      </div>
-      <div class="form-group">
-        <label for="remainIssue">Remain Issue:</label>
-        <textarea id="remainIssue"></textarea>
-      </div>
-      <div class="form-group">
-        <label for="partsCategory">Parts Category:</label>
-        <select id="partsCategory">
-          <option value="None">None</option>
-          <option value="Mechanical Parts">Mechanical Parts</option>
-          <option value="Electrical / Board">Electrical / Board</option>
-          <option value="Sensor / Cable">Sensor / Cable</option>
-          <option value="Pump / Valve">Pump / Valve</option>
-          <option value="Consumables">Consumables</option>
-          <option value="Others">Others</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="partsPN">Parts PN:</label>
-        <input type="text" id="partsPN">
-      </div>
-
-      <div style="display: flex; gap: 10px; margin-top: 15px;">
-        <button type="submit" class="btn" id="submitBtn" style="flex: 1;">儲存</button>
-        <button type="button" class="btn btn-secondary" onclick="closeModal()">取消</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<script>
-  // 你的 Google Apps Script URL
-  const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyV6lG4YX9BxNY1TKYAMdwuAclTPQeY_cWk6otAm1-7pDp4ueDA_5MjjQL2tOBwwEZaFg/exec";
-  let currentProduct = "Hitachi";
-  let rawData = [];
-
-  // 切換產品 Tab
-  function switchProduct(product) {
-    currentProduct = product;
-    document.querySelectorAll(".tab-btn").forEach(btn => {
-      btn.classList.toggle("active", btn.innerText === product);
-    });
-    loadData();
-  }
-
-  // 從 GAS 載入資料
-  function loadData() {
-    const tbody = document.getElementById("tableBody");
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">資料讀取中...</td></tr>`;
-
-    fetch(`${GAS_WEB_APP_URL}?product=${currentProduct}`)
-      .then(res => res.json())
-      .then(data => {
-        rawData = data;
-        renderTable(rawData);
-      })
-      .catch(err => {
-        console.error(err);
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">讀取失敗，請重新整理頁面。</td></tr>`;
-      });
-  }
-
-  // 渲染表格
-  function renderTable(data) {
-    const tbody = document.getElementById("tableBody");
-    if (!data || data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">尚無資料</td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = data.map(item => `
-      <tr>
-        <td>${escapeHtml(item.company)}</td>
-        <td>${escapeHtml(item.modelType)}</td>
-        <td>${escapeHtml(item.issueDesc)}</td>
-        <td>${escapeHtml(item.remainIssue || '-')}</td>
-        <td>${escapeHtml(item.partsPN || '-')}</td>
-        <td>
-          <button class="action-btn" onclick="openModal('update', '${item.id}')">編輯</button>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  // 關鍵字搜尋過濾
-  function filterData() {
-    const query = document.getElementById("searchInput").value.toLowerCase();
-    const filtered = rawData.filter(item => 
-      (item.company && item.company.toLowerCase().includes(query)) ||
-      (item.modelType && item.modelType.toLowerCase().includes(query)) ||
-      (item.issueDesc && item.issueDesc.toLowerCase().includes(query)) ||
-      (item.remainIssue && item.remainIssue.toLowerCase().includes(query)) ||
-      (item.partsPN && item.partsPN.toLowerCase().includes(query))
-    );
-    renderTable(filtered);
-  }
-
-  // 打開 Modal (新增 / 編輯)
-  function openModal(action, id = null) {
-    document.getElementById("formAction").value = action;
-    document.getElementById("modalTitle").innerText = action === 'create' ? "新增 Issue" : "編輯 Issue";
-    
-    if (action === 'create') {
-      document.getElementById("ptwForm").reset();
-      document.getElementById("editId").value = "";
-    } else {
-      const item = rawData.find(d => d.id === id);
-      if (!item) return;
-      document.getElementById("editId").value = item.id;
-      document.getElementById("company").value = item.company || "";
-      document.getElementById("modelType").value = item.modelType || "";
-      document.getElementById("issueDesc").value = item.issueDesc || "";
-      document.getElementById("actionsDone").value = item.actionsDone || "";
-      document.getElementById("planToDo").value = item.planToDo || "";
-      document.getElementById("remainIssue").value = item.remainIssue || "";
-      document.getElementById("partsCategory").value = item.partsCategory || "None";
-      document.getElementById("partsPN").value = item.partsPN || "";
-    }
-    document.getElementById("formModal").style.display = "flex";
-  }
-
-  function closeModal() {
-    document.getElementById("formModal").style.display = "none";
-  }
-
-  // 提交表單 (新增 / 編輯)
-  document.getElementById("ptwForm").addEventListener("submit", function(e) {
-    e.preventDefault();
-    const submitBtn = document.getElementById("submitBtn");
-    submitBtn.disabled = true;
-    submitBtn.innerText = "處理中...";
-
-    const action = document.getElementById("formAction").value;
-    const payload = {
-      action: action,
-      product: currentProduct,
-      id: document.getElementById("editId").value,
-      company: document.getElementById("company").value,
-      modelType: document.getElementById("modelType").value,
-      issueDesc: document.getElementById("issueDesc").value,
-      actionsDone: document.getElementById("actionsDone").value,
-      planToDo: document.getElementById("planToDo").value,
-      remainIssue: document.getElementById("remainIssue").value,
-      partsCategory: document.getElementById("partsCategory").value,
-      partsPN: document.getElementById("partsPN").value
-    };
-
-    fetch(GAS_WEB_APP_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    })
-    .then(() => {
-      alert(action === 'create' ? "新增成功！" : "更新成功！");
-      closeModal();
-      loadData();
-    })
-    .catch(err => {
-      console.error(err);
-      alert("操作失敗，請稍後重試。");
-    })
-    .finally(() => {
-      submitBtn.disabled = false;
-      submitBtn.innerText = "儲存";
-    });
-  });
-
-  function escapeHtml(text) {
-    if (!text) return "";
-    return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  }
-
-  // 初始化載入
-  loadData();
-</script>
-
-</body>
-</html>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="status">目前狀態 (Status):</label>
+          <select id

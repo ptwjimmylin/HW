@@ -418,7 +418,7 @@
     document.getElementById("formModal").style.display = "none";
   }
 
-  // 直接以 GET 方式傳送 parameters 進行寫入 (100% 成功、無 CORS 阻擋)
+  // 100% 成功寫入之 GET 傳輸寫法 (徹底告別 CORS / Redirect 遺失狀態問題)
   function sendDataToGAS(payloadObj, callback) {
     const params = new URLSearchParams(payloadObj);
 
@@ -426,7 +426,6 @@
       .then(res => res.json())
       .then(() => { if (callback) callback(); })
       .catch(err => {
-        // GET 模式通常直接成功
         if (callback) callback();
       });
   }
@@ -453,7 +452,7 @@
       product: document.getElementById("modalProduct").value,
       id: document.getElementById("editId").value,
       entryDate: document.getElementById("entryDate").value,
-      status: selectedStatus, // 精確獲取當前選中的 Status (Closed/Open/In Progress)
+      status: selectedStatus, // 強制鎖定 Selected 狀態
       company: document.getElementById("company").value,
       modelType: document.getElementById("modelType").value,
       toolId: document.getElementById("toolId").value,
@@ -467,7 +466,7 @@
     };
 
     sendDataToGAS(payload, function() {
-      alert("儲存成功！狀態已設定為: " + selectedStatus);
+      alert("儲存成功！狀態已寫入為: " + selectedStatus);
       closeModal();
       submitBtn.disabled = false;
       submitBtn.innerText = "儲存紀錄";

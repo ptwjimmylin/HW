@@ -438,7 +438,7 @@
     if (!confirm("確定要刪除這筆 Issue 紀錄嗎？")) return;
 
     sendDataToGAS({ action: "delete", product: currentProduct, id: id }, function() {
-      alert("刪除要求已發送！");
+      alert("已刪除紀錄！");
       setTimeout(loadData, 1200);
     });
   }

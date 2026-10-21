@@ -199,7 +199,7 @@
       </button>
     </div>
 
-    <!-- 🔥 可手動拖曳調整寬度的表格 (Resizable Table) -->
+    <!-- 🔥 隱藏 ID 後的表格 -->
     <div class="bg-white rounded-2xl shadow-md border border-sky-200 overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-left text-slate-800 border-collapse text-table-body" style="table-layout: fixed;">
@@ -207,7 +207,6 @@
             <tr>
               <th v-for="(col, index) in columns" :key="index" :style="{ width: col.width + 'px' }" class="relative py-4 px-4 border-r border-sky-100 select-none">
                 {{ col.label }}
-                <!-- 🔥 拖曳把手 (Resizer) -->
                 <div class="resizer" @mousedown="startResize($event, index)"></div>
               </th>
               <th class="py-4 px-4 w-[100px] text-center">Actions</th>
@@ -226,9 +225,9 @@
                   <span class="w-2 h-2 rounded-full bg-emerald-600"></span>Closed
                 </span>
               </td>
+              <!-- 僅顯示 Timestamp，已隱藏 ID -->
               <td class="py-4 px-4 overflow-hidden">
-                <div class="font-mono font-bold text-slate-900 break-all">{{ item.ID }}</div>
-                <div class="text-xs text-slate-500 mt-1 font-mono">{{ formatDate(item.Timestamp) }}</div>
+                <div class="text-xs text-slate-600 font-mono font-semibold">{{ formatDate(item.Timestamp) }}</div>
               </td>
               <td class="py-4 px-4 overflow-hidden">
                 <div class="font-extrabold text-slate-900 break-words">{{ item.Company || '-' }}</div>
@@ -381,10 +380,10 @@
         const loading = ref(false);
         const submitting = ref(false);
 
-        // 🔥 可自訂與拖曳調整寬度的欄位設定
+        // 🔥 表頭欄位已移除 ID
         const columns = ref([
           { label: 'Status', width: 110 },
-          { label: 'ID / Timestamp', width: 140 },
+          { label: 'Timestamp', width: 130 },
           { label: 'Company / Model', width: 140 },
           { label: 'Tool ID / Owner', width: 130 },
           { label: 'Issue Description', width: 220 },
@@ -409,7 +408,6 @@
           'Replace Parts PN': ''
         });
 
-        // 🔥 欄位寬度手動拖曳事件處理 (Drag to Resize)
         const startResize = (e, index) => {
           e.preventDefault();
           const startX = e.clientX;
@@ -417,7 +415,7 @@
 
           const onMouseMove = (moveEvent) => {
             const deltaX = moveEvent.clientX - startX;
-            columns.value[index].width = Math.max(80, startWidth + deltaX); // 最小寬度限制為 80px
+            columns.value[index].width = Math.max(80, startWidth + deltaX);
           };
 
           const onMouseUp = () => {
@@ -567,7 +565,7 @@
         };
 
         const deleteItem = async (id) => {
-          if (!confirm(`確定要刪除 ID: ${id} 嗎？`)) return;
+          if (!confirm(`確定要刪除這筆紀錄嗎？`)) return;
           loading.value = true;
           try {
             await fetch(API_URL, {

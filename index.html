@@ -228,7 +228,6 @@
     return { year: date.getUTCFullYear(), week: weekNo, tag: `W${weekNo}` };
   }
 
-  // 判斷是否為 Open 狀態（只要有 Remain Issue 或 Plan to Do 即為紅燈）
   function isIssueOpen(item) {
     const remain = (item.remainIssue || '').toString().trim().toUpperCase();
     const plan = (item.planToDo || '').toString().trim().toUpperCase();
@@ -387,7 +386,7 @@
       document.getElementById("modalProduct").value = currentProduct;
       document.getElementById("entryDate").value = new Date().toISOString().split('T')[0];
     } else {
-      const item = rawData.find(d => d.id === id);
+      const item = rawData.find(d => String(d.id).trim() === String(id).trim());
       if (!item) return;
       document.getElementById("editId").value = item.id;
       document.getElementById("modalProduct").value = currentProduct;
@@ -429,9 +428,14 @@
   function deleteIssue(id) {
     if (!confirm("確定要刪除這筆 Issue 紀錄嗎？")) return;
 
+    // 前端即時反應：立刻自 rawData 陣列中移除
+    rawData = rawData.filter(item => String(item.id).trim() !== String(id).trim());
+    filterData();
+
+    // 發送給後端刪除
     sendDataToGAS({ action: "delete", product: currentProduct, id: id }, function() {
-      alert("已成功刪除紀錄！");
-      setTimeout(loadData, 1200);
+      setTimeout(loadData, 1000);
+      setTimeout(loadData, 2500); // 雙保險刷新
     });
   }
 

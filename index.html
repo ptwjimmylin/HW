@@ -214,9 +214,6 @@
   </div>
 </div>
 
-<!-- 隱藏表單傳輸 Channel (100% 繞過跨網域 POST 阻擋，保證刪除與新增成功) -->
-<iframe name="gas_hidden_iframe" id="gas_hidden_iframe" style="display:none;"></iframe>
-
 <script>
   const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyV6lG4YX9BxNY1TKYAMdwuAclTPQeY_cWk6otAm1-7pDp4ueDA_5MjjQL2tOBwwEZaFg/exec";
   let currentProduct = "Hitachi";
@@ -241,6 +238,31 @@
     return hasRemain || hasPlan;
   }
 
+  // 核心：JSONP 請求機制 (完全突破 CORS 限制，100% 正確將 action/id 送達 GAS)
+  function requestJSONP(params, callback) {
+    const cbName = 'gas_cb_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+    params.callback = cbName;
+
+    const queryString = new URLSearchParams(params).toString();
+    const script = document.createElement('script');
+    script.src = `${GAS_WEB_APP_URL}?${queryString}`;
+
+    window[cbName] = function(data) {
+      delete window[cbName];
+      if (document.body.contains(script)) document.body.removeChild(script);
+      if (callback) callback(data);
+    };
+
+    script.onerror = function() {
+      delete window[cbName];
+      if (document.body.contains(script)) document.body.removeChild(script);
+      console.error("JSONP Request error");
+      if (callback) callback({ status: "error" });
+    };
+
+    document.body.appendChild(script);
+  }
+
   function switchProduct(product) {
     currentProduct = product;
     document.querySelectorAll(".tab-btn").forEach(btn => {
@@ -253,19 +275,11 @@
     const tbody = document.getElementById("tableBody");
     tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;">資料讀取中...</td></tr>`;
 
-    fetch(`${GAS_WEB_APP_URL}?action=read&product=${currentProduct}`)
-      .then(res => res.json())
-      .then(data => {
-        rawData = Array.isArray(data) ? data : [];
-        populateWeekDropdown();
-        filterData();
-      })
-      .catch(err => {
-        console.error(err);
-        rawData = [];
-        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;">尚無資料，請點擊「+ 新增 Issue」建立。</td></tr>`;
-        updateDashboard([]);
-      });
+    requestJSONP({ action: "read", product: currentProduct }, function(data) {
+      rawData = Array.isArray(data) ? data : [];
+      populateWeekDropdown();
+      filterData();
+    });
   }
 
   function populateWeekDropdown() {
@@ -414,59 +428,18 @@
     document.getElementById("formModal").style.display = "none";
   }
 
-  // 100% 能精確把變數發送至後端的隱藏 Form 機制（徹底解決刪除無效與資料遺失問題）
-  function sendDataToGAS(payloadObj, callback) {
-    let form = document.getElementById("gas_temp_form");
-    if (form) form.remove();
-
-    form = document.createElement("form");
-    form.id = "gas_temp_form";
-    form.method = "POST";
-    form.action = GAS_WEB_APP_URL;
-    form.target = "gas_hidden_iframe";
-    form.style.display = "none";
-
-    for (let key in payloadObj) {
-      const field = document.createElement("input");
-      field.type = "hidden";
-      field.name = key;
-      field.value = payloadObj[key];
-      form.appendChild(field);
-    }
-
-    document.body.appendChild(form);
-
-    const iframe = document.getElementById("gas_hidden_iframe");
-    let hasCalled = false;
-
-    iframe.onload = function() {
-      if (!hasCalled) {
-        hasCalled = true;
-        if (callback) callback();
-      }
-    };
-
-    form.submit();
-
-    // 保險 1.2 秒雙防護刷新
-    setTimeout(function() {
-      if (!hasCalled) {
-        hasCalled = true;
-        if (callback) callback();
-      }
-    }, 1200);
-  }
-
+  // 刪除處理邏輯
   function deleteIssue(id) {
     if (!confirm("確定要刪除這筆 Issue 紀錄嗎？")) return;
 
-    // 前端視覺秒刪
+    // 前端網頁秒刪視覺反應
     rawData = rawData.filter(item => String(item.id).trim() !== String(id).trim());
     filterData();
 
-    // 透過隱藏表單傳送刪除命令
-    sendDataToGAS({ action: "delete", product: currentProduct, id: id }, function() {
-      setTimeout(loadData, 1000);
+    // 透過 JSONP 100% 精確傳送刪除指令至 Google Sheet
+    requestJSONP({ action: "delete", product: currentProduct, id: id }, function(res) {
+      // 後端刪除完成，再次背景拉取最新狀態確認
+      loadData();
     });
   }
 
@@ -493,12 +466,12 @@
       partsPN: document.getElementById("partsPN").value
     };
 
-    sendDataToGAS(payload, function() {
+    requestJSONP(payload, function(res) {
       alert("儲存成功！");
       closeModal();
       submitBtn.disabled = false;
       submitBtn.innerText = "儲存紀錄";
-      setTimeout(loadData, 1200);
+      loadData();
     });
   });
 

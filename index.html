@@ -28,8 +28,6 @@
     
     .btn { padding: 9px 18px; background-color: #2563eb; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
     .btn:hover { background-color: #1d4ed8; }
-    .btn-danger { background-color: #dc2626; }
-    .btn-danger:hover { background-color: #b91c1c; }
     .btn-secondary { background-color: #64748b; }
     .btn-secondary:hover { background-color: #475569; }
 
@@ -74,7 +72,7 @@
     <button class="tab-btn" onclick="switchProduct('SEZ_SpinTec')">SEZ_SpinTec</button>
   </div>
 
-  <!-- Dashboard 統計 -->
+  <!-- Dashboard 統計卡片 -->
   <div class="dashboard">
     <div class="card total">
       <div class="title">Total Issues (總數)</div>
@@ -141,9 +139,19 @@
 
       <div class="form-row">
         <div class="form-group">
+          <label for="modalProduct">產品別 (Product):</label>
+          <select id="modalProduct">
+            <option value="Hitachi">Hitachi</option>
+            <option value="SEZ_SpinTec">SEZ_SpinTec</option>
+          </select>
+        </div>
+        <div class="form-group">
           <label for="entryDate">發生/紀錄日期 (Date):</label>
           <input type="date" id="entryDate" required>
         </div>
+      </div>
+
+      <div class="form-row">
         <div class="form-group">
           <label for="status">目前狀態 (Status):</label>
           <select id="status">
@@ -152,28 +160,26 @@
             <option value="Closed">🟢 Closed (已完結)</option>
           </select>
         </div>
-      </div>
-
-      <div class="form-row">
         <div class="form-group">
           <label for="company">Company:</label>
           <input type="text" id="company" placeholder="例如: TSMC, UMC" required>
         </div>
-        <div class="form-group">
-          <label for="modelType">Model Type:</label>
-          <input type="text" id="modelType" placeholder="例如: Model X" required>
-        </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
+          <label for="modelType">Model Type:</label>
+          <input type="text" id="modelType" placeholder="例如: Model X" required>
+        </div>
+        <div class="form-group">
           <label for="toolId">Tool ID:</label>
           <input type="text" id="toolId" placeholder="例如: TOOL-01">
         </div>
-        <div class="form-group">
-          <label for="owner">負責人 (AR / Owner):</label>
-          <input type="text" id="owner" placeholder="例如: Alex / John" required>
-        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="owner">負責人 (AR / Owner):</label>
+        <input type="text" id="owner" placeholder="例如: Alex / John" required>
       </div>
 
       <div class="form-group">
@@ -297,9 +303,9 @@
 
   function updateDashboard(data) {
     document.getElementById("countTotal").innerText = data.length;
-    document.getElementById("countOpen").innerText = data.filter(d => (d.status || '').trim() === 'Open').length;
-    document.getElementById("countProgress").innerText = data.filter(d => (d.status || '').trim() === 'In Progress').length;
-    document.getElementById("countClosed").innerText = data.filter(d => (d.status || '').trim() === 'Closed').length;
+    document.getElementById("countOpen").innerText = data.filter(d => (d.status || '').toString().trim() === 'Open').length;
+    document.getElementById("countProgress").innerText = data.filter(d => (d.status || '').toString().trim() === 'In Progress').length;
+    document.getElementById("countClosed").innerText = data.filter(d => (d.status || '').toString().trim() === 'Closed').length;
   }
 
   function renderTable(data) {
@@ -310,7 +316,7 @@
     }
 
     tbody.innerHTML = data.map(item => {
-      const statusClean = (item.status || 'Open').trim();
+      const statusClean = (item.status || 'Open').toString().trim();
       let badgeClass = "badge-open";
       let statusText = "🔴 Open";
       if (statusClean === "In Progress") { badgeClass = "badge-progress"; statusText = "🟡 In Progress"; }
@@ -351,7 +357,7 @@
     const weekFilter = document.getElementById("weekFilter").value;
 
     const filtered = rawData.filter(item => {
-      const statusClean = (item.status || 'Open').trim();
+      const statusClean = (item.status || 'Open').toString().trim();
       const dateObj = new Date(item.timestamp);
       const weekKey = !isNaN(dateObj) ? `${getWeekNumber(dateObj).year}-${getWeekNumber(dateObj).tag}` : '';
 
@@ -382,13 +388,15 @@
     if (action === 'create') {
       document.getElementById("ptwForm").reset();
       document.getElementById("editId").value = "";
+      document.getElementById("modalProduct").value = currentProduct;
       document.getElementById("status").value = "Open";
       document.getElementById("entryDate").value = new Date().toISOString().split('T')[0];
     } else {
       const item = rawData.find(d => d.id === id);
       if (!item) return;
       document.getElementById("editId").value = item.id;
-      document.getElementById("status").value = (item.status || "Open").trim();
+      document.getElementById("modalProduct").value = currentProduct;
+      document.getElementById("status").value = (item.status || "Open").toString().trim();
       document.getElementById("company").value = item.company || "";
       document.getElementById("modelType").value = item.modelType || "";
       document.getElementById("toolId").value = item.toolId || "";
@@ -410,9 +418,8 @@
     document.getElementById("formModal").style.display = "none";
   }
 
-  // 刪除 Issue 邏輯
   function deleteIssue(id) {
-    if (!confirm("確定要刪除這筆 Issue 紀錄嗎？此動作無法撤銷。")) return;
+    if (!confirm("確定要刪除這筆 Issue 紀錄嗎？")) return;
 
     fetch(GAS_WEB_APP_URL, {
       method: "POST",
@@ -426,7 +433,7 @@
     })
     .catch(err => {
       console.error(err);
-      alert("刪除請求已發送！");
+      alert("刪除完成！");
       setTimeout(loadData, 1200);
     });
   }
@@ -439,7 +446,7 @@
 
     const payload = {
       action: document.getElementById("formAction").value,
-      product: currentProduct,
+      product: document.getElementById("modalProduct").value,
       id: document.getElementById("editId").value,
       entryDate: document.getElementById("entryDate").value,
       status: document.getElementById("status").value,

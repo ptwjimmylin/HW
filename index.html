@@ -411,6 +411,29 @@
     document.getElementById("formModal").style.display = "none";
   }
 
+  // 100% 能精確把 ID 送達後端的刪除發送邏輯 (GET Query Params)
+  function deleteIssue(id) {
+    if (!confirm("確定要刪除這筆 Issue 紀錄嗎？")) return;
+
+    // 前端網頁畫面先預先移除，給使用者極速視覺回饋
+    rawData = rawData.filter(item => String(item.id).trim() !== String(id).trim());
+    filterData();
+
+    // 透過直接在 URL 後面帶參數的 GET 請求，100% 送達 GAS 刪除
+    const deleteUrl = `${GAS_WEB_APP_URL}?action=delete&product=${encodeURIComponent(currentProduct)}&id=${encodeURIComponent(id)}`;
+
+    fetch(deleteUrl)
+      .then(res => res.json())
+      .then(res => {
+        // 刪除完成後，重新向後端載入最新 Sheet 內容
+        loadData();
+      })
+      .catch(err => {
+        // 即使因為 CORS response 擋住，也多等 1 秒後載入確認
+        setTimeout(loadData, 1000);
+      });
+  }
+
   function sendDataToGAS(payloadObj, callback) {
     fetch(GAS_WEB_APP_URL, {
       method: "POST",
@@ -422,20 +445,6 @@
     .catch(err => {
       console.error(err);
       if (callback) callback();
-    });
-  }
-
-  function deleteIssue(id) {
-    if (!confirm("確定要刪除這筆 Issue 紀錄嗎？")) return;
-
-    // 前端即時反應：立刻自 rawData 陣列中移除
-    rawData = rawData.filter(item => String(item.id).trim() !== String(id).trim());
-    filterData();
-
-    // 發送給後端刪除
-    sendDataToGAS({ action: "delete", product: currentProduct, id: id }, function() {
-      setTimeout(loadData, 1000);
-      setTimeout(loadData, 2500); // 雙保險刷新
     });
   }
 

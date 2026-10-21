@@ -10,7 +10,10 @@
     h2 { margin-top: 0; color: #1a202c; text-align: center; font-size: 24px; }
     
     .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
-    .card { padding: 15px; border-radius: 8px; background: #f8fafc; border-left: 5px solid #3b82f6; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .card { padding: 15px; border-radius: 8px; background: #f8fafc; border-left: 5px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .card.total { border-left-color: #3b82f6; }
+    .card.open { border-left-color: #ef4444; background: #fef2f2; }
+    .card.closed { border-left-color: #10b981; background: #f0fdf4; }
     .card .title { font-size: 13px; color: #64748b; font-weight: 600; text-transform: uppercase; }
     .card .value { font-size: 28px; font-weight: bold; margin-top: 5px; color: #0f172a; }
 
@@ -32,6 +35,10 @@
     th, td { border: 1px solid #e2e8f0; padding: 12px 10px; text-align: left; vertical-align: top; }
     th { background-color: #f1f5f9; color: #475569; font-weight: 600; white-space: nowrap; }
     tr:nth-child(even) { background-color: #f8fafc; }
+
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+    .badge-open { background-color: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+    .badge-closed { background-color: #d1fae5; color: #065f46; border: 1px solid #34d399; }
 
     .week-tag { display: inline-block; background: #e0e7ff; color: #3730a3; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-left: 5px; }
 
@@ -65,9 +72,17 @@
 
   <!-- Dashboard 統計卡片 -->
   <div class="dashboard">
-    <div class="card">
-      <div class="title">TOTAL ISSUES 紀錄總數</div>
+    <div class="card total">
+      <div class="title">Total Issues 總數</div>
       <div class="value" id="countTotal">0</div>
+    </div>
+    <div class="card open">
+      <div class="title">🔴 OPEN 有殘留問題 / 未完成計畫</div>
+      <div class="value" id="countOpen">0</div>
+    </div>
+    <div class="card closed">
+      <div class="title">🟢 CLOSED 已完成完結</div>
+      <div class="value" id="countClosed">0</div>
     </div>
   </div>
 
@@ -77,6 +92,7 @@
     
     <select id="weekFilter" onchange="filterData()">
       <option value="all" selected>🗓️ 全部時間 (All)</option>
+      <option value="openOnly">🚨 僅顯示未完結 (Open Only)</option>
     </select>
 
     <button class="btn" onclick="openModal('create')">+ 新增 Issue</button>
@@ -87,20 +103,21 @@
     <table>
       <thead>
         <tr>
+          <th>狀態</th>
           <th>日期 / 週別</th>
           <th>Company</th>
           <th>Model Type</th>
           <th>Tool ID</th>
           <th>負責人 (Owner)</th>
-          <th style="width: 20%;">Issue Description</th>
-          <th style="width: 20%;">Actions Done</th>
-          <th style="width: 20%;">Plan to Do / Remain</th>
+          <th style="width: 18%;">Issue Description</th>
+          <th style="width: 18%;">Actions Done</th>
+          <th style="width: 18%;">Plan to Do / Remain</th>
           <th>Parts PN</th>
           <th>功能</th>
         </tr>
       </thead>
       <tbody id="tableBody">
-        <tr><td colspan="10" style="text-align:center;">資料讀取中...</td></tr>
+        <tr><td colspan="11" style="text-align:center;">資料讀取中...</td></tr>
       </tbody>
     </table>
   </div>
@@ -211,6 +228,17 @@
     return { year: date.getUTCFullYear(), week: weekNo, tag: `W${weekNo}` };
   }
 
+  // 判斷是否為 Open 狀態（只要有 Remain Issue 或 Plan to Do 即為紅燈）
+  function isIssueOpen(item) {
+    const remain = (item.remainIssue || '').toString().trim().toUpperCase();
+    const plan = (item.planToDo || '').toString().trim().toUpperCase();
+    
+    const hasRemain = remain !== '' && remain !== 'NA' && remain !== 'N/A' && remain !== 'NONE';
+    const hasPlan = plan !== '' && plan !== 'NA' && plan !== 'N/A' && plan !== 'NONE';
+
+    return hasRemain || hasPlan;
+  }
+
   function switchProduct(product) {
     currentProduct = product;
     document.querySelectorAll(".tab-btn").forEach(btn => {
@@ -221,7 +249,7 @@
 
   function loadData() {
     const tbody = document.getElementById("tableBody");
-    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;">資料讀取中...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;">資料讀取中...</td></tr>`;
 
     fetch(`${GAS_WEB_APP_URL}?action=read&product=${currentProduct}`)
       .then(res => res.json())
@@ -233,15 +261,18 @@
       .catch(err => {
         console.error(err);
         rawData = [];
-        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;">尚無資料，請點擊「+ 新增 Issue」建立。</td></tr>`;
-        document.getElementById("countTotal").innerText = 0;
+        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;">尚無資料，請點擊「+ 新增 Issue」建立。</td></tr>`;
+        updateDashboard([]);
       });
   }
 
   function populateWeekDropdown() {
     const weekSelect = document.getElementById("weekFilter");
     const currentVal = weekSelect.value;
-    weekSelect.innerHTML = `<option value="all">🗓️ 全部時間 (All)</option>`;
+    weekSelect.innerHTML = `
+      <option value="all">🗓️ 全部時間 (All)</option>
+      <option value="openOnly">🚨 僅顯示未完結 (Open Only)</option>
+    `;
 
     const weeksSet = new Set();
     rawData.forEach(item => {
@@ -266,22 +297,35 @@
     }
   }
 
+  function updateDashboard(data) {
+    const total = data.length;
+    const openCount = data.filter(d => isIssueOpen(d)).length;
+    const closedCount = total - openCount;
+
+    document.getElementById("countTotal").innerText = total;
+    document.getElementById("countOpen").innerText = openCount;
+    document.getElementById("countClosed").innerText = closedCount;
+  }
+
   function renderTable(data) {
     const tbody = document.getElementById("tableBody");
-    document.getElementById("countTotal").innerText = data.length;
-
     if (!data || data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;">尚無符合條件的 Issue 紀錄</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;">尚無符合條件的 Issue 紀錄</td></tr>`;
       return;
     }
 
     tbody.innerHTML = data.map(item => {
+      const isOpen = isIssueOpen(item);
+      const badgeClass = isOpen ? "badge-open" : "badge-closed";
+      const statusText = isOpen ? "🔴 Open" : "🟢 Closed";
+
       const dateObj = new Date(item.timestamp);
       const dateStr = !isNaN(dateObj) ? dateObj.toISOString().split('T')[0] : (item.timestamp || '-');
       const weekInfo = !isNaN(dateObj) ? getWeekNumber(dateObj).tag : '';
 
       return `
         <tr>
+          <td><span class="badge ${badgeClass}">${statusText}</span></td>
           <td>${dateStr} <span class="week-tag">${weekInfo}</span></td>
           <td>${escapeHtml(item.company)}</td>
           <td>${escapeHtml(item.modelType)}</td>
@@ -313,7 +357,8 @@
       const dateObj = new Date(item.timestamp);
       const weekKey = !isNaN(dateObj) ? `${getWeekNumber(dateObj).year}-${getWeekNumber(dateObj).tag}` : '';
 
-      if (weekFilter !== "all" && weekKey !== weekFilter) return false;
+      if (weekFilter === "openOnly" && !isIssueOpen(item)) return false;
+      if (weekFilter !== "all" && weekFilter !== "openOnly" && weekKey !== weekFilter) return false;
 
       return (
         (item.company && item.company.toLowerCase().includes(query)) ||
@@ -328,6 +373,7 @@
       );
     });
 
+    updateDashboard(filtered);
     renderTable(filtered);
   }
 

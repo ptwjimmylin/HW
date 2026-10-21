@@ -7,22 +7,32 @@
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Tailwind CSS & Vue 3 CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <style>
+    /* 全局動態字體變數設定 */
+    :root {
+      --base-font-size: 15px;
+      --table-font-size: 15px;
+    }
+    
     body {
       font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: var(--base-font-size);
+      transition: font-size 0.15s ease-in-out;
     }
-    /* 動態字體大小縮放控制 */
-    .font-size-sm { font-size: 13px; }
-    .font-size-md { font-size: 15px; }
-    .font-size-lg { font-size: 18px; }
 
-    .font-size-sm .text-table-body { font-size: 13px; }
-    .font-size-md .text-table-body { font-size: 15px; }
-    .font-size-lg .text-table-body { font-size: 18px; }
+    /* 表格字體即時反應 */
+    .text-table-body {
+      font-size: var(--table-font-size) !important;
+      transition: font-size 0.15s ease-in-out;
+    }
+
+    .whitespace-pre-line {
+      white-space: pre-line;
+    }
 
     /* 精緻滾動條 */
     ::-webkit-scrollbar {
@@ -30,7 +40,7 @@
       height: 6px;
     }
     ::-webkit-scrollbar-track {
-      background: #F1F5F9;
+      background: rgba(241, 245, 249, 0.5);
     }
     ::-webkit-scrollbar-thumb {
       background: #CBD5E1;
@@ -39,13 +49,11 @@
     ::-webkit-scrollbar-thumb:hover {
       background: #94A3B8;
     }
-    .whitespace-pre-line {
-      white-space: pre-line;
-    }
   </style>
 </head>
-<body class="bg-[#F8FAFC] min-h-screen text-slate-700 p-4 md:p-8 antialiased selection:bg-indigo-500 selection:text-white">
-  <div id="app" :class="fontSizeClass" class="max-w-[1750px] mx-auto space-y-6">
+<!-- 高級感微漸層色彩背景 -->
+<body class="bg-gradient-to-br from-slate-100 via-indigo-50/40 to-slate-100 min-h-screen text-slate-700 p-4 md:p-8 antialiased selection:bg-indigo-500 selection:text-white">
+  <div id="app" class="max-w-[1780px] mx-auto space-y-6">
     
     <!-- 頂部標題與產品切換頁籤 -->
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-slate-200/80">
@@ -54,7 +62,7 @@
           <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
         </div>
         <div>
-          <h1 class="text-2xl font-bold text-slate-900 tracking-tight">PTW Service Review System</h1>
+          <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">PTW Service Review System</h1>
           <p class="text-sm text-slate-400 font-medium mt-0.5">週會機況審查與智能追蹤系統</p>
         </div>
       </div>
@@ -76,7 +84,7 @@
       <!-- 卡片 1: 全部 -->
       <div 
         @click="statusFilter = 'ALL'"
-        :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border', statusFilter === 'ALL' ? 'bg-white border-indigo-500 shadow-lg shadow-indigo-500/10 ring-1 ring-indigo-500' : 'bg-white border-slate-200/80 hover:border-slate-300 hover:shadow-md']">
+        :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border', statusFilter === 'ALL' ? 'bg-white border-indigo-500 shadow-lg shadow-indigo-500/10 ring-1 ring-indigo-500' : 'bg-white/90 border-slate-200/80 hover:border-slate-300 hover:shadow-md']">
         <div class="absolute top-0 left-0 right-0 h-1 bg-slate-300"></div>
         <div class="flex justify-between items-center">
           <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">當週 Issue 總數</span>
@@ -88,7 +96,7 @@
       <!-- 卡片 2: Plan to Do -->
       <div 
         @click="statusFilter = statusFilter === 'PLAN' ? 'ALL' : 'PLAN'"
-        :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border', statusFilter === 'PLAN' ? 'bg-amber-50/40 border-amber-500 shadow-lg shadow-amber-500/10 ring-1 ring-amber-500' : 'bg-white border-slate-200/80 hover:border-amber-300 hover:shadow-md']">
+        :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border', statusFilter === 'PLAN' ? 'bg-amber-50/70 border-amber-500 shadow-lg shadow-amber-500/10 ring-1 ring-amber-500' : 'bg-white/90 border-slate-200/80 hover:border-amber-300 hover:shadow-md']">
         <div class="absolute top-0 left-0 right-0 h-1 bg-amber-400"></div>
         <div class="flex justify-between items-center">
           <span class="text-xs font-bold text-amber-600/90 uppercase tracking-wider">有 PLAN TO DO (關注)</span>
@@ -100,7 +108,7 @@
       <!-- 卡片 3: Remain Issue -->
       <div 
         @click="statusFilter = statusFilter === 'REMAIN' ? 'ALL' : 'REMAIN'"
-        :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border', statusFilter === 'REMAIN' ? 'bg-rose-50/40 border-rose-500 shadow-lg shadow-rose-500/10 ring-1 ring-rose-500' : 'bg-white border-slate-200/80 hover:border-rose-300 hover:shadow-md']">
+        :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border', statusFilter === 'REMAIN' ? 'bg-rose-50/70 border-rose-500 shadow-lg shadow-rose-500/10 ring-1 ring-rose-500' : 'bg-white/90 border-slate-200/80 hover:border-rose-300 hover:shadow-md']">
         <div class="absolute top-0 left-0 right-0 h-1 bg-rose-500"></div>
         <div class="flex justify-between items-center">
           <span class="text-xs font-bold text-rose-600/90 uppercase tracking-wider">有 REMAIN ISSUE (警示)</span>
@@ -112,7 +120,7 @@
       <!-- 卡片 4: Closed -->
       <div 
         @click="statusFilter = statusFilter === 'CLOSED' ? 'ALL' : 'CLOSED'"
-        :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border', statusFilter === 'CLOSED' ? 'bg-emerald-50/40 border-emerald-500 shadow-lg shadow-emerald-500/10 ring-1 ring-emerald-500' : 'bg-white border-slate-200/80 hover:border-emerald-300 hover:shadow-md']">
+        :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border', statusFilter === 'CLOSED' ? 'bg-emerald-50/70 border-emerald-500 shadow-lg shadow-emerald-500/10 ring-1 ring-emerald-500' : 'bg-white/90 border-slate-200/80 hover:border-emerald-300 hover:shadow-md']">
         <div class="absolute top-0 left-0 right-0 h-1 bg-emerald-500"></div>
         <div class="flex justify-between items-center">
           <span class="text-xs font-bold text-emerald-600/90 uppercase tracking-wider">已完結 (CLOSED)</span>
@@ -123,7 +131,7 @@
     </div>
 
     <!-- 控制區：週別選擇、搜尋、字體大小調節與新增按鈕 -->
-    <div class="flex flex-col lg:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80">
+    <div class="flex flex-col lg:flex-row justify-between items-center gap-4 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-sm border border-slate-200/80">
       <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
         <!-- 週別篩選 -->
         <div class="flex items-center gap-2 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200/60">
@@ -139,22 +147,22 @@
           <button @click="searchQuery = ''" v-if="searchQuery" class="absolute right-2.5 top-2 text-xs text-slate-400 hover:text-slate-600">✕</button>
         </div>
 
-        <!-- 🔥 新增：字體大小切換按鈕區 -->
+        <!-- 🔥 即時字體大小切換按鈕 -->
         <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/80 ml-0 sm:ml-2">
-          <span class="text-[11px] font-bold text-slate-400 px-2">字體</span>
+          <span class="text-[11px] font-bold text-slate-400 px-2">字體大小</span>
           <button 
-            @click="fontSize = 'sm'" 
-            :class="['px-2.5 py-1 rounded-lg text-xs font-bold transition-all', fontSize === 'sm' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-800']">
+            @click="changeFontSize('sm')" 
+            :class="['px-3 py-1 rounded-lg text-xs font-bold transition-all', fontSize === 'sm' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800']">
             小
           </button>
           <button 
-            @click="fontSize = 'md'" 
-            :class="['px-2.5 py-1 rounded-lg text-xs font-bold transition-all', fontSize === 'md' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-800']">
+            @click="changeFontSize('md')" 
+            :class="['px-3 py-1 rounded-lg text-xs font-bold transition-all', fontSize === 'md' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800']">
             中
           </button>
           <button 
-            @click="fontSize = 'lg'" 
-            :class="['px-2.5 py-1 rounded-lg text-xs font-bold transition-all', fontSize === 'lg' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-800']">
+            @click="changeFontSize('lg')" 
+            :class="['px-3 py-1 rounded-lg text-xs font-bold transition-all', fontSize === 'lg' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800']">
             大
           </button>
         </div>
@@ -168,17 +176,17 @@
     </div>
 
     <!-- 機況表格區 -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+    <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-left text-slate-700 border-collapse min-w-[1550px] text-table-body">
-          <thead class="bg-slate-50/80 text-slate-500 font-bold uppercase tracking-wider text-xs border-b border-slate-200/80">
+          <thead class="bg-slate-50/90 text-slate-500 font-bold uppercase tracking-wider text-xs border-b border-slate-200/80">
             <tr>
               <th class="py-4 px-4 w-32">Status</th>
               <th class="py-4 px-4 w-40">ID / Timestamp</th>
               <th class="py-4 px-4 w-40">Company / Model</th>
               <th class="py-4 px-4 w-40">Tool ID / Owner</th>
               <th class="py-4 px-4 w-64">Issue Description</th>
-              <!-- Actions Done 特別加寬大欄位 -->
+              <!-- Actions Done 特別加寬欄位 -->
               <th class="py-4 px-4 min-w-[380px]">Actions Done</th>
               <th class="py-4 px-4 w-52">Plan to Do</th>
               <th class="py-4 px-4 w-52">Remain Issue</th>
@@ -187,7 +195,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100">
-            <tr v-for="item in filteredIssues" :key="item.ID" class="hover:bg-indigo-50/30 transition-colors duration-150 align-top">
+            <tr v-for="item in filteredIssues" :key="item.ID" class="hover:bg-indigo-50/40 transition-colors duration-150 align-top">
               <!-- Status 標籤 -->
               <td class="py-4 px-4 whitespace-nowrap">
                 <span v-if="item['Remain Issue'] && String(item['Remain Issue']).trim() !== ''" class="inline-flex items-center gap-1.5 bg-rose-50 text-rose-700 font-bold px-3 py-1 rounded-md border border-rose-200/60">
@@ -219,8 +227,8 @@
                 {{ item['Actions Done'] || '-' }}
               </td>
               
-              <td class="py-4 px-4 break-words whitespace-pre-line font-bold text-amber-900 bg-amber-50/40 rounded-xl p-2.5">{{ item['Plan to Do'] || '-' }}</td>
-              <td class="py-4 px-4 break-words whitespace-pre-line font-bold text-rose-900 bg-rose-50/40 rounded-xl p-2.5">{{ item['Remain Issue'] || '-' }}</td>
+              <td class="py-4 px-4 break-words whitespace-pre-line font-bold text-amber-900 bg-amber-50/50 rounded-xl p-2.5">{{ item['Plan to Do'] || '-' }}</td>
+              <td class="py-4 px-4 break-words whitespace-pre-line font-bold text-rose-900 bg-rose-50/50 rounded-xl p-2.5">{{ item['Remain Issue'] || '-' }}</td>
               <td class="py-4 px-4">
                 <div class="text-slate-700 font-medium">Cat: {{ item['Replace Parts Category'] || '-' }}</div>
                 <div class="text-xs font-mono text-slate-400 mt-1">PN: {{ item['Replace Parts PN'] || '-' }}</div>
@@ -336,7 +344,7 @@
         const selectedWeek = ref('');
         const searchQuery = ref('');
         const statusFilter = ref('ALL');
-        const fontSize = ref('md'); // sm, md, lg 字體選單預設為中 (md)
+        const fontSize = ref('md'); // sm, md, lg
         const showModal = ref(false);
         const isEdit = ref(false);
         const loading = ref(false);
@@ -357,13 +365,21 @@
           'Replace Parts PN': ''
         });
 
-        const fontSizeClass = computed(() => {
-          return {
-            'font-size-sm': fontSize.value === 'sm',
-            'font-size-md': fontSize.value === 'md',
-            'font-size-lg': fontSize.value === 'lg'
-          };
-        });
+        // 🔥 即時調整 CSS 變數，達成零延遲字體縮放
+        const changeFontSize = (size) => {
+          fontSize.value = size;
+          const root = document.documentElement;
+          if (size === 'sm') {
+            root.style.setProperty('--base-font-size', '13px');
+            root.style.setProperty('--table-font-size', '13px');
+          } else if (size === 'md') {
+            root.style.setProperty('--base-font-size', '15px');
+            root.style.setProperty('--table-font-size', '15px');
+          } else if (size === 'lg') {
+            root.style.setProperty('--base-font-size', '17px');
+            root.style.setProperty('--table-font-size', '18px');
+          }
+        };
 
         const fetchData = async () => {
           loading.value = true;
@@ -521,7 +537,6 @@
           searchQuery,
           statusFilter,
           fontSize,
-          fontSizeClass,
           showModal,
           isEdit,
           loading,
@@ -529,6 +544,7 @@
           form,
           filteredIssues,
           dashboardStats,
+          changeFontSize,
           switchSheet,
           fetchData,
           openModal,

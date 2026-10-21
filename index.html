@@ -98,7 +98,7 @@
     <button class="btn" onclick="openModal('create')">+ 新增 Issue</button>
   </div>
 
-  <!-- 資料表格 -->
+  <!-- 資料表格 (完美對齊 13 欄表頭) -->
   <div class="table-responsive">
     <table>
       <thead>
@@ -179,12 +179,12 @@
 
       <div class="form-group">
         <label for="planToDo">Plan to Do (後續計畫):</label>
-        <textarea id="planToDo" placeholder="預計執行的處置..."></textarea>
+        <textarea id="planToDo" placeholder="若有未完成事項請填寫此處（將亮紅燈）..."></textarea>
       </div>
 
       <div class="form-group">
         <label for="remainIssue">Remain Issue (殘留問題):</label>
-        <textarea id="remainIssue" placeholder="目前未解決的部分..."></textarea>
+        <textarea id="remainIssue" placeholder="若有殘留議題請填寫此處（將亮紅燈）..."></textarea>
       </div>
 
       <div class="form-row">
@@ -228,6 +228,7 @@
     return { year: date.getUTCFullYear(), week: weekNo, tag: `W${weekNo}` };
   }
 
+  // 自動動態判斷：只要 Plan to Do 或 Remain Issue 任何一個欄位有填寫非 NA 內容，即標示紅燈
   function isIssueOpen(item) {
     const remain = (item.remainIssue || '').toString().trim().toUpperCase();
     const plan = (item.planToDo || '').toString().trim().toUpperCase();
@@ -411,7 +412,7 @@
     document.getElementById("formModal").style.display = "none";
   }
 
-  // 使用相容性 100% 的 URL-Encoded Fetch (保證正確發送新增與刪除)
+  // 使用標準化 URL-encoded POST 傳輸，100% 被 GAS 接收
   function sendDataToGAS(payloadObj, callback) {
     const params = new URLSearchParams(payloadObj);
 
@@ -428,14 +429,15 @@
     });
   }
 
+  // 100% 抹除資料的刪除邏輯
   function deleteIssue(id) {
     if (!confirm("確定要刪除這筆 Issue 紀錄嗎？")) return;
 
-    // 前端網頁視覺立即反應刪除
+    // 前端即時秒抹除
     rawData = rawData.filter(item => String(item.id).trim() !== String(id).trim());
     filterData();
 
-    // 發送刪除請求至 GAS
+    // 發送給後端刪除命令
     sendDataToGAS({ action: "delete", product: currentProduct, id: id }, function() {
       setTimeout(loadData, 1200);
     });

@@ -6,7 +6,7 @@
   <title>PTW Service Issue Tracer - Weekly Review</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f6f9; color: #333; }
-    .container { max-width: 1200px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .container { max-width: 1250px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
     h2 { margin-top: 0; color: #1a202c; text-align: center; font-size: 24px; }
     
     .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
@@ -28,6 +28,8 @@
     
     .btn { padding: 9px 18px; background-color: #2563eb; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
     .btn:hover { background-color: #1d4ed8; }
+    .btn-danger { background-color: #dc2626; }
+    .btn-danger:hover { background-color: #b91c1c; }
     .btn-secondary { background-color: #64748b; }
     .btn-secondary:hover { background-color: #475569; }
 
@@ -44,11 +46,15 @@
 
     .week-tag { display: inline-block; background: #e0e7ff; color: #3730a3; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-left: 5px; }
 
-    .action-btn { padding: 6px 12px; background-color: #059669; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; }
-    .action-btn:hover { background-color: #047857; }
+    .action-group { display: flex; gap: 5px; }
+    .action-btn { padding: 5px 8px; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500; }
+    .btn-edit { background-color: #059669; }
+    .btn-edit:hover { background-color: #047857; }
+    .btn-del { background-color: #ef4444; }
+    .btn-del:hover { background-color: #dc2626; }
 
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); justify-content: center; align-items: center; z-index: 1000; }
-    .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 650px; max-height: 85vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 680px; max-height: 85vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .form-group { margin-bottom: 14px; }
     .form-row { display: flex; gap: 12px; }
     .form-row .form-group { flex: 1; }
@@ -90,9 +96,8 @@
 
   <!-- 控制面板 -->
   <div class="control-panel">
-    <input type="text" id="searchInput" class="search-input" placeholder="搜尋 公司 / Model / 關鍵字 / 負責人..." oninput="filterData()">
+    <input type="text" id="searchInput" class="search-input" placeholder="搜尋 公司 / Model / Tool ID / 負責人 / 關鍵字..." oninput="filterData()">
     
-    <!-- 依 Wx 週別動態選單 -->
     <select id="weekFilter" onchange="filterData()">
       <option value="all" selected>🗓️ 全部時間 (All)</option>
       <option value="openOnly">🚨 僅顯示未解決 (Open Only)</option>
@@ -110,6 +115,7 @@
           <th>日期 / 週別</th>
           <th>Company</th>
           <th>Model</th>
+          <th>Tool ID</th>
           <th>負責人 (AR)</th>
           <th style="width: 18%;">Issue Description</th>
           <th style="width: 18%;">Actions Done</th>
@@ -119,7 +125,7 @@
         </tr>
       </thead>
       <tbody id="tableBody">
-        <tr><td colspan="10" style="text-align:center;">資料讀取中...</td></tr>
+        <tr><td colspan="11" style="text-align:center;">資料讀取中...</td></tr>
       </tbody>
     </table>
   </div>
@@ -150,18 +156,24 @@
 
       <div class="form-row">
         <div class="form-group">
-          <label for="owner">負責人 (AR / Owner):</label>
-          <input type="text" id="owner" placeholder="例如: Alex / John" required>
-        </div>
-        <div class="form-group">
           <label for="company">Company:</label>
           <input type="text" id="company" placeholder="例如: TSMC, UMC" required>
         </div>
+        <div class="form-group">
+          <label for="modelType">Model Type:</label>
+          <input type="text" id="modelType" placeholder="例如: Model X" required>
+        </div>
       </div>
 
-      <div class="form-group">
-        <label for="modelType">Model Type:</label>
-        <input type="text" id="modelType" placeholder="例如: Model X" required>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="toolId">Tool ID:</label>
+          <input type="text" id="toolId" placeholder="例如: TOOL-01">
+        </div>
+        <div class="form-group">
+          <label for="owner">負責人 (AR / Owner):</label>
+          <input type="text" id="owner" placeholder="例如: Alex / John" required>
+        </div>
       </div>
 
       <div class="form-group">
@@ -216,7 +228,6 @@
   let currentProduct = "Hitachi";
   let rawData = [];
 
-  // 計算 ISO 第幾週 (Wx)
   function getWeekNumber(d) {
     const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
     const dayNum = date.getUTCDay() || 7;
@@ -236,7 +247,7 @@
 
   function loadData() {
     const tbody = document.getElementById("tableBody");
-    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;">資料讀取中...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;">資料讀取中...</td></tr>`;
 
     fetch(`${GAS_WEB_APP_URL}?product=${currentProduct}`)
       .then(res => res.json())
@@ -248,12 +259,11 @@
       .catch(err => {
         console.error(err);
         rawData = [];
-        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;">尚無資料，請點擊「+ 新增 Issue」建立。</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;">尚無資料，請點擊「+ 新增 Issue」建立。</td></tr>`;
         updateDashboard([]);
       });
   }
 
-  // 動態更新 Wx 週數選單
   function populateWeekDropdown() {
     const weekSelect = document.getElementById("weekFilter");
     const currentVal = weekSelect.value;
@@ -295,7 +305,7 @@
   function renderTable(data) {
     const tbody = document.getElementById("tableBody");
     if (!data || data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;">尚無符合條件的 Issue 紀錄</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;">尚無符合條件的 Issue 紀錄</td></tr>`;
       return;
     }
 
@@ -316,6 +326,7 @@
           <td>${dateStr} <span class="week-tag">${weekInfo}</span></td>
           <td>${escapeHtml(item.company)}</td>
           <td>${escapeHtml(item.modelType)}</td>
+          <td><b>${escapeHtml(item.toolId || '-')}</b></td>
           <td><b>${escapeHtml(item.owner || '-')}</b></td>
           <td>${escapeHtml(item.issueDesc)}</td>
           <td>${escapeHtml(item.actionsDone || '-')}</td>
@@ -325,7 +336,10 @@
           </td>
           <td>${escapeHtml(item.partsPN || '-')}</td>
           <td>
-            <button class="action-btn" onclick="openModal('update', '${item.id}')">編輯</button>
+            <div class="action-group">
+              <button class="action-btn btn-edit" onclick="openModal('update', '${item.id}')">編輯</button>
+              <button class="action-btn btn-del" onclick="deleteIssue('${item.id}')">刪除</button>
+            </div>
           </td>
         </tr>
       `;
@@ -347,6 +361,7 @@
       return (
         (item.company && item.company.toLowerCase().includes(query)) ||
         (item.modelType && item.modelType.toLowerCase().includes(query)) ||
+        (item.toolId && item.toolId.toLowerCase().includes(query)) ||
         (item.owner && item.owner.toLowerCase().includes(query)) ||
         (item.issueDesc && item.issueDesc.toLowerCase().includes(query)) ||
         (item.actionsDone && item.actionsDone.toLowerCase().includes(query)) ||
@@ -374,9 +389,10 @@
       if (!item) return;
       document.getElementById("editId").value = item.id;
       document.getElementById("status").value = (item.status || "Open").trim();
-      document.getElementById("owner").value = item.owner || "";
       document.getElementById("company").value = item.company || "";
       document.getElementById("modelType").value = item.modelType || "";
+      document.getElementById("toolId").value = item.toolId || "";
+      document.getElementById("owner").value = item.owner || "";
       document.getElementById("issueDesc").value = item.issueDesc || "";
       document.getElementById("actionsDone").value = item.actionsDone || "";
       document.getElementById("planToDo").value = item.planToDo || "";
@@ -394,6 +410,27 @@
     document.getElementById("formModal").style.display = "none";
   }
 
+  // 刪除 Issue 邏輯
+  function deleteIssue(id) {
+    if (!confirm("確定要刪除這筆 Issue 紀錄嗎？此動作無法撤銷。")) return;
+
+    fetch(GAS_WEB_APP_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({ action: "delete", product: currentProduct, id: id })
+    })
+    .then(() => {
+      alert("已刪除該筆紀錄！");
+      setTimeout(loadData, 1200);
+    })
+    .catch(err => {
+      console.error(err);
+      alert("刪除請求已發送！");
+      setTimeout(loadData, 1200);
+    });
+  }
+
   document.getElementById("ptwForm").addEventListener("submit", function(e) {
     e.preventDefault();
     const submitBtn = document.getElementById("submitBtn");
@@ -406,9 +443,10 @@
       id: document.getElementById("editId").value,
       entryDate: document.getElementById("entryDate").value,
       status: document.getElementById("status").value,
-      owner: document.getElementById("owner").value,
       company: document.getElementById("company").value,
       modelType: document.getElementById("modelType").value,
+      toolId: document.getElementById("toolId").value,
+      owner: document.getElementById("owner").value,
       issueDesc: document.getElementById("issueDesc").value,
       actionsDone: document.getElementById("actionsDone").value,
       planToDo: document.getElementById("planToDo").value,

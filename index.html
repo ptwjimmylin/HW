@@ -34,23 +34,25 @@
       white-space: pre-line;
     }
 
-    /* 天空藍風格獨立欄位滾動條樣式 */
-    .custom-scroll {
-      max-height: 160px;
+    /* 🔥 獨立欄位固定高度 (110px) 與自動出現捲軸 */
+    .cell-scroll-box {
+      max-height: 110px;
       overflow-y: auto;
+      word-break: break-all; /* 強制超長連續英數自動斷行，避免撐開欄位 */
     }
-    .custom-scroll::-webkit-scrollbar {
+    
+    .cell-scroll-box::-webkit-scrollbar {
       width: 5px;
     }
-    .custom-scroll::-webkit-scrollbar-track {
+    .cell-scroll-box::-webkit-scrollbar-track {
       background: rgba(224, 242, 254, 0.6);
       border-radius: 4px;
     }
-    .custom-scroll::-webkit-scrollbar-thumb {
+    .cell-scroll-box::-webkit-scrollbar-thumb {
       background: #38BDF8;
       border-radius: 4px;
     }
-    .custom-scroll::-webkit-scrollbar-thumb:hover {
+    .cell-scroll-box::-webkit-scrollbar-thumb:hover {
       background: #0284C7;
     }
 
@@ -68,7 +70,7 @@
     }
   </style>
 </head>
-<!-- 天空淺藍色高對比質感背景 -->
+<!-- 天空淺藍色高對比背景 -->
 <body class="bg-sky-100/70 min-h-screen text-slate-800 p-4 md:p-8 antialiased selection:bg-sky-600 selection:text-white">
   <div id="app" class="max-w-[1800px] mx-auto space-y-6">
     
@@ -192,85 +194,91 @@
       </button>
     </div>
 
-    <!-- 機況表格區 -->
+    <!-- 🔥 機況表格區 (採用 table-fixed 強制嚴格固定寬度) -->
     <div class="bg-white rounded-2xl shadow-md border border-sky-200 overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-slate-800 border-collapse min-w-[1550px] text-table-body">
+        <table class="w-full text-left text-slate-800 border-collapse table-fixed min-w-[1500px] text-table-body">
           <thead class="bg-sky-50/80 text-slate-700 font-bold uppercase tracking-wider text-xs border-b border-sky-200">
             <tr>
-              <th class="py-4 px-4 w-28 border-r border-sky-100">Status</th>
-              <th class="py-4 px-4 w-36 border-r border-sky-100">ID / Timestamp</th>
-              <th class="py-4 px-4 w-36 border-r border-sky-100">Company / Model</th>
-              <th class="py-4 px-4 w-36 border-r border-sky-100">Tool ID / Owner</th>
-              <th class="py-4 px-4 w-56 border-r border-sky-100">Issue Description</th>
-              <!-- 下列三欄固定寬度與滾動條區域 -->
-              <th class="py-4 px-4 w-[360px] border-r border-sky-100">Actions Done</th>
-              <th class="py-4 px-4 w-[220px] border-r border-sky-100">Plan to Do</th>
-              <th class="py-4 px-4 w-[220px] border-r border-sky-100">Remain Issue</th>
-              <th class="py-4 px-4 w-40 border-r border-sky-100">Replace Parts</th>
-              <th class="py-4 px-4 w-24 text-center">Actions</th>
+              <th class="py-4 px-4 w-[110px] border-r border-sky-100">Status</th>
+              <th class="py-4 px-4 w-[140px] border-r border-sky-100">ID / Timestamp</th>
+              <th class="py-4 px-4 w-[140px] border-r border-sky-100">Company / Model</th>
+              <th class="py-4 px-4 w-[130px] border-r border-sky-100">Tool ID / Owner</th>
+              <th class="py-4 px-4 w-[220px] border-r border-sky-100">Issue Description</th>
+              
+              <!-- 🔥 嚴格固定寬度的三欄 -->
+              <th class="py-4 px-4 w-[300px] border-r border-sky-100">Actions Done</th>
+              <th class="py-4 px-4 w-[200px] border-r border-sky-100">Plan to Do</th>
+              <th class="py-4 px-4 w-[200px] border-r border-sky-100">Remain Issue</th>
+              
+              <th class="py-4 px-4 w-[160px] border-r border-sky-100">Replace Parts</th>
+              <th class="py-4 px-4 w-[100px] text-center">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-sky-100">
             <tr v-for="item in filteredIssues" :key="item.ID" class="hover:bg-sky-50/50 transition-colors duration-150 align-top">
               <!-- Status 標籤 -->
               <td class="py-4 px-4 whitespace-nowrap">
-                <span v-if="item['Remain Issue'] && String(item['Remain Issue']).trim() !== ''" class="inline-flex items-center gap-1.5 bg-rose-100 text-rose-800 font-extrabold px-3 py-1 rounded-md border border-rose-300 shadow-sm">
+                <span v-if="item['Remain Issue'] && String(item['Remain Issue']).trim() !== ''" class="inline-flex items-center gap-1.5 bg-rose-100 text-rose-800 font-extrabold px-2.5 py-1 rounded-md border border-rose-300 shadow-sm text-xs">
                   <span class="w-2 h-2 rounded-full bg-rose-600 animate-pulse"></span>Remain
                 </span>
-                <span v-else-if="item['Plan to Do'] && String(item['Plan to Do']).trim() !== ''" class="inline-flex items-center gap-1.5 bg-amber-100 text-amber-800 font-extrabold px-3 py-1 rounded-md border border-amber-300 shadow-sm">
+                <span v-else-if="item['Plan to Do'] && String(item['Plan to Do']).trim() !== ''" class="inline-flex items-center gap-1.5 bg-amber-100 text-amber-800 font-extrabold px-2.5 py-1 rounded-md border border-amber-300 shadow-sm text-xs">
                   <span class="w-2 h-2 rounded-full bg-amber-600"></span>Plan
                 </span>
-                <span v-else class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 font-extrabold px-3 py-1 rounded-md border border-emerald-300 shadow-sm">
+                <span v-else class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 font-extrabold px-2.5 py-1 rounded-md border border-emerald-300 shadow-sm text-xs">
                   <span class="w-2 h-2 rounded-full bg-emerald-600"></span>Closed
                 </span>
               </td>
               <td class="py-4 px-4">
-                <div class="font-mono font-bold text-slate-900">{{ item.ID }}</div>
+                <div class="font-mono font-bold text-slate-900 break-all">{{ item.ID }}</div>
                 <div class="text-xs text-slate-500 mt-1 font-mono">{{ formatDate(item.Timestamp) }}</div>
               </td>
               <td class="py-4 px-4">
-                <div class="font-extrabold text-slate-900">{{ item.Company || '-' }}</div>
-                <div class="text-xs text-slate-500 mt-0.5">{{ item['Model Type'] || '-' }}</div>
+                <div class="font-extrabold text-slate-900 break-words">{{ item.Company || '-' }}</div>
+                <div class="text-xs text-slate-500 mt-0.5 break-words">{{ item['Model Type'] || '-' }}</div>
               </td>
               <td class="py-4 px-4">
-                <div class="font-extrabold text-sky-900 font-mono">{{ item['Tool ID'] || '-' }}</div>
-                <div class="text-xs text-slate-500 mt-0.5">{{ item.Owner || '-' }}</div>
+                <div class="font-extrabold text-sky-900 font-mono break-all">{{ item['Tool ID'] || '-' }}</div>
+                <div class="text-xs text-slate-500 mt-0.5 break-words">{{ item.Owner || '-' }}</div>
               </td>
-              <td class="py-4 px-4 break-words whitespace-pre-line text-slate-800 leading-relaxed">{{ item['Issue Description'] || '-' }}</td>
+              <td class="py-4 px-4">
+                <div class="cell-scroll-box whitespace-pre-line text-slate-800 leading-relaxed pr-1">
+                  {{ item['Issue Description'] || '-' }}
+                </div>
+              </td>
               
-              <!-- 🔥 欄位 1: Actions Done (固定寬度 + 獨立 Scrollbar) -->
-              <td class="py-4 px-4 w-[360px]">
-                <div class="custom-scroll whitespace-pre-line text-slate-900 leading-relaxed border-l-2 border-sky-400 pl-3.5 pr-2 bg-sky-50/30 rounded-r-lg">
+              <!-- 🔥 欄位 1: Actions Done (嚴格限制寬度 + 固定高度 110px 滾動) -->
+              <td class="py-4 px-4">
+                <div class="cell-scroll-box whitespace-pre-line text-slate-900 leading-relaxed border-l-2 border-sky-400 pl-3 pr-1 bg-sky-50/40 rounded-r-lg">
                   {{ item['Actions Done'] || '-' }}
                 </div>
               </td>
               
-              <!-- 🔥 欄位 2: Plan to Do (固定寬度 + 獨立 Scrollbar) -->
-              <td class="py-4 px-4 w-[220px]">
-                <div class="custom-scroll whitespace-pre-line font-bold text-amber-900 bg-amber-50/70 rounded-xl p-2.5 border border-amber-200/80 pr-2">
+              <!-- 🔥 欄位 2: Plan to Do (嚴格限制寬度 + 固定高度 110px 滾動) -->
+              <td class="py-4 px-4">
+                <div class="cell-scroll-box whitespace-pre-line font-bold text-amber-900 bg-amber-50/70 rounded-xl p-2.5 border border-amber-200/80 pr-1">
                   {{ item['Plan to Do'] || '-' }}
                 </div>
               </td>
 
-              <!-- 🔥 欄位 3: Remain Issue (固定寬度 + 獨立 Scrollbar) -->
-              <td class="py-4 px-4 w-[220px]">
-                <div class="custom-scroll whitespace-pre-line font-bold text-rose-900 bg-rose-50/70 rounded-xl p-2.5 border border-rose-200/80 pr-2">
+              <!-- 🔥 欄位 3: Remain Issue (嚴格限制寬度 + 固定高度 110px 滾動) -->
+              <td class="py-4 px-4">
+                <div class="cell-scroll-box whitespace-pre-line font-bold text-rose-900 bg-rose-50/70 rounded-xl p-2.5 border border-rose-200/80 pr-1">
                   {{ item['Remain Issue'] || '-' }}
                 </div>
               </td>
 
               <td class="py-4 px-4">
-                <div class="text-slate-800 font-semibold">Cat: {{ item['Replace Parts Category'] || '-' }}</div>
-                <div class="text-xs font-mono text-slate-500 mt-1">PN: {{ item['Replace Parts PN'] || '-' }}</div>
+                <div class="text-slate-800 font-semibold break-words">Cat: {{ item['Replace Parts Category'] || '-' }}</div>
+                <div class="text-xs font-mono text-slate-500 mt-1 break-all">PN: {{ item['Replace Parts PN'] || '-' }}</div>
               </td>
               <td class="py-4 px-4 text-center whitespace-nowrap">
-                <div class="flex justify-center items-center gap-2">
-                  <button @click="openModal(item)" class="p-2 text-slate-500 hover:text-sky-600 hover:bg-sky-100 rounded-lg transition-colors border border-sky-100">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                <div class="flex justify-center items-center gap-1.5">
+                  <button @click="openModal(item)" class="p-1.5 text-slate-500 hover:text-sky-600 hover:bg-sky-100 rounded-lg transition-colors border border-sky-100">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                   </button>
-                  <button @click="deleteItem(item.ID)" class="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-100 rounded-lg transition-colors border border-sky-100">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                  <button @click="deleteItem(item.ID)" class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-100 rounded-lg transition-colors border border-sky-100">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                   </button>
                 </div>
               </td>

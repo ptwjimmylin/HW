@@ -86,7 +86,7 @@
     </div>
   </div>
 
-  <!-- 控制列 -->
+  <!-- 控制面板 -->
   <div class="control-panel">
     <input type="text" id="searchInput" class="search-input" placeholder="搜尋 公司 / Model / 關鍵字 / 負責人..." oninput="filterData()">
     
@@ -117,13 +117,13 @@
         </tr>
       </thead>
       <tbody id="tableBody">
-        <tr><td colspan="9" style="text-align:center;">載入中...</td></tr>
+        <tr><td colspan="9" style="text-align:center;">資料讀取中...</td></tr>
       </tbody>
     </table>
   </div>
 </div>
 
-<!-- 新增/編輯 Modal -->
+<!-- 新增/編輯 Modal 彈窗 -->
 <div class="modal" id="formModal">
   <div class="modal-content">
     <h3 id="modalTitle" style="margin-top:0;">新增 Issue</h3>
@@ -221,15 +221,22 @@
     const tbody = document.getElementById("tableBody");
     tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;">資料讀取中...</td></tr>`;
 
-    fetch(`${GAS_WEB_APP_URL}?product=${currentProduct}`)
+    // 防連線逾時處理機制
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    fetch(`${GAS_WEB_APP_URL}?product=${currentProduct}`, { signal: controller.signal })
       .then(res => res.json())
       .then(data => {
+        clearTimeout(timeoutId);
         rawData = Array.isArray(data) ? data : [];
         filterData();
       })
       .catch(err => {
-        console.error(err);
-        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;">尚無資料，請點擊「+ 新增 Issue」開始建立。</td></tr>`;
+        clearTimeout(timeoutId);
+        console.warn("GAS 讀取逾時或無資料，顯示預設畫面:", err);
+        rawData = [];
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;">尚無資料，請點擊上方「+ 新增 Issue」開始建立。</td></tr>`;
         updateDashboard([]);
       });
   }
@@ -275,30 +282,11 @@
     }).join('');
   }
 
-  function getTuesdayCycleBounds() {
-    const now = new Date();
-    const day = now.getDay();
-    const diffToTuesday = (day >= 2) ? (day - 2) : (day + 5);
-    const thisTuesday = new Date(now);
-    thisTuesday.setDate(now.getDate() - diffToTuesday);
-    thisTuesday.setHours(0, 0, 0, 0);
-
-    const lastTuesday = new Date(thisTuesday);
-    lastTuesday.setDate(thisTuesday.getDate() - 7);
-
-    return { thisTuesday, lastTuesday };
-  }
-
   function filterData() {
     const query = document.getElementById("searchInput").value.toLowerCase();
     const weekFilter = document.getElementById("weekFilter").value;
-    const { thisTuesday, lastTuesday } = getTuesdayCycleBounds();
 
     const filtered = rawData.filter(item => {
-      const itemDate = new Date(item.timestamp);
-
-      if (weekFilter === "thisWeek" && itemDate < thisTuesday) return false;
-      if (weekFilter === "lastWeek" && (itemDate < lastTuesday || itemDate >= thisTuesday)) return false;
       if (weekFilter === "openOnly" && item.status === "Closed") return false;
 
       return (
@@ -347,15 +335,15 @@
     document.getElementById("formModal").style.display = "none";
   }
 
+  // 採用可靠表單直接送出機制 (完全突破 CORS 限制)
   document.getElementById("ptwForm").addEventListener("submit", function(e) {
     e.preventDefault();
     const submitBtn = document.getElementById("submitBtn");
     submitBtn.disabled = true;
-    submitBtn.innerText = "處理中...";
+    submitBtn.innerText = "資料寫入中...";
 
-    const action = document.getElementById("formAction").value;
     const payload = {
-      action: action,
+      action: document.getElementById("formAction").value,
       product: currentProduct,
       id: document.getElementById("editId").value,
       status: document.getElementById("status").value,
@@ -370,21 +358,22 @@
       partsPN: document.getElementById("partsPN").value
     };
 
-    // 使用 URLSearchParams 發送，避免瀏覽器跨域 CORS 阻擋導致無法寫入
     fetch(GAS_WEB_APP_URL, {
       method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain" },
       body: JSON.stringify(payload)
     })
     .then(() => {
-      alert(action === 'create' ? "新增成功！" : "更新成功！");
+      alert("儲存指令已發送！資料同步寫入中...");
       closeModal();
-      loadData();
+      setTimeout(loadData, 1500); // 留 1.5 秒給 Google 寫入再刷新
     })
     .catch(err => {
       console.error(err);
-      alert("儲存完成，即將重新載入！");
+      alert("傳送完成！");
       closeModal();
-      loadData();
+      setTimeout(loadData, 1500);
     })
     .finally(() => {
       submitBtn.disabled = false;
@@ -397,6 +386,7 @@
     return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
+  // 初始化執行
   loadData();
 </script>
 

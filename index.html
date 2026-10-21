@@ -3,441 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PTW Service Review Table</title>
-  <!-- Tailwind CSS & Vue 3 CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-  <style>
-    /* 保留換行格式 */
-    .whitespace-pre-line {
-      white-space: pre-line;
-    }
-  </style>
-</head>
-<body class="bg-slate-100 min-h-screen text-slate-800 p-4 md:p-6">
-  <div id="app" class="max-w-[1600px] mx-auto space-y-6">
-    
-    <!-- 頂部標題與產品切換頁籤 -->
-    <div class="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-      <div>
-        <h1 class="text-2xl font-bold text-slate-900">PTW Service Review System</h1>
-        <p class="text-sm text-slate-500">週會機況審查與追蹤系統</p>
-      </div>
-      <div class="flex gap-2 bg-slate-100 p-1.5 rounded-lg border border-slate-200">
-        <button 
-          v-for="product in ['Hitachi', 'SEZ_SpinTec']" 
-          :key="product"
-          @click="switchSheet(product)"
-          :class="['px-6 py-2 rounded-md font-medium text-sm transition-all duration-200', currentSheet === product ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900']">
-          {{ product }}
-        </button>
-      </div>
-    </div>
-
-    <!-- 可點擊互動式儀表板 Dashboard -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <!-- 卡片 1: 全部 -->
-      <div 
-        @click="statusFilter = 'ALL'"
-        :class="['p-5 rounded-xl shadow-sm border transition-all cursor-pointer select-none', statusFilter === 'ALL' ? 'bg-indigo-50/50 border-indigo-500 ring-2 ring-indigo-200' : 'bg-white border-slate-200 hover:border-indigo-300']">
-        <div class="flex justify-between items-center">
-          <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">當週 Issue 總數</div>
-          <span v-if="statusFilter === 'ALL'" class="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded font-medium">顯示中</span>
-        </div>
-        <div class="text-3xl font-extrabold text-slate-800 mt-2">{{ dashboardStats.total }}</div>
-      </div>
-
-      <!-- 卡片 2: Plan to Do -->
-      <div 
-        @click="statusFilter = statusFilter === 'PLAN' ? 'ALL' : 'PLAN'"
-        :class="['p-5 rounded-xl shadow-sm border transition-all cursor-pointer select-none', statusFilter === 'PLAN' ? 'bg-amber-50 border-amber-500 ring-2 ring-amber-200' : 'bg-white border-slate-200 hover:border-amber-300']">
-        <div class="flex justify-between items-center">
-          <div class="text-xs font-semibold text-amber-600 uppercase tracking-wider">有 PLAN TO DO (關注)</div>
-          <span v-if="statusFilter === 'PLAN'" class="text-xs bg-amber-200 text-amber-800 px-2 py-0.5 rounded font-medium">篩選中</span>
-        </div>
-        <div class="text-3xl font-extrabold text-amber-600 mt-2">{{ dashboardStats.hasPlan }}</div>
-      </div>
-
-      <!-- 卡片 3: Remain Issue -->
-      <div 
-        @click="statusFilter = statusFilter === 'REMAIN' ? 'ALL' : 'REMAIN'"
-        :class="['p-5 rounded-xl shadow-sm border transition-all cursor-pointer select-none', statusFilter === 'REMAIN' ? 'bg-rose-50 border-rose-500 ring-2 ring-rose-200' : 'bg-white border-slate-200 hover:border-rose-300']">
-        <div class="flex justify-between items-center">
-          <div class="text-xs font-semibold text-rose-600 uppercase tracking-wider">有 REMAIN ISSUE (警示)</div>
-          <span v-if="statusFilter === 'REMAIN'" class="text-xs bg-rose-200 text-rose-800 px-2 py-0.5 rounded font-medium">篩選中</span>
-        </div>
-        <div class="text-3xl font-extrabold text-rose-600 mt-2">{{ dashboardStats.hasRemain }}</div>
-      </div>
-
-      <!-- 卡片 4: Closed -->
-      <div 
-        @click="statusFilter = statusFilter === 'CLOSED' ? 'ALL' : 'CLOSED'"
-        :class="['p-5 rounded-xl shadow-sm border transition-all cursor-pointer select-none', statusFilter === 'CLOSED' ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-200' : 'bg-white border-slate-200 hover:border-emerald-300']">
-        <div class="flex justify-between items-center">
-          <div class="text-xs font-semibold text-emerald-600 uppercase tracking-wider">已完結 (CLOSED)</div>
-          <span v-if="statusFilter === 'CLOSED'" class="text-xs bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded font-medium">篩選中</span>
-        </div>
-        <div class="text-3xl font-extrabold text-emerald-600 mt-2">{{ dashboardStats.completed }}</div>
-      </div>
-    </div>
-
-    <!-- 控制區：週別選擇、關鍵字搜尋與新增按鈕 -->
-    <div class="flex flex-col lg:flex-row justify-between items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-      <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-        <div class="flex items-center gap-2">
-          <label class="font-semibold text-slate-700 text-sm whitespace-nowrap">查詢週別：</label>
-          <input type="week" v-model="selectedWeek" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <button @click="selectedWeek = ''" v-if="selectedWeek" class="text-xs text-indigo-600 hover:underline">清除週別</button>
-        </div>
-
-        <!-- 關鍵字搜尋框 -->
-        <div class="flex items-center gap-2 ml-0 lg:ml-4">
-          <input type="text" v-model="searchQuery" placeholder="搜尋 Tool ID / 機況 / 內容..." class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-60">
-          <button @click="searchQuery = ''" v-if="searchQuery" class="text-xs text-slate-500 hover:underline">清除</button>
-        </div>
-      </div>
-
-      <button @click="openModal()" class="w-full lg:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2 rounded-lg shadow-sm transition text-sm flex items-center justify-center gap-1">
-        <span>+ 新增機況紀錄</span>
-      </button>
-    </div>
-
-    <!-- 機況表格 -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
-      <table class="w-full text-left text-sm text-slate-600 border-collapse min-w-[1400px]">
-        <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
-          <tr>
-            <th class="p-4 w-28">Status</th>
-            <th class="p-4 w-36">ID / Timestamp</th>
-            <th class="p-4 w-36">Company / Model</th>
-            <th class="p-4 w-36">Tool ID / Owner</th>
-            <th class="p-4 w-64">Issue Description</th>
-            <!-- Actions Done 欄位寬度拉長 -->
-            <th class="p-4 min-w-[320px]">Actions Done</th>
-            <th class="p-4 w-52">Plan to Do</th>
-            <th class="p-4 w-52">Remain Issue</th>
-            <th class="p-4 w-40">Replace Parts</th>
-            <th class="p-4 w-24 text-center">操作</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-100">
-          <tr v-for="item in filteredIssues" :key="item.ID" class="hover:bg-slate-50/80 transition align-top">
-            <!-- 警示狀態欄 -->
-            <td class="p-4 whitespace-nowrap">
-              <span v-if="item['Remain Issue'] && String(item['Remain Issue']).trim() !== ''" class="bg-rose-100 text-rose-700 text-xs px-2.5 py-1 rounded-full font-bold border border-rose-200 inline-block">Remain Alert</span>
-              <span v-else-if="item['Plan to Do'] && String(item['Plan to Do']).trim() !== ''" class="bg-amber-100 text-amber-700 text-xs px-2.5 py-1 rounded-full font-bold border border-amber-200 inline-block">Plan Active</span>
-              <span v-else class="bg-emerald-100 text-emerald-700 text-xs px-2.5 py-1 rounded-full font-bold border border-emerald-200 inline-block">Closed</span>
-            </td>
-            <td class="p-4">
-              <div class="font-mono text-xs font-semibold text-slate-900">{{ item.ID }}</div>
-              <div class="text-xs text-slate-400 mt-0.5">{{ formatDate(item.Timestamp) }}</div>
-            </td>
-            <td class="p-4">
-              <div class="font-medium text-slate-800">{{ item.Company || '-' }}</div>
-              <div class="text-xs text-slate-500">{{ item['Model Type'] || '-' }}</div>
-            </td>
-            <td class="p-4">
-              <div class="font-medium text-slate-800">{{ item['Tool ID'] || '-' }}</div>
-              <div class="text-xs text-slate-500">{{ item.Owner || '-' }}</div>
-            </td>
-            <td class="p-4 break-words whitespace-pre-line">{{ item['Issue Description'] || '-' }}</td>
-            <!-- Actions Done 欄位 - 加寬並保留換行 -->
-            <td class="p-4 break-words whitespace-pre-line text-slate-700 leading-relaxed min-w-[320px]">{{ item['Actions Done'] || '-' }}</td>
-            <td class="p-4 break-words whitespace-pre-line font-medium text-amber-700">{{ item['Plan to Do'] || '-' }}</td>
-            <td class="p-4 break-words whitespace-pre-line font-medium text-rose-700">{{ item['Remain Issue'] || '-' }}</td>
-            <td class="p-4">
-              <div class="text-xs text-slate-700">類別: {{ item['Replace Parts Category'] || '-' }}</div>
-              <div class="text-xs font-mono text-slate-500 mt-1">PN: {{ item['Replace Parts PN'] || '-' }}</div>
-            </td>
-            <td class="p-4 text-center whitespace-nowrap">
-              <div class="flex justify-center gap-3">
-                <button @click="openModal(item)" class="text-indigo-600 hover:text-indigo-900 font-medium text-xs">Edit</button>
-                <button @click="deleteItem(item.ID)" class="text-rose-600 hover:text-rose-900 font-medium text-xs">Del</button>
-              </div>
-            </td>
-          </tr>
-          <tr v-if="filteredIssues.length === 0">
-            <td colspan="10" class="text-center p-8 text-slate-400">
-              <span v-if="loading">資料載入中...</span>
-              <span v-else>當前條件下尚無符合的機況紀錄</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Modal：新增 / 編輯彈出表單 -->
-    <div v-if="showModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div class="bg-white rounded-xl max-w-3xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
-        <div class="flex justify-between items-center border-b pb-3">
-          <h3 class="text-lg font-bold text-slate-900">{{ isEdit ? '編輯機況紀錄' : '新增機況紀錄' }} ({{ currentSheet }})</h3>
-          <button @click="showModal = false" class="text-slate-400 hover:text-slate-600">✕</button>
-        </div>
-        
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Company</label>
-            <input v-model="form.Company" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Model Type</label>
-            <input v-model="form['Model Type']" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Tool ID</label>
-            <input v-model="form['Tool ID']" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Owner</label>
-            <input v-model="form.Owner" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Issue Description</label>
-          <textarea v-model="form['Issue Description']" rows="3" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Actions Done (加大輸入框)</label>
-          <textarea v-model="form['Actions Done']" rows="5" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="可詳細說明處理過程與步驟..."></textarea>
-        </div>
-        
-        <!-- 警示欄位區塊 -->
-        <div class="bg-amber-50/60 border border-amber-200 p-4 rounded-lg space-y-3">
-          <div>
-            <label class="block text-xs font-semibold text-amber-800 mb-1">Plan to Do (填寫將會觸發 Plan 警示)</label>
-            <input v-model="form['Plan to Do']" class="w-full border border-amber-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-rose-800 mb-1">Remain Issue (填寫將會觸發 Remain 警示)</label>
-            <input v-model="form['Remain Issue']" class="w-full border border-rose-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-rose-500 focus:outline-none">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Replace Parts Category</label>
-            <input v-model="form['Replace Parts Category']" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Replace Parts PN</label>
-            <input v-model="form['Replace Parts PN']" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          </div>
-        </div>
-
-        <div class="flex justify-end gap-3 pt-4 border-t">
-          <button @click="showModal = false" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">取消</button>
-          <button @click="saveData()" :disabled="submitting" class="px-5 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 font-medium">
-            {{ submitting ? '處理中...' : '儲存紀錄' }}
-          </button>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <script>
-    // ⚠️ 填入您的 Google Apps Script 部署 URL
-    const API_URL = "https://script.google.com/macros/s/AKfycbx9uocDdwRN8Aywsi8T2D9EHXb_azlHZhaDr-pEn-RRsx1EqFKBuWV19Dc_P5TVu5yViA/exec";
-
-    const { createApp, ref, computed, onMounted } = Vue;
-
-    createApp({
-      setup() {
-        const currentSheet = ref('Hitachi');
-        const issues = ref([]);
-        const selectedWeek = ref('');
-        const searchQuery = ref('');
-        const statusFilter = ref('ALL'); // ALL, PLAN, REMAIN, CLOSED
-        const showModal = ref(false);
-        const isEdit = ref(false);
-        const loading = ref(false);
-        const submitting = ref(false);
-
-        const form = ref({
-          ID: '',
-          Timestamp: '',
-          Company: '',
-          'Model Type': '',
-          'Tool ID': '',
-          Owner: '',
-          'Issue Description': '',
-          'Actions Done': '',
-          'Plan to Do': '',
-          'Remain Issue': '',
-          'Replace Parts Category': '',
-          'Replace Parts PN': ''
-        });
-
-        // 讀取資料
-        const fetchData = async () => {
-          loading.value = true;
-          try {
-            const res = await fetch(`${API_URL}?action=read&sheet=${currentSheet.value}`);
-            const data = await res.json();
-            issues.value = Array.isArray(data) ? data : [];
-          } catch (e) {
-            console.error("資料讀取失敗:", e);
-          } finally {
-            loading.value = false;
-          }
-        };
-
-        const switchSheet = (sheetName) => {
-          currentSheet.value = sheetName;
-          statusFilter.value = 'ALL';
-          fetchData();
-        };
-
-        // 計算 ISO 8601 週號
-        const getWeekString = (dateStr) => {
-          if (!dateStr) return '';
-          const d = new Date(dateStr);
-          if (isNaN(d.getTime())) return '';
-          d.setHours(0, 0, 0, 0);
-          d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-          const yearStart = new Date(d.getFullYear(), 0, 1);
-          const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-          return `${d.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
-        };
-
-        // 依據週別篩選出當週基準列表
-        const weekFilteredIssues = computed(() => {
-          if (!selectedWeek.value) return issues.value;
-          return issues.value.filter(i => getWeekString(i.Timestamp) === selectedWeek.value);
-        });
-
-        // 複合篩選（結合週別、卡片點擊、關鍵字）
-        const filteredIssues = computed(() => {
-          let list = weekFilteredIssues.value;
-
-          // 卡片點擊狀態過濾
-          if (statusFilter.value === 'PLAN') {
-            list = list.filter(i => i['Plan to Do'] && String(i['Plan to Do']).trim() !== '');
-          } else if (statusFilter.value === 'REMAIN') {
-            list = list.filter(i => i['Remain Issue'] && String(i['Remain Issue']).trim() !== '');
-          } else if (statusFilter.value === 'CLOSED') {
-            list = list.filter(i => 
-              (!i['Plan to Do'] || String(i['Plan to Do']).trim() === '') && 
-              (!i['Remain Issue'] || String(i['Remain Issue']).trim() === '')
-            );
-          }
-
-          // 關鍵字搜尋過濾
-          if (searchQuery.value.trim() !== '') {
-            const q = searchQuery.value.toLowerCase();
-            list = list.filter(i => 
-              String(i['Tool ID'] || '').toLowerCase().includes(q) ||
-              String(i.Company || '').toLowerCase().includes(q) ||
-              String(i.Owner || '').toLowerCase().includes(q) ||
-              String(i['Issue Description'] || '').toLowerCase().includes(q) ||
-              String(i['Actions Done'] || '').toLowerCase().includes(q) ||
-              String(i['Replace Parts PN'] || '').toLowerCase().includes(q)
-            );
-          }
-
-          return list;
-        });
-
-        // Dashboard 統計數字（以當週數字為主）
-        const dashboardStats = computed(() => {
-          const list = weekFilteredIssues.value;
-          return {
-            total: list.length,
-            hasPlan: list.filter(i => i['Plan to Do'] && String(i['Plan to Do']).trim() !== '').length,
-            hasRemain: list.filter(i => i['Remain Issue'] && String(i['Remain Issue']).trim() !== '').length,
-            completed: list.filter(i => 
-              (!i['Plan to Do'] || String(i['Plan to Do']).trim() === '') && 
-              (!i['Remain Issue'] || String(i['Remain Issue']).trim() === '')
-            ).length
-          };
-        });
-
-        const openModal = (item = null) => {
-          if (item) {
-            isEdit.value = true;
-            form.value = { ...item };
-          } else {
-            isEdit.value = false;
-            form.value = {
-              ID: '',
-              Timestamp: new Date().toISOString(),
-              Company: '',
-              'Model Type': '',
-              'Tool ID': '',
-              Owner: '',
-              'Issue Description': '',
-              'Actions Done': '',
-              'Plan to Do': '',
-              'Remain Issue': '',
-              'Replace Parts Category': '',
-              'Replace Parts PN': ''
-            };
-          }
-          showModal.value = true;
-        };
-
-        const saveData = async () => {
-          submitting.value = true;
-          const action = isEdit.value ? 'update' : 'create';
-          try {
-            await fetch(API_URL, {
-              method: 'POST',
-              body: JSON.stringify({
-                action,
-                sheet: currentSheet.value,
-                data: form.value
-              })
-            });
-            showModal.value = false;
-            await fetchData();
-          } catch (e) {
-            alert('儲存失敗');
-          } finally {
-            submitting.value = false;
-          }
-        };
-
-        const deleteItem = async (id) => {
-          if (!confirm(`確定要刪除 ID: ${id} 嗎？`)) return;
-          loading.value = true;
-          try {
-            await fetch(API_URL, {
-              method: 'POST',
-              body: JSON.stringify({
-                action: 'delete',
-                sheet: currentSheet.value,
-                id
-              })
-            });
-            await fetchData();
-          } catch (e) {
-            alert('刪除失敗');
-            loading.value = false;
-          }
-        };
-
-        const formatDate = (str) => {
-          if (!str) return '-';
-          const d = new Date(str);
-          return isNaN(d.getTime()) ? str : d.toLocaleDateString('zh-TW');
-        };
-
-        onMounted(fetchData);
-
-        return {
-          currentSheet,
-          issues,
-          selectedWeek,
-          searchQuery,
-          statusFilter,
-          showModal,
-          isEdit,
-          loading,<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PTW Service Review System</title>
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -664,7 +229,262 @@
             <h3 class="text-base font-bold text-slate-900">{{ isEdit ? '編輯機況紀錄' : '新增機況紀錄' }}</h3>
             <p class="text-xs text-slate-400 mt-0.5">分類：<span class="font-bold text-indigo-600">{{ currentSheet }}</span></p>
           </div>
-          <button @click="showModal = false"
+          <button @click="showModal = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">✕</button>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Company</label>
+            <input v-model="form.Company" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition-all">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Model Type</label>
+            <input v-model="form['Model Type']" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition-all">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Tool ID</label>
+            <input v-model="form['Tool ID']" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition-all">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Owner</label>
+            <input v-model="form.Owner" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition-all">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Issue Description</label>
+          <textarea v-model="form['Issue Description']" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition-all"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Actions Done (處置步驟說明)</label>
+          <textarea v-model="form['Actions Done']" rows="5" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition-all" placeholder="詳細紀錄維護過程..."></textarea>
+        </div>
+        
+        <!-- 警示狀態欄位 -->
+        <div class="bg-amber-50/40 border border-amber-200/80 p-4 rounded-xl space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-amber-900 mb-1">Plan to Do (填寫將觸發 Plan 警示)</label>
+            <input v-model="form['Plan to Do']" class="w-full bg-white border border-amber-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 focus:outline-none transition-all">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-rose-900 mb-1">Remain Issue (填寫將觸發 Remain 警示)</label>
+            <input v-model="form['Remain Issue']" class="w-full bg-white border border-rose-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 focus:outline-none transition-all">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Replace Parts Category</label>
+            <input v-model="form['Replace Parts Category']" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition-all">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Replace Parts PN</label>
+            <input v-model="form['Replace Parts PN']" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition-all">
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+          <button @click="showModal = false" class="px-4 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-100 rounded-xl transition-all">取消</button>
+          <button @click="saveData()" :disabled="submitting" class="px-5 py-2 text-xs font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-all shadow-md shadow-indigo-200">
+            {{ submitting ? '處理中...' : '儲存變更' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ⚠️ 已填入您的 Google Apps Script 部署 URL
+    const API_URL = "https://script.google.com/macros/s/AKfycbx9uocDdwRN8Aywsi8T2D9EHXb_azlHZhaDr-pEn-RRsx1EqFKBuWV19Dc_P5TVu5yViA/exec";
+
+    const { createApp, ref, computed, onMounted } = Vue;
+
+    createApp({
+      setup() {
+        const currentSheet = ref('Hitachi');
+        const issues = ref([]);
+        const selectedWeek = ref('');
+        const searchQuery = ref('');
+        const statusFilter = ref('ALL');
+        const showModal = ref(false);
+        const isEdit = ref(false);
+        const loading = ref(false);
+        const submitting = ref(false);
+
+        const form = ref({
+          ID: '',
+          Timestamp: '',
+          Company: '',
+          'Model Type': '',
+          'Tool ID': '',
+          Owner: '',
+          'Issue Description': '',
+          'Actions Done': '',
+          'Plan to Do': '',
+          'Remain Issue': '',
+          'Replace Parts Category': '',
+          'Replace Parts PN': ''
+        });
+
+        const fetchData = async () => {
+          loading.value = true;
+          try {
+            const res = await fetch(`${API_URL}?action=read&sheet=${currentSheet.value}`);
+            const data = await res.json();
+            issues.value = Array.isArray(data) ? data : [];
+          } catch (e) {
+            console.error("資料讀取失敗:", e);
+          } finally {
+            loading.value = false;
+          }
+        };
+
+        const switchSheet = (sheetName) => {
+          currentSheet.value = sheetName;
+          statusFilter.value = 'ALL';
+          fetchData();
+        };
+
+        const getWeekString = (dateStr) => {
+          if (!dateStr) return '';
+          const d = new Date(dateStr);
+          if (isNaN(d.getTime())) return '';
+          d.setHours(0, 0, 0, 0);
+          d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+          const yearStart = new Date(d.getFullYear(), 0, 1);
+          const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+          return `${d.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+        };
+
+        const weekFilteredIssues = computed(() => {
+          if (!selectedWeek.value) return issues.value;
+          return issues.value.filter(i => getWeekString(i.Timestamp) === selectedWeek.value);
+        });
+
+        const filteredIssues = computed(() => {
+          let list = weekFilteredIssues.value;
+
+          if (statusFilter.value === 'PLAN') {
+            list = list.filter(i => i['Plan to Do'] && String(i['Plan to Do']).trim() !== '');
+          } else if (statusFilter.value === 'REMAIN') {
+            list = list.filter(i => i['Remain Issue'] && String(i['Remain Issue']).trim() !== '');
+          } else if (statusFilter.value === 'CLOSED') {
+            list = list.filter(i => 
+              (!i['Plan to Do'] || String(i['Plan to Do']).trim() === '') && 
+              (!i['Remain Issue'] || String(i['Remain Issue']).trim() === '')
+            );
+          }
+
+          if (searchQuery.value.trim() !== '') {
+            const q = searchQuery.value.toLowerCase();
+            list = list.filter(i => 
+              String(i['Tool ID'] || '').toLowerCase().includes(q) ||
+              String(i.Company || '').toLowerCase().includes(q) ||
+              String(i.Owner || '').toLowerCase().includes(q) ||
+              String(i['Issue Description'] || '').toLowerCase().includes(q) ||
+              String(i['Actions Done'] || '').toLowerCase().includes(q) ||
+              String(i['Replace Parts PN'] || '').toLowerCase().includes(q)
+            );
+          }
+
+          return list;
+        });
+
+        const dashboardStats = computed(() => {
+          const list = weekFilteredIssues.value;
+          return {
+            total: list.length,
+            hasPlan: list.filter(i => i['Plan to Do'] && String(i['Plan to Do']).trim() !== '').length,
+            hasRemain: list.filter(i => i['Remain Issue'] && String(i['Remain Issue']).trim() !== '').length,
+            completed: list.filter(i => 
+              (!i['Plan to Do'] || String(i['Plan to Do']).trim() === '') && 
+              (!i['Remain Issue'] || String(i['Remain Issue']).trim() === '')
+            ).length
+          };
+        });
+
+        const openModal = (item = null) => {
+          if (item) {
+            isEdit.value = true;
+            form.value = { ...item };
+          } else {
+            isEdit.value = false;
+            form.value = {
+              ID: '',
+              Timestamp: new Date().toISOString(),
+              Company: '',
+              'Model Type': '',
+              'Tool ID': '',
+              Owner: '',
+              'Issue Description': '',
+              'Actions Done': '',
+              'Plan to Do': '',
+              'Remain Issue': '',
+              'Replace Parts Category': '',
+              'Replace Parts PN': ''
+            };
+          }
+          showModal.value = true;
+        };
+
+        const saveData = async () => {
+          submitting.value = true;
+          const action = isEdit.value ? 'update' : 'create';
+          try {
+            await fetch(API_URL, {
+              method: 'POST',
+              body: JSON.stringify({
+                action,
+                sheet: currentSheet.value,
+                data: form.value
+              })
+            });
+            showModal.value = false;
+            await fetchData();
+          } catch (e) {
+            alert('儲存失敗');
+          } finally {
+            submitting.value = false;
+          }
+        };
+
+        const deleteItem = async (id) => {
+          if (!confirm(`確定要刪除 ID: ${id} 嗎？`)) return;
+          loading.value = true;
+          try {
+            await fetch(API_URL, {
+              method: 'POST',
+              body: JSON.stringify({
+                action: 'delete',
+                sheet: currentSheet.value,
+                id
+              })
+            });
+            await fetchData();
+          } catch (e) {
+            alert('刪除失敗');
+            loading.value = false;
+          }
+        };
+
+        const formatDate = (str) => {
+          if (!str) return '-';
+          const d = new Date(str);
+          return isNaN(d.getTime()) ? str : d.toLocaleDateString('zh-TW');
+        };
+
+        onMounted(fetchData);
+
+        return {
+          currentSheet,
+          issues,
+          selectedWeek,
+          searchQuery,
+          statusFilter,
+          showModal,
+          isEdit,
+          loading,
           submitting,
           form,
           filteredIssues,

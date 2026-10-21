@@ -40,67 +40,67 @@
       height: 6px;
     }
     ::-webkit-scrollbar-track {
-      background: rgba(241, 245, 249, 0.5);
+      background: #E2E8F0;
     }
     ::-webkit-scrollbar-thumb {
-      background: #CBD5E1;
+      background: #94A3B8;
       border-radius: 9999px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: #94A3B8;
+      background: #64748B;
     }
   </style>
 </head>
-<!-- 高級感微漸層色彩背景 -->
-<body class="bg-gradient-to-br from-slate-100 via-indigo-50/40 to-slate-100 min-h-screen text-slate-700 p-4 md:p-8 antialiased selection:bg-indigo-500 selection:text-white">
+<!-- 加深整體大背景底色，讓白色區塊與按鈕對比極強 -->
+<body class="bg-slate-200/70 min-h-screen text-slate-800 p-4 md:p-8 antialiased selection:bg-indigo-600 selection:text-white">
   <div id="app" class="max-w-[1780px] mx-auto space-y-6">
     
     <!-- 頂部標題與產品切換頁籤 -->
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-slate-200/80">
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-md border border-slate-300">
       <div class="flex items-center gap-3">
-        <div class="p-2.5 bg-indigo-600 rounded-xl text-white shadow-md shadow-indigo-200">
+        <div class="p-2.5 bg-indigo-600 rounded-xl text-white shadow-md shadow-indigo-300">
           <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
         </div>
         <div>
           <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">PTW Service Review System</h1>
-          <p class="text-sm text-slate-400 font-medium mt-0.5">週會機況審查與智能追蹤系統</p>
+          <p class="text-sm text-slate-500 font-medium mt-0.5">週會機況審查與智能追蹤系統</p>
         </div>
       </div>
       
-      <!-- 產品分類 Tab -->
-      <div class="flex gap-2 bg-slate-100/80 p-1.5 rounded-xl border border-slate-200/60 w-full md:w-auto">
+      <!-- 產品分類 Tab 按鈕外框強化 -->
+      <div class="flex gap-2 bg-slate-200/90 p-1.5 rounded-xl border border-slate-300 w-full md:w-auto">
         <button 
           v-for="product in ['Hitachi', 'SEZ_SpinTec']" 
           :key="product"
           @click="switchSheet(product)"
-          :class="['flex-1 md:flex-none px-7 py-2.5 rounded-lg font-bold text-sm tracking-wide transition-all duration-200', currentSheet === product ? 'bg-white text-indigo-600 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-900']">
+          :class="['flex-1 md:flex-none px-7 py-2.5 rounded-lg font-bold text-sm tracking-wide transition-all duration-200 shadow-sm', currentSheet === product ? 'bg-indigo-600 text-white border border-indigo-700 shadow-md' : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-300']">
           {{ product }}
         </button>
       </div>
     </header>
 
-    <!-- 可點擊儀表板 Dashboard -->
+    <!-- 可點擊儀表板 Dashboard (高質感明確卡片邊框) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
       <!-- 卡片 1: 全部 -->
       <div 
         @click="statusFilter = 'ALL'"
-        :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border', statusFilter === 'ALL' ? 'bg-white border-indigo-500 shadow-lg shadow-indigo-500/10 ring-1 ring-indigo-500' : 'bg-white/90 border-slate-200/80 hover:border-slate-300 hover:shadow-md']">
-        <div class="absolute top-0 left-0 right-0 h-1 bg-slate-300"></div>
+        :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border-2 shadow-sm', statusFilter === 'ALL' ? 'bg-white border-indigo-600 shadow-lg ring-2 ring-indigo-200' : 'bg-white border-slate-300 hover:border-indigo-400 hover:shadow-md']">
+        <div class="absolute top-0 left-0 right-0 h-1.5 bg-indigo-600"></div>
         <div class="flex justify-between items-center">
-          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">當週 Issue 總數</span>
-          <span v-if="statusFilter === 'ALL'" class="text-xs bg-slate-100 text-slate-600 font-semibold px-2.5 py-0.5 rounded-full">顯示中</span>
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">當週 Issue 總數</span>
+          <span v-if="statusFilter === 'ALL'" class="text-xs bg-indigo-100 text-indigo-700 font-bold px-2.5 py-0.5 rounded-full border border-indigo-200">顯示中</span>
         </div>
-        <div class="text-4xl font-black text-slate-800 mt-3 font-mono tracking-tight">{{ dashboardStats.total }}</div>
+        <div class="text-4xl font-black text-slate-900 mt-3 font-mono tracking-tight">{{ dashboardStats.total }}</div>
       </div>
 
       <!-- 卡片 2: Plan to Do -->
       <div 
         @click="statusFilter = statusFilter === 'PLAN' ? 'ALL' : 'PLAN'"
-        :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border', statusFilter === 'PLAN' ? 'bg-amber-50/70 border-amber-500 shadow-lg shadow-amber-500/10 ring-1 ring-amber-500' : 'bg-white/90 border-slate-200/80 hover:border-amber-300 hover:shadow-md']">
-        <div class="absolute top-0 left-0 right-0 h-1 bg-amber-400"></div>
+        :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border-2 shadow-sm', statusFilter === 'PLAN' ? 'bg-amber-50 border-amber-500 shadow-lg ring-2 ring-amber-200' : 'bg-white border-slate-300 hover:border-amber-400 hover:shadow-md']">
+        <div class="absolute top-0 left-0 right-0 h-1.5 bg-amber-500"></div>
         <div class="flex justify-between items-center">
-          <span class="text-xs font-bold text-amber-600/90 uppercase tracking-wider">有 PLAN TO DO (關注)</span>
-          <span v-if="statusFilter === 'PLAN'" class="text-xs bg-amber-100 text-amber-700 font-semibold px-2.5 py-0.5 rounded-full">已篩選</span>
+          <span class="text-xs font-bold text-amber-700 uppercase tracking-wider">有 PLAN TO DO (關注)</span>
+          <span v-if="statusFilter === 'PLAN'" class="text-xs bg-amber-200 text-amber-900 font-bold px-2.5 py-0.5 rounded-full border border-amber-300">已篩選</span>
         </div>
         <div class="text-4xl font-black text-amber-600 mt-3 font-mono tracking-tight">{{ dashboardStats.hasPlan }}</div>
       </div>
@@ -108,11 +108,11 @@
       <!-- 卡片 3: Remain Issue -->
       <div 
         @click="statusFilter = statusFilter === 'REMAIN' ? 'ALL' : 'REMAIN'"
-        :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border', statusFilter === 'REMAIN' ? 'bg-rose-50/70 border-rose-500 shadow-lg shadow-rose-500/10 ring-1 ring-rose-500' : 'bg-white/90 border-slate-200/80 hover:border-rose-300 hover:shadow-md']">
-        <div class="absolute top-0 left-0 right-0 h-1 bg-rose-500"></div>
+        :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border-2 shadow-sm', statusFilter === 'REMAIN' ? 'bg-rose-50 border-rose-500 shadow-lg ring-2 ring-rose-200' : 'bg-white border-slate-300 hover:border-rose-400 hover:shadow-md']">
+        <div class="absolute top-0 left-0 right-0 h-1.5 bg-rose-600"></div>
         <div class="flex justify-between items-center">
-          <span class="text-xs font-bold text-rose-600/90 uppercase tracking-wider">有 REMAIN ISSUE (警示)</span>
-          <span v-if="statusFilter === 'REMAIN'" class="text-xs bg-rose-100 text-rose-700 font-semibold px-2.5 py-0.5 rounded-full">已篩選</span>
+          <span class="text-xs font-bold text-rose-700 uppercase tracking-wider">有 REMAIN ISSUE (警示)</span>
+          <span v-if="statusFilter === 'REMAIN'" class="text-xs bg-rose-200 text-rose-900 font-bold px-2.5 py-0.5 rounded-full border border-rose-300">已篩選</span>
         </div>
         <div class="text-4xl font-black text-rose-600 mt-3 font-mono tracking-tight">{{ dashboardStats.hasRemain }}</div>
       </div>
@@ -120,132 +120,132 @@
       <!-- 卡片 4: Closed -->
       <div 
         @click="statusFilter = statusFilter === 'CLOSED' ? 'ALL' : 'CLOSED'"
-        :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border', statusFilter === 'CLOSED' ? 'bg-emerald-50/70 border-emerald-500 shadow-lg shadow-emerald-500/10 ring-1 ring-emerald-500' : 'bg-white/90 border-slate-200/80 hover:border-emerald-300 hover:shadow-md']">
-        <div class="absolute top-0 left-0 right-0 h-1 bg-emerald-500"></div>
+        :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border-2 shadow-sm', statusFilter === 'CLOSED' ? 'bg-emerald-50 border-emerald-500 shadow-lg ring-2 ring-emerald-200' : 'bg-white border-slate-300 hover:border-emerald-400 hover:shadow-md']">
+        <div class="absolute top-0 left-0 right-0 h-1.5 bg-emerald-600"></div>
         <div class="flex justify-between items-center">
-          <span class="text-xs font-bold text-emerald-600/90 uppercase tracking-wider">已完結 (CLOSED)</span>
-          <span v-if="statusFilter === 'CLOSED'" class="text-xs bg-emerald-100 text-emerald-700 font-semibold px-2.5 py-0.5 rounded-full">已篩選</span>
+          <span class="text-xs font-bold text-emerald-700 uppercase tracking-wider">已完結 (CLOSED)</span>
+          <span v-if="statusFilter === 'CLOSED'" class="text-xs bg-emerald-200 text-emerald-900 font-bold px-2.5 py-0.5 rounded-full border border-emerald-300">已篩選</span>
         </div>
         <div class="text-4xl font-black text-emerald-600 mt-3 font-mono tracking-tight">{{ dashboardStats.completed }}</div>
       </div>
     </div>
 
-    <!-- 控制區：週別選擇、搜尋、字體大小調節與新增按鈕 -->
-    <div class="flex flex-col lg:flex-row justify-between items-center gap-4 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-sm border border-slate-200/80">
+    <!-- 控制區：週別選擇、搜尋、字體大小調節與新增按鈕 (輸入框邊框顯眼化) -->
+    <div class="flex flex-col lg:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-md border border-slate-300">
       <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
         <!-- 週別篩選 -->
-        <div class="flex items-center gap-2 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200/60">
-          <span class="text-xs font-bold text-slate-500">查詢週別</span>
-          <input type="week" v-model="selectedWeek" class="bg-transparent border-0 text-xs font-bold text-slate-800 focus:outline-none">
+        <div class="flex items-center gap-2 bg-slate-100 px-3.5 py-2 rounded-xl border border-slate-300 shadow-inner">
+          <span class="text-xs font-bold text-slate-600">查詢週別</span>
+          <input type="week" v-model="selectedWeek" class="bg-white border border-slate-300 rounded-md px-2 py-0.5 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
           <button @click="selectedWeek = ''" v-if="selectedWeek" class="text-xs text-indigo-600 hover:text-indigo-800 font-bold ml-1">重置</button>
         </div>
 
         <!-- 關鍵字搜尋框 -->
         <div class="relative w-full sm:w-72">
-          <input type="text" v-model="searchQuery" placeholder="搜尋 Tool ID / 機況 / 步驟..." class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-9 pr-8 py-2 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all">
+          <input type="text" v-model="searchQuery" placeholder="搜尋 Tool ID / 機況 / 步驟..." class="w-full bg-white border border-slate-300 rounded-xl pl-9 pr-8 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-inner">
           <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
           <button @click="searchQuery = ''" v-if="searchQuery" class="absolute right-2.5 top-2 text-xs text-slate-400 hover:text-slate-600">✕</button>
         </div>
 
-        <!-- 🔥 即時字體大小切換按鈕 -->
-        <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/80 ml-0 sm:ml-2">
-          <span class="text-[11px] font-bold text-slate-400 px-2">字體大小</span>
+        <!-- 字體大小切換按鈕區 -->
+        <div class="flex items-center gap-1 bg-slate-200 p-1 rounded-xl border border-slate-300 ml-0 sm:ml-2">
+          <span class="text-[11px] font-bold text-slate-600 px-2">字體</span>
           <button 
             @click="changeFontSize('sm')" 
-            :class="['px-3 py-1 rounded-lg text-xs font-bold transition-all', fontSize === 'sm' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800']">
+            :class="['px-3 py-1 rounded-lg text-xs font-bold transition-all shadow-sm', fontSize === 'sm' ? 'bg-indigo-600 text-white border border-indigo-700' : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-300']">
             小
           </button>
           <button 
             @click="changeFontSize('md')" 
-            :class="['px-3 py-1 rounded-lg text-xs font-bold transition-all', fontSize === 'md' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800']">
+            :class="['px-3 py-1 rounded-lg text-xs font-bold transition-all shadow-sm', fontSize === 'md' ? 'bg-indigo-600 text-white border border-indigo-700' : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-300']">
             中
           </button>
           <button 
             @click="changeFontSize('lg')" 
-            :class="['px-3 py-1 rounded-lg text-xs font-bold transition-all', fontSize === 'lg' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800']">
+            :class="['px-3 py-1 rounded-lg text-xs font-bold transition-all shadow-sm', fontSize === 'lg' ? 'bg-indigo-600 text-white border border-indigo-700' : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-300']">
             大
           </button>
         </div>
       </div>
 
-      <!-- 新增按鈕 -->
-      <button @click="openModal()" class="w-full lg:w-auto bg-slate-900 hover:bg-indigo-600 text-white font-bold px-6 py-2.5 rounded-xl shadow-sm hover:shadow-indigo-500/20 transition-all duration-200 text-xs flex items-center justify-center gap-2">
+      <!-- 新增按鈕 (亮黑色明確區隔) -->
+      <button @click="openModal()" class="w-full lg:w-auto bg-slate-900 hover:bg-indigo-600 text-white font-bold px-6 py-2.5 rounded-xl shadow-md hover:shadow-indigo-500/20 transition-all duration-200 text-xs flex items-center justify-center gap-2 border border-slate-800">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
         <span>新增機況紀錄</span>
       </button>
     </div>
 
-    <!-- 機況表格區 -->
-    <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+    <!-- 機況表格區 (白底搭灰色標頭與清晰邊框) -->
+    <div class="bg-white rounded-2xl shadow-md border border-slate-300 overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-slate-700 border-collapse min-w-[1550px] text-table-body">
-          <thead class="bg-slate-50/90 text-slate-500 font-bold uppercase tracking-wider text-xs border-b border-slate-200/80">
+        <table class="w-full text-left text-slate-800 border-collapse min-w-[1550px] text-table-body">
+          <thead class="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider text-xs border-b border-slate-300">
             <tr>
-              <th class="py-4 px-4 w-32">Status</th>
-              <th class="py-4 px-4 w-40">ID / Timestamp</th>
-              <th class="py-4 px-4 w-40">Company / Model</th>
-              <th class="py-4 px-4 w-40">Tool ID / Owner</th>
-              <th class="py-4 px-4 w-64">Issue Description</th>
-              <!-- Actions Done 特別加寬欄位 -->
-              <th class="py-4 px-4 min-w-[380px]">Actions Done</th>
-              <th class="py-4 px-4 w-52">Plan to Do</th>
-              <th class="py-4 px-4 w-52">Remain Issue</th>
-              <th class="py-4 px-4 w-44">Replace Parts</th>
+              <th class="py-4 px-4 w-32 border-r border-slate-200">Status</th>
+              <th class="py-4 px-4 w-40 border-r border-slate-200">ID / Timestamp</th>
+              <th class="py-4 px-4 w-40 border-r border-slate-200">Company / Model</th>
+              <th class="py-4 px-4 w-40 border-r border-slate-200">Tool ID / Owner</th>
+              <th class="py-4 px-4 w-64 border-r border-slate-200">Issue Description</th>
+              <!-- Actions Done 欄位 -->
+              <th class="py-4 px-4 min-w-[380px] border-r border-slate-200">Actions Done</th>
+              <th class="py-4 px-4 w-52 border-r border-slate-200">Plan to Do</th>
+              <th class="py-4 px-4 w-52 border-r border-slate-200">Remain Issue</th>
+              <th class="py-4 px-4 w-44 border-r border-slate-200">Replace Parts</th>
               <th class="py-4 px-4 w-28 text-center">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100">
-            <tr v-for="item in filteredIssues" :key="item.ID" class="hover:bg-indigo-50/40 transition-colors duration-150 align-top">
+          <tbody class="divide-y divide-slate-200">
+            <tr v-for="item in filteredIssues" :key="item.ID" class="hover:bg-indigo-50/50 transition-colors duration-150 align-top">
               <!-- Status 標籤 -->
               <td class="py-4 px-4 whitespace-nowrap">
-                <span v-if="item['Remain Issue'] && String(item['Remain Issue']).trim() !== ''" class="inline-flex items-center gap-1.5 bg-rose-50 text-rose-700 font-bold px-3 py-1 rounded-md border border-rose-200/60">
-                  <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>Remain
+                <span v-if="item['Remain Issue'] && String(item['Remain Issue']).trim() !== ''" class="inline-flex items-center gap-1.5 bg-rose-100 text-rose-800 font-extrabold px-3 py-1 rounded-md border border-rose-300 shadow-sm">
+                  <span class="w-2 h-2 rounded-full bg-rose-600 animate-pulse"></span>Remain
                 </span>
-                <span v-else-if="item['Plan to Do'] && String(item['Plan to Do']).trim() !== ''" class="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 font-bold px-3 py-1 rounded-md border border-amber-200/60">
-                  <span class="w-2 h-2 rounded-full bg-amber-500"></span>Plan
+                <span v-else-if="item['Plan to Do'] && String(item['Plan to Do']).trim() !== ''" class="inline-flex items-center gap-1.5 bg-amber-100 text-amber-800 font-extrabold px-3 py-1 rounded-md border border-amber-300 shadow-sm">
+                  <span class="w-2 h-2 rounded-full bg-amber-600"></span>Plan
                 </span>
-                <span v-else class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 font-bold px-3 py-1 rounded-md border border-emerald-200/60">
-                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span>Closed
+                <span v-else class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 font-extrabold px-3 py-1 rounded-md border border-emerald-300 shadow-sm">
+                  <span class="w-2 h-2 rounded-full bg-emerald-600"></span>Closed
                 </span>
               </td>
               <td class="py-4 px-4">
-                <div class="font-mono font-bold text-slate-800">{{ item.ID }}</div>
-                <div class="text-xs text-slate-400 mt-1 font-mono">{{ formatDate(item.Timestamp) }}</div>
+                <div class="font-mono font-bold text-slate-900">{{ item.ID }}</div>
+                <div class="text-xs text-slate-500 mt-1 font-mono">{{ formatDate(item.Timestamp) }}</div>
               </td>
               <td class="py-4 px-4">
-                <div class="font-bold text-slate-900">{{ item.Company || '-' }}</div>
-                <div class="text-xs text-slate-400 mt-0.5">{{ item['Model Type'] || '-' }}</div>
+                <div class="font-extrabold text-slate-900">{{ item.Company || '-' }}</div>
+                <div class="text-xs text-slate-500 mt-0.5">{{ item['Model Type'] || '-' }}</div>
               </td>
               <td class="py-4 px-4">
-                <div class="font-extrabold text-indigo-950 font-mono">{{ item['Tool ID'] || '-' }}</div>
-                <div class="text-xs text-slate-400 mt-0.5">{{ item.Owner || '-' }}</div>
+                <div class="font-extrabold text-indigo-900 font-mono">{{ item['Tool ID'] || '-' }}</div>
+                <div class="text-xs text-slate-500 mt-0.5">{{ item.Owner || '-' }}</div>
               </td>
-              <td class="py-4 px-4 break-words whitespace-pre-line text-slate-700 leading-relaxed">{{ item['Issue Description'] || '-' }}</td>
+              <td class="py-4 px-4 break-words whitespace-pre-line text-slate-800 leading-relaxed">{{ item['Issue Description'] || '-' }}</td>
               
               <!-- Actions Done 欄位 -->
-              <td class="py-4 px-4 break-words whitespace-pre-line text-slate-800 leading-relaxed border-l-2 border-indigo-200 pl-3.5 min-w-[380px]">
+              <td class="py-4 px-4 break-words whitespace-pre-line text-slate-900 leading-relaxed border-l-2 border-indigo-300 pl-3.5 min-w-[380px] bg-slate-50/50">
                 {{ item['Actions Done'] || '-' }}
               </td>
               
-              <td class="py-4 px-4 break-words whitespace-pre-line font-bold text-amber-900 bg-amber-50/50 rounded-xl p-2.5">{{ item['Plan to Do'] || '-' }}</td>
-              <td class="py-4 px-4 break-words whitespace-pre-line font-bold text-rose-900 bg-rose-50/50 rounded-xl p-2.5">{{ item['Remain Issue'] || '-' }}</td>
+              <td class="py-4 px-4 break-words whitespace-pre-line font-bold text-amber-900 bg-amber-100/60 rounded-xl p-2.5 border border-amber-200/80">{{ item['Plan to Do'] || '-' }}</td>
+              <td class="py-4 px-4 break-words whitespace-pre-line font-bold text-rose-900 bg-rose-100/60 rounded-xl p-2.5 border border-rose-200/80">{{ item['Remain Issue'] || '-' }}</td>
               <td class="py-4 px-4">
-                <div class="text-slate-700 font-medium">Cat: {{ item['Replace Parts Category'] || '-' }}</div>
-                <div class="text-xs font-mono text-slate-400 mt-1">PN: {{ item['Replace Parts PN'] || '-' }}</div>
+                <div class="text-slate-800 font-semibold">Cat: {{ item['Replace Parts Category'] || '-' }}</div>
+                <div class="text-xs font-mono text-slate-500 mt-1">PN: {{ item['Replace Parts PN'] || '-' }}</div>
               </td>
               <td class="py-4 px-4 text-center whitespace-nowrap">
                 <div class="flex justify-center items-center gap-2">
-                  <button @click="openModal(item)" class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                  <button @click="openModal(item)" class="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors border border-slate-200">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                   </button>
-                  <button @click="deleteItem(item.ID)" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors">
+                  <button @click="deleteItem(item.ID)" class="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-100 rounded-lg transition-colors border border-slate-200">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                   </button>
                 </div>
               </td>
             </tr>
             <tr v-if="filteredIssues.length === 0">
-              <td colspan="10" class="text-center py-12 text-slate-400">
+              <td colspan="10" class="text-center py-12 text-slate-500">
                 <div v-if="loading" class="flex items-center justify-center gap-2 text-indigo-600 font-bold">
                   <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                   <span>資料讀取中...</span>
@@ -259,70 +259,70 @@
     </div>
 
     <!-- Modal：新增 / 編輯表單 -->
-    <div v-if="showModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4 z-50">
-      <div class="bg-white rounded-2xl max-w-3xl w-full p-6 space-y-5 max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-100">
-        <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+    <div v-if="showModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div class="bg-white rounded-2xl max-w-3xl w-full p-6 space-y-5 max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-300">
+        <div class="flex justify-between items-center border-b border-slate-200 pb-4">
           <div>
             <h3 class="text-lg font-bold text-slate-900">{{ isEdit ? '編輯機況紀錄' : '新增機況紀錄' }}</h3>
-            <p class="text-xs text-slate-400 mt-0.5">分類：<span class="font-bold text-indigo-600">{{ currentSheet }}</span></p>
+            <p class="text-xs text-slate-500 mt-0.5">分類：<span class="font-bold text-indigo-600">{{ currentSheet }}</span></p>
           </div>
           <button @click="showModal = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">✕</button>
         </div>
         
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Company</label>
-            <input v-model="form.Company" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition-all">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Company</label>
+            <input v-model="form.Company" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all">
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Model Type</label>
-            <input v-model="form['Model Type']" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition-all">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Model Type</label>
+            <input v-model="form['Model Type']" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all">
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Tool ID</label>
-            <input v-model="form['Tool ID']" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition-all">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Tool ID</label>
+            <input v-model="form['Tool ID']" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all">
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Owner</label>
-            <input v-model="form.Owner" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition-all">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Owner</label>
+            <input v-model="form.Owner" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all">
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">Issue Description</label>
-          <textarea v-model="form['Issue Description']" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition-all"></textarea>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Issue Description</label>
+          <textarea v-model="form['Issue Description']" rows="3" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all"></textarea>
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">Actions Done (處置步驟說明)</label>
-          <textarea v-model="form['Actions Done']" rows="6" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition-all" placeholder="詳細紀錄維護處置步驟..."></textarea>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Actions Done (處置步驟說明)</label>
+          <textarea v-model="form['Actions Done']" rows="6" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all" placeholder="詳細紀錄維護處置步驟..."></textarea>
         </div>
         
         <!-- 警示狀態欄位 -->
-        <div class="bg-amber-50/40 border border-amber-200/80 p-4 rounded-xl space-y-3">
+        <div class="bg-amber-50 border border-amber-300 p-4 rounded-xl space-y-3">
           <div>
             <label class="block text-xs font-bold text-amber-900 mb-1">Plan to Do (填寫將觸發 Plan 警示)</label>
-            <input v-model="form['Plan to Do']" class="w-full bg-white border border-amber-200 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 focus:outline-none transition-all">
+            <input v-model="form['Plan to Do']" class="w-full bg-white border border-amber-300 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none transition-all">
           </div>
           <div>
             <label class="block text-xs font-bold text-rose-900 mb-1">Remain Issue (填寫將觸發 Remain 警示)</label>
-            <input v-model="form['Remain Issue']" class="w-full bg-white border border-rose-200 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 focus:outline-none transition-all">
+            <input v-model="form['Remain Issue']" class="w-full bg-white border border-rose-300 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none transition-all">
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Replace Parts Category</label>
-            <input v-model="form['Replace Parts Category']" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition-all">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Replace Parts Category</label>
+            <input v-model="form['Replace Parts Category']" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all">
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Replace Parts PN</label>
-            <input v-model="form['Replace Parts PN']" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition-all">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Replace Parts PN</label>
+            <input v-model="form['Replace Parts PN']" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all">
           </div>
         </div>
 
-        <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
-          <button @click="showModal = false" class="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded-xl transition-all">取消</button>
-          <button @click="saveData()" :disabled="submitting" class="px-5 py-2 text-xs font-bold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-all shadow-md shadow-indigo-200">
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-200">
+          <button @click="showModal = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-all">取消</button>
+          <button @click="saveData()" :disabled="submitting" class="px-5 py-2 text-xs font-bold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-all shadow-md">
             {{ submitting ? '處理中...' : '儲存變更' }}
           </button>
         </div>
@@ -365,7 +365,7 @@
           'Replace Parts PN': ''
         });
 
-        // 🔥 即時調整 CSS 變數，達成零延遲字體縮放
+        // 🔥 即時調整 CSS 變數
         const changeFontSize = (size) => {
           fontSize.value = size;
           const root = document.documentElement;

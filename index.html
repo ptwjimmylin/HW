@@ -12,7 +12,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <style>
-    /* 全局動態字體變數設定 */
     :root {
       --base-font-size: 15px;
       --table-font-size: 15px;
@@ -24,7 +23,6 @@
       transition: font-size 0.15s ease-in-out;
     }
 
-    /* 表格字體即時反應 */
     .text-table-body {
       font-size: var(--table-font-size) !important;
       transition: font-size 0.15s ease-in-out;
@@ -34,11 +32,11 @@
       white-space: pre-line;
     }
 
-    /* 🔥 獨立欄位固定高度 (110px) 與自動出現捲軸 */
+    /* 獨立欄位固定高度 (110px) 與自動出現捲軸 */
     .cell-scroll-box {
       max-height: 110px;
       overflow-y: auto;
-      word-break: break-all; /* 強制超長連續英數自動斷行，避免撐開欄位 */
+      word-break: break-all;
     }
     
     .cell-scroll-box::-webkit-scrollbar {
@@ -56,6 +54,23 @@
       background: #0284C7;
     }
 
+    /* 🔥 表頭可拖曳調整寬度控制線 */
+    .resizer {
+      position: absolute;
+      right: 0;
+      top: 0;
+      height: 100%;
+      width: 6px;
+      background: transparent;
+      cursor: col-resize;
+      user-select: none;
+      touch-action: none;
+      z-index: 10;
+    }
+    .resizer:hover, .resizer.resizing {
+      background: #0284C7;
+    }
+
     /* 全頁主滾動條 */
     ::-webkit-scrollbar {
       width: 7px;
@@ -70,7 +85,6 @@
     }
   </style>
 </head>
-<!-- 天空淺藍色高對比背景 -->
 <body class="bg-sky-100/70 min-h-screen text-slate-800 p-4 md:p-8 antialiased selection:bg-sky-600 selection:text-white">
   <div id="app" class="max-w-[1800px] mx-auto space-y-6">
     
@@ -86,7 +100,6 @@
         </div>
       </div>
       
-      <!-- 產品分類 Tab 按鈕 -->
       <div class="flex gap-2 bg-sky-100/80 p-1.5 rounded-xl border border-sky-200 w-full md:w-auto">
         <button 
           v-for="product in ['Hitachi', 'SEZ_SpinTec']" 
@@ -100,7 +113,6 @@
 
     <!-- 可點擊儀表板 Dashboard -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-      <!-- 卡片 1: 全部 -->
       <div 
         @click="statusFilter = 'ALL'"
         :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border-2 shadow-sm', statusFilter === 'ALL' ? 'bg-white border-sky-600 shadow-lg ring-2 ring-sky-200' : 'bg-white border-sky-200 hover:border-sky-400 hover:shadow-md']">
@@ -112,7 +124,6 @@
         <div class="text-4xl font-black text-slate-900 mt-3 font-mono tracking-tight">{{ dashboardStats.total }}</div>
       </div>
 
-      <!-- 卡片 2: Plan to Do -->
       <div 
         @click="statusFilter = statusFilter === 'PLAN' ? 'ALL' : 'PLAN'"
         :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border-2 shadow-sm', statusFilter === 'PLAN' ? 'bg-amber-50 border-amber-500 shadow-lg ring-2 ring-amber-200' : 'bg-white border-sky-200 hover:border-amber-400 hover:shadow-md']">
@@ -124,7 +135,6 @@
         <div class="text-4xl font-black text-amber-600 mt-3 font-mono tracking-tight">{{ dashboardStats.hasPlan }}</div>
       </div>
 
-      <!-- 卡片 3: Remain Issue -->
       <div 
         @click="statusFilter = statusFilter === 'REMAIN' ? 'ALL' : 'REMAIN'"
         :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border-2 shadow-sm', statusFilter === 'REMAIN' ? 'bg-rose-50 border-rose-500 shadow-lg ring-2 ring-rose-200' : 'bg-white border-sky-200 hover:border-rose-400 hover:shadow-md']">
@@ -136,7 +146,6 @@
         <div class="text-4xl font-black text-rose-600 mt-3 font-mono tracking-tight">{{ dashboardStats.hasRemain }}</div>
       </div>
 
-      <!-- 卡片 4: Closed -->
       <div 
         @click="statusFilter = statusFilter === 'CLOSED' ? 'ALL' : 'CLOSED'"
         :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border-2 shadow-sm', statusFilter === 'CLOSED' ? 'bg-emerald-50 border-emerald-500 shadow-lg ring-2 ring-emerald-200' : 'bg-white border-sky-200 hover:border-emerald-400 hover:shadow-md']">
@@ -152,21 +161,18 @@
     <!-- 控制區：週別選擇、搜尋、字體大小調節與新增按鈕 -->
     <div class="flex flex-col lg:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-md border border-sky-200">
       <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-        <!-- 週別篩選 -->
         <div class="flex items-center gap-2 bg-sky-50 px-3.5 py-2 rounded-xl border border-sky-200 shadow-inner">
           <span class="text-xs font-bold text-slate-600">查詢週別</span>
           <input type="week" v-model="selectedWeek" class="bg-white border border-sky-300 rounded-md px-2 py-0.5 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
           <button @click="selectedWeek = ''" v-if="selectedWeek" class="text-xs text-sky-700 hover:text-sky-900 font-bold ml-1">重置</button>
         </div>
 
-        <!-- 關鍵字搜尋框 -->
         <div class="relative w-full sm:w-72">
           <input type="text" v-model="searchQuery" placeholder="搜尋 Tool ID / 機況 / 步驟..." class="w-full bg-white border border-sky-200 rounded-xl pl-9 pr-8 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-all shadow-inner">
           <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
           <button @click="searchQuery = ''" v-if="searchQuery" class="absolute right-2.5 top-2 text-xs text-slate-400 hover:text-slate-600">✕</button>
         </div>
 
-        <!-- 字體大小切換按鈕區 -->
         <div class="flex items-center gap-1 bg-sky-100/80 p-1 rounded-xl border border-sky-200 ml-0 sm:ml-2">
           <span class="text-[11px] font-bold text-slate-600 px-2">字體</span>
           <button 
@@ -187,38 +193,29 @@
         </div>
       </div>
 
-      <!-- 新增按鈕 -->
       <button @click="openModal()" class="w-full lg:w-auto bg-slate-900 hover:bg-sky-600 text-white font-bold px-6 py-2.5 rounded-xl shadow-md hover:shadow-sky-500/20 transition-all duration-200 text-xs flex items-center justify-center gap-2 border border-slate-800">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
         <span>新增機況紀錄</span>
       </button>
     </div>
 
-    <!-- 🔥 機況表格區 (採用 table-fixed 強制嚴格固定寬度) -->
+    <!-- 🔥 可手動拖曳調整寬度的表格 (Resizable Table) -->
     <div class="bg-white rounded-2xl shadow-md border border-sky-200 overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-slate-800 border-collapse table-fixed min-w-[1500px] text-table-body">
+        <table class="w-full text-left text-slate-800 border-collapse text-table-body" style="table-layout: fixed;">
           <thead class="bg-sky-50/80 text-slate-700 font-bold uppercase tracking-wider text-xs border-b border-sky-200">
             <tr>
-              <th class="py-4 px-4 w-[110px] border-r border-sky-100">Status</th>
-              <th class="py-4 px-4 w-[140px] border-r border-sky-100">ID / Timestamp</th>
-              <th class="py-4 px-4 w-[140px] border-r border-sky-100">Company / Model</th>
-              <th class="py-4 px-4 w-[130px] border-r border-sky-100">Tool ID / Owner</th>
-              <th class="py-4 px-4 w-[220px] border-r border-sky-100">Issue Description</th>
-              
-              <!-- 🔥 嚴格固定寬度的三欄 -->
-              <th class="py-4 px-4 w-[300px] border-r border-sky-100">Actions Done</th>
-              <th class="py-4 px-4 w-[200px] border-r border-sky-100">Plan to Do</th>
-              <th class="py-4 px-4 w-[200px] border-r border-sky-100">Remain Issue</th>
-              
-              <th class="py-4 px-4 w-[160px] border-r border-sky-100">Replace Parts</th>
+              <th v-for="(col, index) in columns" :key="index" :style="{ width: col.width + 'px' }" class="relative py-4 px-4 border-r border-sky-100 select-none">
+                {{ col.label }}
+                <!-- 🔥 拖曳把手 (Resizer) -->
+                <div class="resizer" @mousedown="startResize($event, index)"></div>
+              </th>
               <th class="py-4 px-4 w-[100px] text-center">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-sky-100">
             <tr v-for="item in filteredIssues" :key="item.ID" class="hover:bg-sky-50/50 transition-colors duration-150 align-top">
-              <!-- Status 標籤 -->
-              <td class="py-4 px-4 whitespace-nowrap">
+              <td class="py-4 px-4 whitespace-nowrap overflow-hidden">
                 <span v-if="item['Remain Issue'] && String(item['Remain Issue']).trim() !== ''" class="inline-flex items-center gap-1.5 bg-rose-100 text-rose-800 font-extrabold px-2.5 py-1 rounded-md border border-rose-300 shadow-sm text-xs">
                   <span class="w-2 h-2 rounded-full bg-rose-600 animate-pulse"></span>Remain
                 </span>
@@ -229,46 +226,43 @@
                   <span class="w-2 h-2 rounded-full bg-emerald-600"></span>Closed
                 </span>
               </td>
-              <td class="py-4 px-4">
+              <td class="py-4 px-4 overflow-hidden">
                 <div class="font-mono font-bold text-slate-900 break-all">{{ item.ID }}</div>
                 <div class="text-xs text-slate-500 mt-1 font-mono">{{ formatDate(item.Timestamp) }}</div>
               </td>
-              <td class="py-4 px-4">
+              <td class="py-4 px-4 overflow-hidden">
                 <div class="font-extrabold text-slate-900 break-words">{{ item.Company || '-' }}</div>
                 <div class="text-xs text-slate-500 mt-0.5 break-words">{{ item['Model Type'] || '-' }}</div>
               </td>
-              <td class="py-4 px-4">
+              <td class="py-4 px-4 overflow-hidden">
                 <div class="font-extrabold text-sky-900 font-mono break-all">{{ item['Tool ID'] || '-' }}</div>
                 <div class="text-xs text-slate-500 mt-0.5 break-words">{{ item.Owner || '-' }}</div>
               </td>
-              <td class="py-4 px-4">
+              <td class="py-4 px-4 overflow-hidden">
                 <div class="cell-scroll-box whitespace-pre-line text-slate-800 leading-relaxed pr-1">
                   {{ item['Issue Description'] || '-' }}
                 </div>
               </td>
               
-              <!-- 🔥 欄位 1: Actions Done (嚴格限制寬度 + 固定高度 110px 滾動) -->
-              <td class="py-4 px-4">
+              <td class="py-4 px-4 overflow-hidden">
                 <div class="cell-scroll-box whitespace-pre-line text-slate-900 leading-relaxed border-l-2 border-sky-400 pl-3 pr-1 bg-sky-50/40 rounded-r-lg">
                   {{ item['Actions Done'] || '-' }}
                 </div>
               </td>
               
-              <!-- 🔥 欄位 2: Plan to Do (嚴格限制寬度 + 固定高度 110px 滾動) -->
-              <td class="py-4 px-4">
+              <td class="py-4 px-4 overflow-hidden">
                 <div class="cell-scroll-box whitespace-pre-line font-bold text-amber-900 bg-amber-50/70 rounded-xl p-2.5 border border-amber-200/80 pr-1">
                   {{ item['Plan to Do'] || '-' }}
                 </div>
               </td>
 
-              <!-- 🔥 欄位 3: Remain Issue (嚴格限制寬度 + 固定高度 110px 滾動) -->
-              <td class="py-4 px-4">
+              <td class="py-4 px-4 overflow-hidden">
                 <div class="cell-scroll-box whitespace-pre-line font-bold text-rose-900 bg-rose-50/70 rounded-xl p-2.5 border border-rose-200/80 pr-1">
                   {{ item['Remain Issue'] || '-' }}
                 </div>
               </td>
 
-              <td class="py-4 px-4">
+              <td class="py-4 px-4 overflow-hidden">
                 <div class="text-slate-800 font-semibold break-words">Cat: {{ item['Replace Parts Category'] || '-' }}</div>
                 <div class="text-xs font-mono text-slate-500 mt-1 break-all">PN: {{ item['Replace Parts PN'] || '-' }}</div>
               </td>
@@ -336,7 +330,6 @@
           <textarea v-model="form['Actions Done']" rows="6" class="w-full bg-slate-50 border border-sky-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all" placeholder="詳細紀錄維護處置步驟..."></textarea>
         </div>
         
-        <!-- 警示狀態欄位 -->
         <div class="bg-amber-50 border border-amber-300 p-4 rounded-xl space-y-3">
           <div>
             <label class="block text-xs font-bold text-amber-900 mb-1">Plan to Do (填寫將觸發 Plan 警示)</label>
@@ -371,7 +364,6 @@
   </div>
 
   <script>
-    // ⚠️ 已綁定您的 Apps Script URL
     const API_URL = "https://script.google.com/macros/s/AKfycbx9uocDdwRN8Aywsi8T2D9EHXb_azlHZhaDr-pEn-RRsx1EqFKBuWV19Dc_P5TVu5yViA/exec";
 
     const { createApp, ref, computed, onMounted } = Vue;
@@ -383,11 +375,24 @@
         const selectedWeek = ref('');
         const searchQuery = ref('');
         const statusFilter = ref('ALL');
-        const fontSize = ref('md'); // sm, md, lg
+        const fontSize = ref('md');
         const showModal = ref(false);
         const isEdit = ref(false);
         const loading = ref(false);
         const submitting = ref(false);
+
+        // 🔥 可自訂與拖曳調整寬度的欄位設定
+        const columns = ref([
+          { label: 'Status', width: 110 },
+          { label: 'ID / Timestamp', width: 140 },
+          { label: 'Company / Model', width: 140 },
+          { label: 'Tool ID / Owner', width: 130 },
+          { label: 'Issue Description', width: 220 },
+          { label: 'Actions Done', width: 280 },
+          { label: 'Plan to Do', width: 180 },
+          { label: 'Remain Issue', width: 180 },
+          { label: 'Replace Parts', width: 150 }
+        ]);
 
         const form = ref({
           ID: '',
@@ -404,7 +409,26 @@
           'Replace Parts PN': ''
         });
 
-        // 🔥 即時調整 CSS 變數
+        // 🔥 欄位寬度手動拖曳事件處理 (Drag to Resize)
+        const startResize = (e, index) => {
+          e.preventDefault();
+          const startX = e.clientX;
+          const startWidth = columns.value[index].width;
+
+          const onMouseMove = (moveEvent) => {
+            const deltaX = moveEvent.clientX - startX;
+            columns.value[index].width = Math.max(80, startWidth + deltaX); // 最小寬度限制為 80px
+          };
+
+          const onMouseUp = () => {
+            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('mouseup', onMouseUp);
+          };
+
+          window.addEventListener('mousemove', onMouseMove);
+          window.addEventListener('mouseup', onMouseUp);
+        };
+
         const changeFontSize = (size) => {
           fontSize.value = size;
           const root = document.documentElement;
@@ -576,6 +600,7 @@
           searchQuery,
           statusFilter,
           fontSize,
+          columns,
           showModal,
           isEdit,
           loading,
@@ -583,6 +608,7 @@
           form,
           filteredIssues,
           dashboardStats,
+          startResize,
           changeFontSize,
           switchSheet,
           fetchData,

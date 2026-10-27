@@ -158,13 +158,11 @@
       </div>
     </div>
 
-    <!-- 🔥 控制區：支援「依週查詢」與「選擇指定時間點/區間」 -->
+    <!-- 控制區：支援「依週查詢」與「選擇指定時間點/區間」 -->
     <div class="flex flex-col lg:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-md border border-sky-200">
       <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
         
-        <!-- 查詢模式切換與時間選擇器 -->
         <div class="flex items-center gap-2 bg-sky-50 p-1.5 rounded-xl border border-sky-200 shadow-inner">
-          <!-- 模式切換按鈕 -->
           <div class="flex bg-white rounded-lg p-0.5 border border-sky-200">
             <button 
               @click="dateFilterMode = 'week'" 
@@ -178,13 +176,11 @@
             </button>
           </div>
 
-          <!-- 模式 1：依週別選擇 -->
           <div v-if="dateFilterMode === 'week'" class="flex items-center gap-1.5 px-1">
             <input type="week" v-model="selectedWeek" class="bg-white border border-sky-300 rounded-md px-2 py-0.5 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
             <button @click="selectedWeek = ''" v-if="selectedWeek" class="text-xs text-sky-700 hover:text-sky-900 font-bold ml-1">重置</button>
           </div>
 
-          <!-- 模式 2：指定時間點 / 日期區間選擇 -->
           <div v-else class="flex items-center gap-1.5 px-1">
             <input type="date" v-model="startDate" title="開始日期" class="bg-white border border-sky-300 rounded-md px-2 py-0.5 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
             <span class="text-xs font-bold text-slate-400">至</span>
@@ -193,14 +189,12 @@
           </div>
         </div>
 
-        <!-- 關鍵字搜尋框 -->
         <div class="relative w-full sm:w-64">
           <input type="text" v-model="searchQuery" placeholder="搜尋 Tool ID / 機況 / 步驟..." class="w-full bg-white border border-sky-200 rounded-xl pl-9 pr-8 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-all shadow-inner">
           <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
           <button @click="searchQuery = ''" v-if="searchQuery" class="absolute right-2.5 top-2 text-xs text-slate-400 hover:text-slate-600">✕</button>
         </div>
 
-        <!-- 字體大小切換按鈕區 -->
         <div class="flex items-center gap-1 bg-sky-100/80 p-1 rounded-xl border border-sky-200 ml-0 sm:ml-2">
           <span class="text-[11px] font-bold text-slate-600 px-2">字體</span>
           <button 
@@ -317,7 +311,7 @@
       </div>
     </div>
 
-    <!-- Modal：新增 / 編輯表單 -->
+    <!-- Modal：新增 / 編輯表單 (包含日期自訂選擇) -->
     <div v-if="showModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div class="bg-white rounded-2xl max-w-3xl w-full p-6 space-y-5 max-h-[90vh] overflow-y-auto shadow-2xl border border-sky-200">
         <div class="flex justify-between items-center border-b border-sky-100 pb-4">
@@ -328,6 +322,12 @@
           <button @click="showModal = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">✕</button>
         </div>
         
+        <!-- 🔥 新增：紀錄日期選擇欄位 -->
+        <div class="bg-sky-50/70 border border-sky-200 p-3.5 rounded-xl">
+          <label class="block text-xs font-bold text-sky-900 mb-1">📅 選擇機況紀錄日期 (Record Date)</label>
+          <input type="date" v-model="recordDate" class="w-full bg-white border border-sky-300 rounded-xl px-3.5 py-2 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all">
+        </div>
+
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">Company</label>
@@ -399,7 +399,6 @@
         const currentSheet = ref('Hitachi');
         const issues = ref([]);
         
-        // 🔥 時間查詢模式：'week' (依週) 或 'range' (指定時間區間)
         const dateFilterMode = ref('week');
         const selectedWeek = ref('');
         const startDate = ref('');
@@ -412,6 +411,7 @@
         const isEdit = ref(false);
         const loading = ref(false);
         const submitting = ref(false);
+        const recordDate = ref(''); // 🔥 供使用者自由選擇的填單日期
 
         const columns = ref([
           { label: 'Status', width: 110 },
@@ -504,13 +504,11 @@
           return `${d.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
         };
 
-        // 🔥 複合時間篩選（依週別 或 依日期範圍）
         const timeFilteredIssues = computed(() => {
           if (dateFilterMode.value === 'week') {
             if (!selectedWeek.value) return issues.value;
             return issues.value.filter(i => getWeekString(i.Timestamp) === selectedWeek.value);
           } else {
-            // 指定時間點 / 日期區間模式
             if (!startDate.value && !endDate.value) return issues.value;
             return issues.value.filter(i => {
               if (!i.Timestamp) return false;
@@ -573,15 +571,24 @@
           };
         });
 
+        // 🔥 開啟彈出視窗時帶入日期
         const openModal = (item = null) => {
           if (item) {
             isEdit.value = true;
             form.value = { ...item };
+            // 如果原本已有時間戳記，取前 10 碼 (YYYY-MM-DD)
+            if (item.Timestamp) {
+              const d = new Date(item.Timestamp);
+              recordDate.value = !isNaN(d.getTime()) ? d.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+            } else {
+              recordDate.value = new Date().toISOString().split('T')[0];
+            }
           } else {
             isEdit.value = false;
+            recordDate.value = new Date().toISOString().split('T')[0]; // 預設今天
             form.value = {
               ID: '',
-              Timestamp: new Date().toISOString(),
+              Timestamp: '',
               Company: '',
               'Model Type': '',
               'Tool ID': '',
@@ -600,6 +607,18 @@
         const saveData = async () => {
           submitting.value = true;
           const action = isEdit.value ? 'update' : 'create';
+          
+          // 🔥 將使用者選擇的日期轉成完整的 ISO 時間戳記寫入
+          if (recordDate.value) {
+            const selectedD = new Date(recordDate.value);
+            // 補上現在的當前時分秒，保留精準排序性
+            const now = new Date();
+            selectedD.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+            form.value.Timestamp = selectedD.toISOString();
+          } else {
+            form.value.Timestamp = new Date().toISOString();
+          }
+
           try {
             await fetch(API_URL, {
               method: 'POST',
@@ -652,6 +671,7 @@
           selectedWeek,
           startDate,
           endDate,
+          recordDate,
           searchQuery,
           statusFilter,
           fontSize,

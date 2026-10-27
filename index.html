@@ -86,7 +86,7 @@
   </style>
 </head>
 <body class="bg-sky-100/70 min-h-screen text-slate-800 p-4 md:p-6 antialiased selection:bg-sky-600 selection:text-white">
-  <div id="app" class="max-w-[1800px] mx-auto space-y-4">
+  <div id="app" class="max-w-[1920px] mx-auto space-y-4">
     
     <!-- 頂部標題與產品切換頁籤 -->
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white px-5 py-4 rounded-xl shadow-md border border-sky-200">
@@ -111,7 +111,7 @@
       </div>
     </header>
 
-    <!-- 🔥 縮小版精緻儀表板 Dashboard -->
+    <!-- 縮小版精緻儀表板 Dashboard -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
       <!-- 卡片 1: 全部 -->
       <div 
@@ -217,6 +217,11 @@
             大
           </button>
         </div>
+
+        <!-- 重設欄寬按鈕 -->
+        <button @click="resetColumnWidths()" class="text-xs text-sky-700 hover:text-sky-900 font-semibold px-2 py-1 bg-sky-50 border border-sky-200 rounded-lg shadow-sm" title="還原預設欄位寬度">
+          重設寬度
+        </button>
       </div>
 
       <button @click="openModal()" class="w-full lg:w-auto bg-slate-900 hover:bg-sky-600 text-white font-bold px-5 py-2 rounded-xl shadow-md hover:shadow-sky-500/20 transition-all duration-200 text-xs flex items-center justify-center gap-2 border border-slate-800">
@@ -262,24 +267,28 @@
                 <div class="font-extrabold text-sky-900 font-mono break-all">{{ item['Tool ID'] || '-' }}</div>
                 <div class="text-xs text-slate-500 mt-0.5 break-words">{{ item.Owner || '-' }}</div>
               </td>
+              <!-- 🔥 放大後之欄位 1: Issue Description -->
               <td class="py-3.5 px-4 overflow-hidden">
                 <div class="cell-scroll-box whitespace-pre-line text-slate-800 leading-relaxed pr-1">
                   {{ item['Issue Description'] || '-' }}
                 </div>
               </td>
               
+              <!-- 🔥 放大後之欄位 2: Actions Done -->
               <td class="py-3.5 px-4 overflow-hidden">
                 <div class="cell-scroll-box whitespace-pre-line text-slate-900 leading-relaxed border-l-2 border-sky-400 pl-3 pr-1 bg-sky-50/40 rounded-r-lg">
                   {{ item['Actions Done'] || '-' }}
                 </div>
               </td>
               
+              <!-- 🔥 放大後之欄位 3: Plan to Do -->
               <td class="py-3.5 px-4 overflow-hidden">
                 <div class="cell-scroll-box whitespace-pre-line font-bold text-amber-900 bg-amber-50/70 rounded-xl p-2.5 border border-amber-200/80 pr-1">
                   {{ item['Plan to Do'] || '-' }}
                 </div>
               </td>
 
+              <!-- 🔥 放大後之欄位 4: Remain Issue -->
               <td class="py-3.5 px-4 overflow-hidden">
                 <div class="cell-scroll-box whitespace-pre-line font-bold text-rose-900 bg-rose-50/70 rounded-xl p-2.5 border border-rose-200/80 pr-1">
                   {{ item['Remain Issue'] || '-' }}
@@ -397,6 +406,19 @@
 
     const { createApp, ref, computed, onMounted } = Vue;
 
+    // 🔥 預設欄位寬度（4 大核心欄位顯著放大）
+    const DEFAULT_COLUMNS = [
+      { label: 'Status', width: 110 },
+      { label: 'Timestamp', width: 130 },
+      { label: 'Company / Model', width: 140 },
+      { label: 'Tool ID / Owner', width: 130 },
+      { label: 'Issue Description', width: 320 }, // 大幅放大
+      { label: 'Actions Done', width: 480 },      // 大幅放大
+      { label: 'Plan to Do', width: 240 },        // 大幅放大
+      { label: 'Remain Issue', width: 240 },      // 大幅放大
+      { label: 'Replace Parts', width: 150 }
+    ];
+
     createApp({
       setup() {
         const currentSheet = ref('Hitachi');
@@ -416,17 +438,29 @@
         const submitting = ref(false);
         const recordDate = ref('');
 
-        const columns = ref([
-          { label: 'Status', width: 110 },
-          { label: 'Timestamp', width: 130 },
-          { label: 'Company / Model', width: 140 },
-          { label: 'Tool ID / Owner', width: 130 },
-          { label: 'Issue Description', width: 220 },
-          { label: 'Actions Done', width: 280 },
-          { label: 'Plan to Do', width: 180 },
-          { label: 'Remain Issue', width: 180 },
-          { label: 'Replace Parts', width: 150 }
-        ]);
+        // 從 LocalStorage 載入先前儲存的欄位寬度，若無則套用預設值
+        const loadSavedColumns = () => {
+          try {
+            const saved = localStorage.getItem('ptw_columns_width');
+            if (saved) {
+              const parsed = JSON.parse(saved);
+              if (parsed.length === DEFAULT_COLUMNS.length) {
+                return parsed;
+              }
+            }
+          } catch (e) {
+            console.warn("無法載入欄位設定", e);
+          }
+          return JSON.parse(JSON.stringify(DEFAULT_COLUMNS));
+        };
+
+        const columns = ref(loadSavedColumns());
+
+        // 重設欄寬按鈕方法
+        const resetColumnWidths = () => {
+          columns.value = JSON.parse(JSON.stringify(DEFAULT_COLUMNS));
+          localStorage.removeItem('ptw_columns_width');
+        };
 
         const form = ref({
           ID: '',
@@ -443,6 +477,7 @@
           'Replace Parts PN': ''
         });
 
+        // 拖曳結束時自動儲存寬度至 LocalStorage
         const startResize = (e, index) => {
           e.preventDefault();
           const startX = e.clientX;
@@ -450,12 +485,13 @@
 
           const onMouseMove = (moveEvent) => {
             const deltaX = moveEvent.clientX - startX;
-            columns.value[index].width = Math.max(80, startWidth + deltaX);
+            columns.value[index].width = Math.max(90, startWidth + deltaX);
           };
 
           const onMouseUp = () => {
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('mouseup', onMouseUp);
+            localStorage.setItem('ptw_columns_width', JSON.stringify(columns.value));
           };
 
           window.addEventListener('mousemove', onMouseMove);
@@ -683,6 +719,7 @@
           filteredIssues,
           dashboardStats,
           startResize,
+          resetColumnWidths,
           changeFontSize,
           switchSheet,
           fetchData,

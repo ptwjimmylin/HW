@@ -54,7 +54,7 @@
       background: #0284C7;
     }
 
-    /* 🔥 表頭可拖曳調整寬度控制線 */
+    /* 表頭可拖曳調整寬度控制線 */
     .resizer {
       position: absolute;
       right: 0;
@@ -118,7 +118,7 @@
         :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border-2 shadow-sm', statusFilter === 'ALL' ? 'bg-white border-sky-600 shadow-lg ring-2 ring-sky-200' : 'bg-white border-sky-200 hover:border-sky-400 hover:shadow-md']">
         <div class="absolute top-0 left-0 right-0 h-1.5 bg-sky-600"></div>
         <div class="flex justify-between items-center">
-          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">當週 Issue 總數</span>
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">當前查詢 Issue 總數</span>
           <span v-if="statusFilter === 'ALL'" class="text-xs bg-sky-100 text-sky-800 font-bold px-2.5 py-0.5 rounded-full border border-sky-300">顯示中</span>
         </div>
         <div class="text-4xl font-black text-slate-900 mt-3 font-mono tracking-tight">{{ dashboardStats.total }}</div>
@@ -158,21 +158,49 @@
       </div>
     </div>
 
-    <!-- 控制區：週別選擇、搜尋、字體大小調節與新增按鈕 -->
+    <!-- 🔥 控制區：支援「依週查詢」與「選擇指定時間點/區間」 -->
     <div class="flex flex-col lg:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-md border border-sky-200">
       <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-        <div class="flex items-center gap-2 bg-sky-50 px-3.5 py-2 rounded-xl border border-sky-200 shadow-inner">
-          <span class="text-xs font-bold text-slate-600">查詢週別</span>
-          <input type="week" v-model="selectedWeek" class="bg-white border border-sky-300 rounded-md px-2 py-0.5 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
-          <button @click="selectedWeek = ''" v-if="selectedWeek" class="text-xs text-sky-700 hover:text-sky-900 font-bold ml-1">重置</button>
+        
+        <!-- 查詢模式切換與時間選擇器 -->
+        <div class="flex items-center gap-2 bg-sky-50 p-1.5 rounded-xl border border-sky-200 shadow-inner">
+          <!-- 模式切換按鈕 -->
+          <div class="flex bg-white rounded-lg p-0.5 border border-sky-200">
+            <button 
+              @click="dateFilterMode = 'week'" 
+              :class="['px-2.5 py-1 text-xs font-bold rounded-md transition-all', dateFilterMode === 'week' ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900']">
+              依週
+            </button>
+            <button 
+              @click="dateFilterMode = 'range'" 
+              :class="['px-2.5 py-1 text-xs font-bold rounded-md transition-all', dateFilterMode === 'range' ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900']">
+              指定日期
+            </button>
+          </div>
+
+          <!-- 模式 1：依週別選擇 -->
+          <div v-if="dateFilterMode === 'week'" class="flex items-center gap-1.5 px-1">
+            <input type="week" v-model="selectedWeek" class="bg-white border border-sky-300 rounded-md px-2 py-0.5 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+            <button @click="selectedWeek = ''" v-if="selectedWeek" class="text-xs text-sky-700 hover:text-sky-900 font-bold ml-1">重置</button>
+          </div>
+
+          <!-- 模式 2：指定時間點 / 日期區間選擇 -->
+          <div v-else class="flex items-center gap-1.5 px-1">
+            <input type="date" v-model="startDate" title="開始日期" class="bg-white border border-sky-300 rounded-md px-2 py-0.5 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+            <span class="text-xs font-bold text-slate-400">至</span>
+            <input type="date" v-model="endDate" title="結束日期" class="bg-white border border-sky-300 rounded-md px-2 py-0.5 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+            <button @click="startDate = ''; endDate = '';" v-if="startDate || endDate" class="text-xs text-sky-700 hover:text-sky-900 font-bold ml-1">重置</button>
+          </div>
         </div>
 
-        <div class="relative w-full sm:w-72">
+        <!-- 關鍵字搜尋框 -->
+        <div class="relative w-full sm:w-64">
           <input type="text" v-model="searchQuery" placeholder="搜尋 Tool ID / 機況 / 步驟..." class="w-full bg-white border border-sky-200 rounded-xl pl-9 pr-8 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-all shadow-inner">
           <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
           <button @click="searchQuery = ''" v-if="searchQuery" class="absolute right-2.5 top-2 text-xs text-slate-400 hover:text-slate-600">✕</button>
         </div>
 
+        <!-- 字體大小切換按鈕區 -->
         <div class="flex items-center gap-1 bg-sky-100/80 p-1 rounded-xl border border-sky-200 ml-0 sm:ml-2">
           <span class="text-[11px] font-bold text-slate-600 px-2">字體</span>
           <button 
@@ -199,7 +227,7 @@
       </button>
     </div>
 
-    <!-- 🔥 隱藏 ID 後的表格 -->
+    <!-- 表格區 -->
     <div class="bg-white rounded-2xl shadow-md border border-sky-200 overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-left text-slate-800 border-collapse text-table-body" style="table-layout: fixed;">
@@ -225,7 +253,6 @@
                   <span class="w-2 h-2 rounded-full bg-emerald-600"></span>Closed
                 </span>
               </td>
-              <!-- 僅顯示 Timestamp，已隱藏 ID -->
               <td class="py-4 px-4 overflow-hidden">
                 <div class="text-xs text-slate-600 font-mono font-semibold">{{ formatDate(item.Timestamp) }}</div>
               </td>
@@ -371,7 +398,13 @@
       setup() {
         const currentSheet = ref('Hitachi');
         const issues = ref([]);
+        
+        // 🔥 時間查詢模式：'week' (依週) 或 'range' (指定時間區間)
+        const dateFilterMode = ref('week');
         const selectedWeek = ref('');
+        const startDate = ref('');
+        const endDate = ref('');
+        
         const searchQuery = ref('');
         const statusFilter = ref('ALL');
         const fontSize = ref('md');
@@ -380,7 +413,6 @@
         const loading = ref(false);
         const submitting = ref(false);
 
-        // 🔥 表頭欄位已移除 ID
         const columns = ref([
           { label: 'Status', width: 110 },
           { label: 'Timestamp', width: 130 },
@@ -472,13 +504,35 @@
           return `${d.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
         };
 
-        const weekFilteredIssues = computed(() => {
-          if (!selectedWeek.value) return issues.value;
-          return issues.value.filter(i => getWeekString(i.Timestamp) === selectedWeek.value);
+        // 🔥 複合時間篩選（依週別 或 依日期範圍）
+        const timeFilteredIssues = computed(() => {
+          if (dateFilterMode.value === 'week') {
+            if (!selectedWeek.value) return issues.value;
+            return issues.value.filter(i => getWeekString(i.Timestamp) === selectedWeek.value);
+          } else {
+            // 指定時間點 / 日期區間模式
+            if (!startDate.value && !endDate.value) return issues.value;
+            return issues.value.filter(i => {
+              if (!i.Timestamp) return false;
+              const itemDate = new Date(i.Timestamp);
+              if (isNaN(itemDate.getTime())) return false;
+              
+              const itemDateStr = itemDate.toISOString().split('T')[0];
+              
+              if (startDate.value && endDate.value) {
+                return itemDateStr >= startDate.value && itemDateStr <= endDate.value;
+              } else if (startDate.value) {
+                return itemDateStr >= startDate.value;
+              } else if (endDate.value) {
+                return itemDateStr <= endDate.value;
+              }
+              return true;
+            });
+          }
         });
 
         const filteredIssues = computed(() => {
-          let list = weekFilteredIssues.value;
+          let list = timeFilteredIssues.value;
 
           if (statusFilter.value === 'PLAN') {
             list = list.filter(i => i['Plan to Do'] && String(i['Plan to Do']).trim() !== '');
@@ -507,7 +561,7 @@
         });
 
         const dashboardStats = computed(() => {
-          const list = weekFilteredIssues.value;
+          const list = timeFilteredIssues.value;
           return {
             total: list.length,
             hasPlan: list.filter(i => i['Plan to Do'] && String(i['Plan to Do']).trim() !== '').length,
@@ -594,7 +648,10 @@
         return {
           currentSheet,
           issues,
+          dateFilterMode,
           selectedWeek,
+          startDate,
+          endDate,
           searchQuery,
           statusFilter,
           fontSize,

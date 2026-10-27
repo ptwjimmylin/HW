@@ -85,18 +85,18 @@
     }
   </style>
 </head>
-<body class="bg-sky-100/70 min-h-screen text-slate-800 p-4 md:p-8 antialiased selection:bg-sky-600 selection:text-white">
-  <div id="app" class="max-w-[1800px] mx-auto space-y-6">
+<body class="bg-sky-100/70 min-h-screen text-slate-800 p-4 md:p-6 antialiased selection:bg-sky-600 selection:text-white">
+  <div id="app" class="max-w-[1800px] mx-auto space-y-4">
     
     <!-- 頂部標題與產品切換頁籤 -->
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-md border border-sky-200">
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white px-5 py-4 rounded-xl shadow-md border border-sky-200">
       <div class="flex items-center gap-3">
-        <div class="p-2.5 bg-sky-600 rounded-xl text-white shadow-md shadow-sky-300">
-          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        <div class="p-2 bg-sky-600 rounded-lg text-white shadow-md shadow-sky-300">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
         </div>
         <div>
-          <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">PTW Service Review System</h1>
-          <p class="text-sm text-slate-500 font-medium mt-0.5">週會機況審查與智能追蹤系統</p>
+          <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">PTW Service Review System</h1>
+          <p class="text-xs text-slate-500 font-medium">週會機況審查與智能追蹤系統</p>
         </div>
       </div>
       
@@ -105,64 +105,68 @@
           v-for="product in ['Hitachi', 'SEZ_SpinTec']" 
           :key="product"
           @click="switchSheet(product)"
-          :class="['flex-1 md:flex-none px-7 py-2.5 rounded-lg font-bold text-sm tracking-wide transition-all duration-200 shadow-sm', currentSheet === product ? 'bg-sky-600 text-white border border-sky-700 shadow-md' : 'bg-white text-slate-700 hover:bg-sky-50 border border-sky-200']">
+          :class="['flex-1 md:flex-none px-6 py-2 rounded-lg font-bold text-xs tracking-wide transition-all duration-200 shadow-sm', currentSheet === product ? 'bg-sky-600 text-white border border-sky-700 shadow-md' : 'bg-white text-slate-700 hover:bg-sky-50 border border-sky-200']">
           {{ product }}
         </button>
       </div>
     </header>
 
-    <!-- 可點擊儀表板 Dashboard -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+    <!-- 🔥 縮小版精緻儀表板 Dashboard -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <!-- 卡片 1: 全部 -->
       <div 
         @click="statusFilter = 'ALL'"
-        :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border-2 shadow-sm', statusFilter === 'ALL' ? 'bg-white border-sky-600 shadow-lg ring-2 ring-sky-200' : 'bg-white border-sky-200 hover:border-sky-400 hover:shadow-md']">
-        <div class="absolute top-0 left-0 right-0 h-1.5 bg-sky-600"></div>
-        <div class="flex justify-between items-center">
-          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">當前查詢 Issue 總數</span>
-          <span v-if="statusFilter === 'ALL'" class="text-xs bg-sky-100 text-sky-800 font-bold px-2.5 py-0.5 rounded-full border border-sky-300">顯示中</span>
+        :class="['relative overflow-hidden py-2.5 px-4 rounded-xl transition-all duration-200 cursor-pointer select-none border-2 shadow-sm flex items-center justify-between', statusFilter === 'ALL' ? 'bg-white border-sky-600 shadow-md ring-2 ring-sky-200' : 'bg-white border-sky-200 hover:border-sky-400 hover:shadow']">
+        <div class="absolute top-0 left-0 bottom-0 w-1.5 bg-sky-600"></div>
+        <div class="pl-1">
+          <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">當前查詢 Issue 總數</div>
+          <span v-if="statusFilter === 'ALL'" class="text-[10px] bg-sky-100 text-sky-800 font-bold px-1.5 py-0.2 rounded-full border border-sky-300">顯示中</span>
         </div>
-        <div class="text-4xl font-black text-slate-900 mt-3 font-mono tracking-tight">{{ dashboardStats.total }}</div>
+        <div class="text-2xl font-black text-slate-900 font-mono tracking-tight">{{ dashboardStats.total }}</div>
       </div>
 
+      <!-- 卡片 2: Plan to Do -->
       <div 
         @click="statusFilter = statusFilter === 'PLAN' ? 'ALL' : 'PLAN'"
-        :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border-2 shadow-sm', statusFilter === 'PLAN' ? 'bg-amber-50 border-amber-500 shadow-lg ring-2 ring-amber-200' : 'bg-white border-sky-200 hover:border-amber-400 hover:shadow-md']">
-        <div class="absolute top-0 left-0 right-0 h-1.5 bg-amber-500"></div>
-        <div class="flex justify-between items-center">
-          <span class="text-xs font-bold text-amber-700 uppercase tracking-wider">有 PLAN TO DO (關注)</span>
-          <span v-if="statusFilter === 'PLAN'" class="text-xs bg-amber-200 text-amber-900 font-bold px-2.5 py-0.5 rounded-full border border-amber-300">已篩選</span>
+        :class="['relative overflow-hidden py-2.5 px-4 rounded-xl transition-all duration-200 cursor-pointer select-none border-2 shadow-sm flex items-center justify-between', statusFilter === 'PLAN' ? 'bg-amber-50 border-amber-500 shadow-md ring-2 ring-amber-200' : 'bg-white border-sky-200 hover:border-amber-400 hover:shadow']">
+        <div class="absolute top-0 left-0 bottom-0 w-1.5 bg-amber-500"></div>
+        <div class="pl-1">
+          <div class="text-[11px] font-bold text-amber-700 uppercase tracking-wider">有 PLAN TO DO (關注)</div>
+          <span v-if="statusFilter === 'PLAN'" class="text-[10px] bg-amber-200 text-amber-900 font-bold px-1.5 py-0.2 rounded-full border border-amber-300">已篩選</span>
         </div>
-        <div class="text-4xl font-black text-amber-600 mt-3 font-mono tracking-tight">{{ dashboardStats.hasPlan }}</div>
+        <div class="text-2xl font-black text-amber-600 font-mono tracking-tight">{{ dashboardStats.hasPlan }}</div>
       </div>
 
+      <!-- 卡片 3: Remain Issue -->
       <div 
         @click="statusFilter = statusFilter === 'REMAIN' ? 'ALL' : 'REMAIN'"
-        :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border-2 shadow-sm', statusFilter === 'REMAIN' ? 'bg-rose-50 border-rose-500 shadow-lg ring-2 ring-rose-200' : 'bg-white border-sky-200 hover:border-rose-400 hover:shadow-md']">
-        <div class="absolute top-0 left-0 right-0 h-1.5 bg-rose-600"></div>
-        <div class="flex justify-between items-center">
-          <span class="text-xs font-bold text-rose-700 uppercase tracking-wider">有 REMAIN ISSUE (警示)</span>
-          <span v-if="statusFilter === 'REMAIN'" class="text-xs bg-rose-200 text-rose-900 font-bold px-2.5 py-0.5 rounded-full border border-rose-300">已篩選</span>
+        :class="['relative overflow-hidden py-2.5 px-4 rounded-xl transition-all duration-200 cursor-pointer select-none border-2 shadow-sm flex items-center justify-between', statusFilter === 'REMAIN' ? 'bg-rose-50 border-rose-500 shadow-md ring-2 ring-rose-200' : 'bg-white border-sky-200 hover:border-rose-400 hover:shadow']">
+        <div class="absolute top-0 left-0 bottom-0 w-1.5 bg-rose-600"></div>
+        <div class="pl-1">
+          <div class="text-[11px] font-bold text-rose-700 uppercase tracking-wider">有 REMAIN ISSUE (警示)</div>
+          <span v-if="statusFilter === 'REMAIN'" class="text-[10px] bg-rose-200 text-rose-900 font-bold px-1.5 py-0.2 rounded-full border border-rose-300">已篩選</span>
         </div>
-        <div class="text-4xl font-black text-rose-600 mt-3 font-mono tracking-tight">{{ dashboardStats.hasRemain }}</div>
+        <div class="text-2xl font-black text-rose-600 font-mono tracking-tight">{{ dashboardStats.hasRemain }}</div>
       </div>
 
+      <!-- 卡片 4: Closed -->
       <div 
         @click="statusFilter = statusFilter === 'CLOSED' ? 'ALL' : 'CLOSED'"
-        :class="['relative overflow-hidden p-5 rounded-2xl transition-all duration-300 cursor-pointer select-none border-2 shadow-sm', statusFilter === 'CLOSED' ? 'bg-emerald-50 border-emerald-500 shadow-lg ring-2 ring-emerald-200' : 'bg-white border-sky-200 hover:border-emerald-400 hover:shadow-md']">
-        <div class="absolute top-0 left-0 right-0 h-1.5 bg-emerald-600"></div>
-        <div class="flex justify-between items-center">
-          <span class="text-xs font-bold text-emerald-700 uppercase tracking-wider">已完結 (CLOSED)</span>
-          <span v-if="statusFilter === 'CLOSED'" class="text-xs bg-emerald-200 text-emerald-900 font-bold px-2.5 py-0.5 rounded-full border border-emerald-300">已篩選</span>
+        :class="['relative overflow-hidden py-2.5 px-4 rounded-xl transition-all duration-200 cursor-pointer select-none border-2 shadow-sm flex items-center justify-between', statusFilter === 'CLOSED' ? 'bg-emerald-50 border-emerald-500 shadow-md ring-2 ring-emerald-200' : 'bg-white border-sky-200 hover:border-emerald-400 hover:shadow']">
+        <div class="absolute top-0 left-0 bottom-0 w-1.5 bg-emerald-600"></div>
+        <div class="pl-1">
+          <div class="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">已完結 (CLOSED)</div>
+          <span v-if="statusFilter === 'CLOSED'" class="text-[10px] bg-emerald-200 text-emerald-900 font-bold px-1.5 py-0.2 rounded-full border border-emerald-300">已篩選</span>
         </div>
-        <div class="text-4xl font-black text-emerald-600 mt-3 font-mono tracking-tight">{{ dashboardStats.completed }}</div>
+        <div class="text-2xl font-black text-emerald-600 font-mono tracking-tight">{{ dashboardStats.completed }}</div>
       </div>
     </div>
 
     <!-- 控制區：支援「依週查詢」與「選擇指定時間點/區間」 -->
-    <div class="flex flex-col lg:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-md border border-sky-200">
+    <div class="flex flex-col lg:flex-row justify-between items-center gap-3 bg-white p-3 rounded-xl shadow-md border border-sky-200">
       <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
         
-        <div class="flex items-center gap-2 bg-sky-50 p-1.5 rounded-xl border border-sky-200 shadow-inner">
+        <div class="flex items-center gap-2 bg-sky-50 p-1 rounded-xl border border-sky-200 shadow-inner">
           <div class="flex bg-white rounded-lg p-0.5 border border-sky-200">
             <button 
               @click="dateFilterMode = 'week'" 
@@ -190,32 +194,32 @@
         </div>
 
         <div class="relative w-full sm:w-64">
-          <input type="text" v-model="searchQuery" placeholder="搜尋 Tool ID / 機況 / 步驟..." class="w-full bg-white border border-sky-200 rounded-xl pl-9 pr-8 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-all shadow-inner">
-          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-          <button @click="searchQuery = ''" v-if="searchQuery" class="absolute right-2.5 top-2 text-xs text-slate-400 hover:text-slate-600">✕</button>
+          <input type="text" v-model="searchQuery" placeholder="搜尋 Tool ID / 機況 / 步驟..." class="w-full bg-white border border-sky-200 rounded-xl pl-8 pr-7 py-1.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-all shadow-inner">
+          <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          <button @click="searchQuery = ''" v-if="searchQuery" class="absolute right-2.5 top-1.5 text-xs text-slate-400 hover:text-slate-600">✕</button>
         </div>
 
         <div class="flex items-center gap-1 bg-sky-100/80 p-1 rounded-xl border border-sky-200 ml-0 sm:ml-2">
           <span class="text-[11px] font-bold text-slate-600 px-2">字體</span>
           <button 
             @click="changeFontSize('sm')" 
-            :class="['px-3 py-1 rounded-lg text-xs font-bold transition-all shadow-sm', fontSize === 'sm' ? 'bg-sky-600 text-white border border-sky-700' : 'bg-white text-slate-700 hover:bg-sky-50 border border-sky-200']">
+            :class="['px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all shadow-sm', fontSize === 'sm' ? 'bg-sky-600 text-white border border-sky-700' : 'bg-white text-slate-700 hover:bg-sky-50 border border-sky-200']">
             小
           </button>
           <button 
             @click="changeFontSize('md')" 
-            :class="['px-3 py-1 rounded-lg text-xs font-bold transition-all shadow-sm', fontSize === 'md' ? 'bg-sky-600 text-white border border-sky-700' : 'bg-white text-slate-700 hover:bg-sky-50 border border-sky-200']">
+            :class="['px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all shadow-sm', fontSize === 'md' ? 'bg-sky-600 text-white border border-sky-700' : 'bg-white text-slate-700 hover:bg-sky-50 border border-sky-200']">
             中
           </button>
           <button 
             @click="changeFontSize('lg')" 
-            :class="['px-3 py-1 rounded-lg text-xs font-bold transition-all shadow-sm', fontSize === 'lg' ? 'bg-sky-600 text-white border border-sky-700' : 'bg-white text-slate-700 hover:bg-sky-50 border border-sky-200']">
+            :class="['px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all shadow-sm', fontSize === 'lg' ? 'bg-sky-600 text-white border border-sky-700' : 'bg-white text-slate-700 hover:bg-sky-50 border border-sky-200']">
             大
           </button>
         </div>
       </div>
 
-      <button @click="openModal()" class="w-full lg:w-auto bg-slate-900 hover:bg-sky-600 text-white font-bold px-6 py-2.5 rounded-xl shadow-md hover:shadow-sky-500/20 transition-all duration-200 text-xs flex items-center justify-center gap-2 border border-slate-800">
+      <button @click="openModal()" class="w-full lg:w-auto bg-slate-900 hover:bg-sky-600 text-white font-bold px-5 py-2 rounded-xl shadow-md hover:shadow-sky-500/20 transition-all duration-200 text-xs flex items-center justify-center gap-2 border border-slate-800">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
         <span>新增機況紀錄</span>
       </button>
@@ -227,16 +231,16 @@
         <table class="w-full text-left text-slate-800 border-collapse text-table-body" style="table-layout: fixed;">
           <thead class="bg-sky-50/80 text-slate-700 font-bold uppercase tracking-wider text-xs border-b border-sky-200">
             <tr>
-              <th v-for="(col, index) in columns" :key="index" :style="{ width: col.width + 'px' }" class="relative py-4 px-4 border-r border-sky-100 select-none">
+              <th v-for="(col, index) in columns" :key="index" :style="{ width: col.width + 'px' }" class="relative py-3.5 px-4 border-r border-sky-100 select-none">
                 {{ col.label }}
                 <div class="resizer" @mousedown="startResize($event, index)"></div>
               </th>
-              <th class="py-4 px-4 w-[100px] text-center">Actions</th>
+              <th class="py-3.5 px-4 w-[100px] text-center">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-sky-100">
             <tr v-for="item in filteredIssues" :key="item.ID" class="hover:bg-sky-50/50 transition-colors duration-150 align-top">
-              <td class="py-4 px-4 whitespace-nowrap overflow-hidden">
+              <td class="py-3.5 px-4 whitespace-nowrap overflow-hidden">
                 <span v-if="item['Remain Issue'] && String(item['Remain Issue']).trim() !== ''" class="inline-flex items-center gap-1.5 bg-rose-100 text-rose-800 font-extrabold px-2.5 py-1 rounded-md border border-rose-300 shadow-sm text-xs">
                   <span class="w-2 h-2 rounded-full bg-rose-600 animate-pulse"></span>Remain
                 </span>
@@ -247,46 +251,46 @@
                   <span class="w-2 h-2 rounded-full bg-emerald-600"></span>Closed
                 </span>
               </td>
-              <td class="py-4 px-4 overflow-hidden">
+              <td class="py-3.5 px-4 overflow-hidden">
                 <div class="text-xs text-slate-600 font-mono font-semibold">{{ formatDate(item.Timestamp) }}</div>
               </td>
-              <td class="py-4 px-4 overflow-hidden">
+              <td class="py-3.5 px-4 overflow-hidden">
                 <div class="font-extrabold text-slate-900 break-words">{{ item.Company || '-' }}</div>
                 <div class="text-xs text-slate-500 mt-0.5 break-words">{{ item['Model Type'] || '-' }}</div>
               </td>
-              <td class="py-4 px-4 overflow-hidden">
+              <td class="py-3.5 px-4 overflow-hidden">
                 <div class="font-extrabold text-sky-900 font-mono break-all">{{ item['Tool ID'] || '-' }}</div>
                 <div class="text-xs text-slate-500 mt-0.5 break-words">{{ item.Owner || '-' }}</div>
               </td>
-              <td class="py-4 px-4 overflow-hidden">
+              <td class="py-3.5 px-4 overflow-hidden">
                 <div class="cell-scroll-box whitespace-pre-line text-slate-800 leading-relaxed pr-1">
                   {{ item['Issue Description'] || '-' }}
                 </div>
               </td>
               
-              <td class="py-4 px-4 overflow-hidden">
+              <td class="py-3.5 px-4 overflow-hidden">
                 <div class="cell-scroll-box whitespace-pre-line text-slate-900 leading-relaxed border-l-2 border-sky-400 pl-3 pr-1 bg-sky-50/40 rounded-r-lg">
                   {{ item['Actions Done'] || '-' }}
                 </div>
               </td>
               
-              <td class="py-4 px-4 overflow-hidden">
+              <td class="py-3.5 px-4 overflow-hidden">
                 <div class="cell-scroll-box whitespace-pre-line font-bold text-amber-900 bg-amber-50/70 rounded-xl p-2.5 border border-amber-200/80 pr-1">
                   {{ item['Plan to Do'] || '-' }}
                 </div>
               </td>
 
-              <td class="py-4 px-4 overflow-hidden">
+              <td class="py-3.5 px-4 overflow-hidden">
                 <div class="cell-scroll-box whitespace-pre-line font-bold text-rose-900 bg-rose-50/70 rounded-xl p-2.5 border border-rose-200/80 pr-1">
                   {{ item['Remain Issue'] || '-' }}
                 </div>
               </td>
 
-              <td class="py-4 px-4 overflow-hidden">
+              <td class="py-3.5 px-4 overflow-hidden">
                 <div class="text-slate-800 font-semibold break-words">Cat: {{ item['Replace Parts Category'] || '-' }}</div>
                 <div class="text-xs font-mono text-slate-500 mt-1 break-all">PN: {{ item['Replace Parts PN'] || '-' }}</div>
               </td>
-              <td class="py-4 px-4 text-center whitespace-nowrap">
+              <td class="py-3.5 px-4 text-center whitespace-nowrap">
                 <div class="flex justify-center items-center gap-1.5">
                   <button @click="openModal(item)" class="p-1.5 text-slate-500 hover:text-sky-600 hover:bg-sky-100 rounded-lg transition-colors border border-sky-100">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
@@ -311,7 +315,7 @@
       </div>
     </div>
 
-    <!-- Modal：新增 / 編輯表單 (包含日期自訂選擇) -->
+    <!-- Modal：新增 / 編輯表單 -->
     <div v-if="showModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div class="bg-white rounded-2xl max-w-3xl w-full p-6 space-y-5 max-h-[90vh] overflow-y-auto shadow-2xl border border-sky-200">
         <div class="flex justify-between items-center border-b border-sky-100 pb-4">
@@ -322,7 +326,6 @@
           <button @click="showModal = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">✕</button>
         </div>
         
-        <!-- 🔥 新增：紀錄日期選擇欄位 -->
         <div class="bg-sky-50/70 border border-sky-200 p-3.5 rounded-xl">
           <label class="block text-xs font-bold text-sky-900 mb-1">📅 選擇機況紀錄日期 (Record Date)</label>
           <input type="date" v-model="recordDate" class="w-full bg-white border border-sky-300 rounded-xl px-3.5 py-2 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all">
@@ -411,7 +414,7 @@
         const isEdit = ref(false);
         const loading = ref(false);
         const submitting = ref(false);
-        const recordDate = ref(''); // 🔥 供使用者自由選擇的填單日期
+        const recordDate = ref('');
 
         const columns = ref([
           { label: 'Status', width: 110 },
@@ -571,12 +574,10 @@
           };
         });
 
-        // 🔥 開啟彈出視窗時帶入日期
         const openModal = (item = null) => {
           if (item) {
             isEdit.value = true;
             form.value = { ...item };
-            // 如果原本已有時間戳記，取前 10 碼 (YYYY-MM-DD)
             if (item.Timestamp) {
               const d = new Date(item.Timestamp);
               recordDate.value = !isNaN(d.getTime()) ? d.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
@@ -585,7 +586,7 @@
             }
           } else {
             isEdit.value = false;
-            recordDate.value = new Date().toISOString().split('T')[0]; // 預設今天
+            recordDate.value = new Date().toISOString().split('T')[0];
             form.value = {
               ID: '',
               Timestamp: '',
@@ -608,10 +609,8 @@
           submitting.value = true;
           const action = isEdit.value ? 'update' : 'create';
           
-          // 🔥 將使用者選擇的日期轉成完整的 ISO 時間戳記寫入
           if (recordDate.value) {
             const selectedD = new Date(recordDate.value);
-            // 補上現在的當前時分秒，保留精準排序性
             const now = new Date();
             selectedD.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
             form.value.Timestamp = selectedD.toISOString();

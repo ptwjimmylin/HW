@@ -113,7 +113,6 @@
 
     <!-- 縮小版精緻儀表板 Dashboard -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-      <!-- 卡片 1: 全部 -->
       <div 
         @click="statusFilter = 'ALL'"
         :class="['relative overflow-hidden py-2.5 px-4 rounded-xl transition-all duration-200 cursor-pointer select-none border-2 shadow-sm flex items-center justify-between', statusFilter === 'ALL' ? 'bg-white border-sky-600 shadow-md ring-2 ring-sky-200' : 'bg-white border-sky-200 hover:border-sky-400 hover:shadow']">
@@ -125,7 +124,6 @@
         <div class="text-2xl font-black text-slate-900 font-mono tracking-tight">{{ dashboardStats.total }}</div>
       </div>
 
-      <!-- 卡片 2: Plan to Do -->
       <div 
         @click="statusFilter = statusFilter === 'PLAN' ? 'ALL' : 'PLAN'"
         :class="['relative overflow-hidden py-2.5 px-4 rounded-xl transition-all duration-200 cursor-pointer select-none border-2 shadow-sm flex items-center justify-between', statusFilter === 'PLAN' ? 'bg-amber-50 border-amber-500 shadow-md ring-2 ring-amber-200' : 'bg-white border-sky-200 hover:border-amber-400 hover:shadow']">
@@ -137,7 +135,6 @@
         <div class="text-2xl font-black text-amber-600 font-mono tracking-tight">{{ dashboardStats.hasPlan }}</div>
       </div>
 
-      <!-- 卡片 3: Remain Issue -->
       <div 
         @click="statusFilter = statusFilter === 'REMAIN' ? 'ALL' : 'REMAIN'"
         :class="['relative overflow-hidden py-2.5 px-4 rounded-xl transition-all duration-200 cursor-pointer select-none border-2 shadow-sm flex items-center justify-between', statusFilter === 'REMAIN' ? 'bg-rose-50 border-rose-500 shadow-md ring-2 ring-rose-200' : 'bg-white border-sky-200 hover:border-rose-400 hover:shadow']">
@@ -149,7 +146,6 @@
         <div class="text-2xl font-black text-rose-600 font-mono tracking-tight">{{ dashboardStats.hasRemain }}</div>
       </div>
 
-      <!-- 卡片 4: Closed -->
       <div 
         @click="statusFilter = statusFilter === 'CLOSED' ? 'ALL' : 'CLOSED'"
         :class="['relative overflow-hidden py-2.5 px-4 rounded-xl transition-all duration-200 cursor-pointer select-none border-2 shadow-sm flex items-center justify-between', statusFilter === 'CLOSED' ? 'bg-emerald-50 border-emerald-500 shadow-md ring-2 ring-emerald-200' : 'bg-white border-sky-200 hover:border-emerald-400 hover:shadow']">
@@ -162,10 +158,11 @@
       </div>
     </div>
 
-    <!-- 控制區：支援「依週查詢」與「選擇指定時間點/區間」 -->
+    <!-- 控制區：支援「依週查詢」、日期區間、搜尋、排序與字體大小 -->
     <div class="flex flex-col lg:flex-row justify-between items-center gap-3 bg-white p-3 rounded-xl shadow-md border border-sky-200">
       <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
         
+        <!-- 時間篩選 -->
         <div class="flex items-center gap-2 bg-sky-50 p-1 rounded-xl border border-sky-200 shadow-inner">
           <div class="flex bg-white rounded-lg p-0.5 border border-sky-200">
             <button 
@@ -193,12 +190,24 @@
           </div>
         </div>
 
-        <div class="relative w-full sm:w-64">
+        <!-- 關鍵字搜尋框 -->
+        <div class="relative w-full sm:w-60">
           <input type="text" v-model="searchQuery" placeholder="搜尋 Tool ID / 機況 / 步驟..." class="w-full bg-white border border-sky-200 rounded-xl pl-8 pr-7 py-1.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-all shadow-inner">
           <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
           <button @click="searchQuery = ''" v-if="searchQuery" class="absolute right-2.5 top-1.5 text-xs text-slate-400 hover:text-slate-600">✕</button>
         </div>
 
+        <!-- 🔥 新增：日期排序切換按鈕 -->
+        <button 
+          @click="toggleSortOrder()" 
+          class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border transition-all shadow-sm bg-white border-sky-300 text-sky-800 hover:bg-sky-50">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+          </svg>
+          <span>{{ sortOrder === 'desc' ? '日期：最新 → 最舊' : '日期：最舊 → 最新' }}</span>
+        </button>
+
+        <!-- 字體大小切換按鈕區 -->
         <div class="flex items-center gap-1 bg-sky-100/80 p-1 rounded-xl border border-sky-200 ml-0 sm:ml-2">
           <span class="text-[11px] font-bold text-slate-600 px-2">字體</span>
           <button 
@@ -218,7 +227,6 @@
           </button>
         </div>
 
-        <!-- 重設欄寬按鈕 -->
         <button @click="resetColumnWidths()" class="text-xs text-sky-700 hover:text-sky-900 font-semibold px-2 py-1 bg-sky-50 border border-sky-200 rounded-lg shadow-sm" title="還原預設欄位寬度">
           重設寬度
         </button>
@@ -236,9 +244,23 @@
         <table class="w-full text-left text-slate-800 border-collapse text-table-body" style="table-layout: fixed;">
           <thead class="bg-sky-50/80 text-slate-700 font-bold uppercase tracking-wider text-xs border-b border-sky-200">
             <tr>
-              <th v-for="(col, index) in columns" :key="index" :style="{ width: col.width + 'px' }" class="relative py-3.5 px-4 border-r border-sky-100 select-none">
-                {{ col.label }}
-                <div class="resizer" @mousedown="startResize($event, index)"></div>
+              <th 
+                v-for="(col, index) in columns" 
+                :key="index" 
+                :style="{ width: col.width + 'px' }" 
+                :class="['relative py-3.5 px-4 border-r border-sky-100 select-none', col.key === 'Timestamp' ? 'cursor-pointer hover:bg-sky-100/70 transition' : '']"
+                @click="col.key === 'Timestamp' ? toggleSortOrder() : null">
+                
+                <div class="flex items-center gap-1">
+                  <span>{{ col.label }}</span>
+                  <!-- 🔥 Timestamp 專屬排序箭頭圖示 -->
+                  <span v-if="col.key === 'Timestamp'" class="text-sky-600 text-xs font-black">
+                    {{ sortOrder === 'desc' ? '↓' : '↑' }}
+                  </span>
+                </div>
+                
+                <!-- 拖曳手把 -->
+                <div class="resizer" @mousedown.stop="startResize($event, index)"></div>
               </th>
               <th class="py-3.5 px-4 w-[100px] text-center">Actions</th>
             </tr>
@@ -257,7 +279,7 @@
                 </span>
               </td>
               <td class="py-3.5 px-4 overflow-hidden">
-                <div class="text-xs text-slate-600 font-mono font-semibold">{{ formatDate(item.Timestamp) }}</div>
+                <div class="text-xs text-slate-700 font-mono font-bold">{{ formatDate(item.Timestamp) }}</div>
               </td>
               <td class="py-3.5 px-4 overflow-hidden">
                 <div class="font-extrabold text-slate-900 break-words">{{ item.Company || '-' }}</div>
@@ -267,28 +289,24 @@
                 <div class="font-extrabold text-sky-900 font-mono break-all">{{ item['Tool ID'] || '-' }}</div>
                 <div class="text-xs text-slate-500 mt-0.5 break-words">{{ item.Owner || '-' }}</div>
               </td>
-              <!-- 🔥 放大後之欄位 1: Issue Description -->
               <td class="py-3.5 px-4 overflow-hidden">
                 <div class="cell-scroll-box whitespace-pre-line text-slate-800 leading-relaxed pr-1">
                   {{ item['Issue Description'] || '-' }}
                 </div>
               </td>
               
-              <!-- 🔥 放大後之欄位 2: Actions Done -->
               <td class="py-3.5 px-4 overflow-hidden">
                 <div class="cell-scroll-box whitespace-pre-line text-slate-900 leading-relaxed border-l-2 border-sky-400 pl-3 pr-1 bg-sky-50/40 rounded-r-lg">
                   {{ item['Actions Done'] || '-' }}
                 </div>
               </td>
               
-              <!-- 🔥 放大後之欄位 3: Plan to Do -->
               <td class="py-3.5 px-4 overflow-hidden">
                 <div class="cell-scroll-box whitespace-pre-line font-bold text-amber-900 bg-amber-50/70 rounded-xl p-2.5 border border-amber-200/80 pr-1">
                   {{ item['Plan to Do'] || '-' }}
                 </div>
               </td>
 
-              <!-- 🔥 放大後之欄位 4: Remain Issue -->
               <td class="py-3.5 px-4 overflow-hidden">
                 <div class="cell-scroll-box whitespace-pre-line font-bold text-rose-900 bg-rose-50/70 rounded-xl p-2.5 border border-rose-200/80 pr-1">
                   {{ item['Remain Issue'] || '-' }}
@@ -406,17 +424,16 @@
 
     const { createApp, ref, computed, onMounted } = Vue;
 
-    // 🔥 預設欄位寬度（4 大核心欄位顯著放大）
     const DEFAULT_COLUMNS = [
-      { label: 'Status', width: 110 },
-      { label: 'Timestamp', width: 130 },
-      { label: 'Company / Model', width: 140 },
-      { label: 'Tool ID / Owner', width: 130 },
-      { label: 'Issue Description', width: 320 }, // 大幅放大
-      { label: 'Actions Done', width: 480 },      // 大幅放大
-      { label: 'Plan to Do', width: 240 },        // 大幅放大
-      { label: 'Remain Issue', width: 240 },      // 大幅放大
-      { label: 'Replace Parts', width: 150 }
+      { key: 'Status', label: 'Status', width: 110 },
+      { key: 'Timestamp', label: 'Timestamp', width: 130 },
+      { key: 'Company', label: 'Company / Model', width: 140 },
+      { key: 'ToolID', label: 'Tool ID / Owner', width: 130 },
+      { key: 'IssueDescription', label: 'Issue Description', width: 320 },
+      { key: 'ActionsDone', label: 'Actions Done', width: 480 },
+      { key: 'PlanToDo', label: 'Plan to Do', width: 240 },
+      { key: 'RemainIssue', label: 'Remain Issue', width: 240 },
+      { key: 'ReplaceParts', label: 'Replace Parts', width: 150 }
     ];
 
     createApp({
@@ -429,6 +446,9 @@
         const startDate = ref('');
         const endDate = ref('');
         
+        // 🔥 日期排序模式：'desc'（最新到最舊，預設）或 'asc'（最舊到最新）
+        const sortOrder = ref('desc');
+
         const searchQuery = ref('');
         const statusFilter = ref('ALL');
         const fontSize = ref('md');
@@ -438,7 +458,6 @@
         const submitting = ref(false);
         const recordDate = ref('');
 
-        // 從 LocalStorage 載入先前儲存的欄位寬度，若無則套用預設值
         const loadSavedColumns = () => {
           try {
             const saved = localStorage.getItem('ptw_columns_width');
@@ -456,10 +475,14 @@
 
         const columns = ref(loadSavedColumns());
 
-        // 重設欄寬按鈕方法
         const resetColumnWidths = () => {
           columns.value = JSON.parse(JSON.stringify(DEFAULT_COLUMNS));
           localStorage.removeItem('ptw_columns_width');
+        };
+
+        // 🔥 切換排序方向
+        const toggleSortOrder = () => {
+          sortOrder.value = sortOrder.value === 'desc' ? 'asc' : 'desc';
         };
 
         const form = ref({
@@ -477,7 +500,6 @@
           'Replace Parts PN': ''
         });
 
-        // 拖曳結束時自動儲存寬度至 LocalStorage
         const startResize = (e, index) => {
           e.preventDefault();
           const startX = e.clientX;
@@ -568,8 +590,9 @@
           }
         });
 
+        // 🔥 結合篩選與「日期新舊排序」
         const filteredIssues = computed(() => {
-          let list = timeFilteredIssues.value;
+          let list = [...timeFilteredIssues.value];
 
           if (statusFilter.value === 'PLAN') {
             list = list.filter(i => i['Plan to Do'] && String(i['Plan to Do']).trim() !== '');
@@ -593,6 +616,13 @@
               String(i['Replace Parts PN'] || '').toLowerCase().includes(q)
             );
           }
+
+          // 🔥 執行日期排序 (Timestamp)
+          list.sort((a, b) => {
+            const timeA = new Date(a.Timestamp).getTime() || 0;
+            const timeB = new Date(b.Timestamp).getTime() || 0;
+            return sortOrder.value === 'desc' ? timeB - timeA : timeA - timeB;
+          });
 
           return list;
         });
@@ -707,6 +737,7 @@
           startDate,
           endDate,
           recordDate,
+          sortOrder,
           searchQuery,
           statusFilter,
           fontSize,
@@ -718,6 +749,7 @@
           form,
           filteredIssues,
           dashboardStats,
+          toggleSortOrder,
           startResize,
           resetColumnWidths,
           changeFontSize,

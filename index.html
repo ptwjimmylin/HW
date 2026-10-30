@@ -98,7 +98,7 @@
       </div>
     </header>
 
-    <!-- 縮小版精緻儀表板 Dashboard -->
+    <!-- 縮小版儀表板 Dashboard -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
       <div 
         @click="statusFilter = 'ALL'"
@@ -150,16 +150,8 @@
       <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
         <div class="flex items-center gap-2 bg-sky-50 p-1 rounded-xl border border-sky-200 shadow-inner">
           <div class="flex bg-white rounded-lg p-0.5 border border-sky-200">
-            <button 
-              @click="dateFilterMode = 'week'" 
-              :class="['px-2.5 py-1 text-xs font-bold rounded-md transition-all', dateFilterMode === 'week' ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900']">
-              依週
-            </button>
-            <button 
-              @click="dateFilterMode = 'range'" 
-              :class="['px-2.5 py-1 text-xs font-bold rounded-md transition-all', dateFilterMode === 'range' ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900']">
-              指定日期
-            </button>
+            <button @click="dateFilterMode = 'week'" :class="['px-2.5 py-1 text-xs font-bold rounded-md transition-all', dateFilterMode === 'week' ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900']">依週</button>
+            <button @click="dateFilterMode = 'range'" :class="['px-2.5 py-1 text-xs font-bold rounded-md transition-all', dateFilterMode === 'range' ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900']">指定日期</button>
           </div>
 
           <div v-if="dateFilterMode === 'week'" class="flex items-center gap-1.5 px-1">
@@ -181,9 +173,7 @@
           <button @click="searchQuery = ''" v-if="searchQuery" class="absolute right-2.5 top-1.5 text-xs text-slate-400 hover:text-slate-600">✕</button>
         </div>
 
-        <button 
-          @click="toggleSortOrder()" 
-          class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border transition-all shadow-sm bg-white border-sky-300 text-sky-800 hover:bg-sky-50">
+        <button @click="toggleSortOrder()" class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border transition-all shadow-sm bg-white border-sky-300 text-sky-800 hover:bg-sky-50">
           <span>{{ sortOrder === 'desc' ? '日期：最新 → 最舊' : '日期：最舊 → 最新' }}</span>
         </button>
 
@@ -194,9 +184,7 @@
           <button @click="changeFontSize('lg')" :class="['px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all shadow-sm', fontSize === 'lg' ? 'bg-sky-600 text-white' : 'bg-white text-slate-700']">大</button>
         </div>
 
-        <button @click="resetColumnWidths()" class="text-xs text-sky-700 hover:text-sky-900 font-semibold px-2 py-1 bg-sky-50 border border-sky-200 rounded-lg shadow-sm">
-          重設寬度
-        </button>
+        <button @click="resetColumnWidths()" class="text-xs text-sky-700 hover:text-sky-900 font-semibold px-2 py-1 bg-sky-50 border border-sky-200 rounded-lg shadow-sm" title="還原預設欄位寬度">重設寬度</button>
       </div>
 
       <button @click="openModal()" class="w-full lg:w-auto bg-slate-900 hover:bg-sky-600 text-white font-bold px-5 py-2 rounded-xl shadow-md hover:shadow-sky-500/20 transition-all duration-200 text-xs flex items-center justify-center gap-2 border border-slate-800">
@@ -243,7 +231,7 @@
                 <div class="text-xs text-slate-700 font-mono font-bold">{{ formatDate(item.Timestamp) }}</div>
               </td>
 
-              <!-- 🔥 新增欄位顯示：Service Category & Hours -->
+              <!-- Service & Hours 顯示欄 -->
               <td class="py-3.5 px-4 overflow-hidden">
                 <div class="flex flex-wrap gap-1 mb-1">
                   <span v-for="cat in (item['Service Category'] || '').split(',').filter(Boolean)" :key="cat" class="px-1.5 py-0.5 bg-sky-100 text-sky-800 font-bold text-[10px] rounded border border-sky-200">
@@ -315,7 +303,7 @@
       </div>
     </div>
 
-    <!-- Modal：新增 / 編輯表單 (包含服務類別與自動計費工時計算) -->
+    <!-- Modal：新增 / 編輯表單 (整合 On-site 正常工時與合約免計費規則) -->
     <div v-if="showModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div class="bg-white rounded-2xl max-w-3xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl border border-sky-200">
         <div class="flex justify-between items-center border-b border-sky-100 pb-3">
@@ -332,9 +320,14 @@
           <input type="date" v-model="recordDate" class="w-full bg-white border border-sky-300 rounded-xl px-3.5 py-1.5 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none">
         </div>
 
-        <!-- 🔥 新增功能 1：Service Category 服務類別勾選 -->
+        <!-- 服務類別勾選 -->
         <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl space-y-2">
-          <label class="block text-xs font-bold text-slate-700">服務合約類別 (可複選)</label>
+          <div class="flex justify-between items-center">
+            <label class="block text-xs font-bold text-slate-700">服務合約類別 (可複選)</label>
+            <span class="text-[11px] font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+              Warranty / Project / Contract 正常工時不計費；On-site 正常計費
+            </span>
+          </div>
           <div class="flex flex-wrap gap-4">
             <label v-for="cat in ['Warranty', 'Project', 'On-site', 'Contract']" :key="cat" class="flex items-center gap-2 cursor-pointer select-none text-xs font-semibold text-slate-700">
               <input type="checkbox" :value="cat" v-model="selectedCategories" class="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 border-slate-300">
@@ -343,11 +336,11 @@
           </div>
         </div>
 
-        <!-- 🔥 新增功能 2：工程師人數與工時填寫 + 自動試算卡片 -->
+        <!-- 工時填寫與動態計費試算 -->
         <div class="bg-indigo-50/60 border border-indigo-200 p-4 rounded-xl space-y-3">
           <div class="text-xs font-extrabold text-indigo-900 flex items-center justify-between">
             <span>⏱️ Fab Service 工時填寫與自動計費試算</span>
-            <span class="text-[11px] font-normal text-indigo-600">正常工時: 週一至五 09:00~18:00 | OT/假日工時雙倍計算</span>
+            <span class="text-[11px] font-normal text-indigo-600">正常工時: 09:00~18:00 | OT/假日工時一律加倍</span>
           </div>
 
           <div class="grid grid-cols-3 gap-3">
@@ -356,20 +349,36 @@
               <input type="number" min="0" step="1" v-model.number="form['Engineers Count']" placeholder="例如: 2" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-none">
             </div>
             <div>
-              <label class="block text-[11px] font-bold text-slate-700 mb-1">正常工時 (單人 hrs)</label>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">
+                正常工時 (單人 hrs)
+                <span v-if="hasExemptCategory" class="text-rose-600 font-normal">(不計費)</span>
+              </label>
               <input type="number" min="0" step="0.5" v-model.number="form['Regular Hours']" placeholder="例如: 6" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-none">
             </div>
             <div>
-              <label class="block text-[11px] font-bold text-rose-700 mb-1">OT / Holiday (單人 hrs)</label>
-              <input type="number" min="0" step="0.5" v-model.number="form['OT Hours']" placeholder="例如: 3 (加倍)" class="w-full bg-white border border-rose-300 rounded-lg px-3 py-1.5 text-xs font-bold text-rose-700 focus:ring-2 focus:ring-rose-500 focus:outline-none">
+              <label class="block text-[11px] font-bold text-rose-700 mb-1">OT / Holiday (單人 hrs, 加倍)</label>
+              <input type="number" min="0" step="0.5" v-model.number="form['OT Hours']" placeholder="例如: 3" class="w-full bg-white border border-rose-300 rounded-lg px-3 py-1.5 text-xs font-bold text-rose-700 focus:ring-2 focus:ring-rose-500 focus:outline-none">
             </div>
           </div>
 
           <!-- 即時計算結果顯示 -->
           <div class="bg-white p-3 rounded-lg border border-indigo-100 flex flex-wrap justify-between items-center text-xs">
-            <div class="space-y-0.5">
-              <div>正常計費工時: <span class="font-bold text-slate-800">{{ form['Engineers Count'] || 0 }} 人 × {{ form['Regular Hours'] || 0 }} hrs = {{ calculatedRegularHours }} hrs</span></div>
-              <div>OT/假日計費(雙倍): <span class="font-bold text-rose-600">{{ form['Engineers Count'] || 0 }} 人 × {{ form['OT Hours'] || 0 }} hrs × 2 = {{ calculatedOTHours }} hrs</span></div>
+            <div class="space-y-1">
+              <div class="flex items-center gap-1.5">
+                <span class="text-slate-600">正常計費工時:</span>
+                <span v-if="hasExemptCategory" class="font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                  {{ form['Engineers Count'] || 0 }} 人 × {{ form['Regular Hours'] || 0 }} hrs = 0 hrs (合約涵蓋，不計費)
+                </span>
+                <span v-else class="font-bold text-slate-800">
+                  {{ form['Engineers Count'] || 0 }} 人 × {{ form['Regular Hours'] || 0 }} hrs = {{ calculatedRegularHours }} hrs
+                </span>
+              </div>
+              <div>
+                <span class="text-slate-600">OT/假日計費(雙倍):</span>
+                <span class="font-bold text-rose-600">
+                  {{ form['Engineers Count'] || 0 }} 人 × {{ form['OT Hours'] || 0 }} hrs × 2 = {{ calculatedOTHours }} hrs
+                </span>
+              </div>
             </div>
             <div class="text-right mt-2 sm:mt-0">
               <div class="text-[11px] text-slate-400 font-bold uppercase">總計費工時 (Total Charged)</div>
@@ -447,7 +456,7 @@
     const DEFAULT_COLUMNS = [
       { key: 'Status', label: 'Status', width: 110 },
       { key: 'Timestamp', label: 'Timestamp', width: 120 },
-      { key: 'ServiceType', label: 'Service & Hours', width: 160 }, // 新增的服務與工時欄位
+      { key: 'ServiceType', label: 'Service & Hours', width: 160 },
       { key: 'Company', label: 'Company / Model', width: 130 },
       { key: 'ToolID', label: 'Tool ID / Owner', width: 130 },
       { key: 'IssueDescription', label: 'Issue Description', width: 300 },
@@ -519,19 +528,29 @@
           'OT Hours': 0
         });
 
-        // 🔥 即時計費工時試算公式
+        // 🔥 判斷是否勾選 Warranty / Project / Contract（勾選任一則正常工時免計費）
+        const hasExemptCategory = computed(() => {
+          return selectedCategories.value.some(cat => ['Warranty', 'Project', 'Contract'].includes(cat));
+        });
+
+        // 🔥 正常計費工時：若勾選 Warranty / Project / Contract 則為 0，若只勾選 On-site 則正常計算
         const calculatedRegularHours = computed(() => {
+          if (hasExemptCategory.value) {
+            return 0;
+          }
           const count = Number(form.value['Engineers Count'] || 0);
           const hrs = Number(form.value['Regular Hours'] || 0);
           return count * hrs;
         });
 
+        // OT 工時加倍計算
         const calculatedOTHours = computed(() => {
           const count = Number(form.value['Engineers Count'] || 0);
           const hrs = Number(form.value['OT Hours'] || 0);
-          return count * hrs * 2; // 雙倍加成
+          return count * hrs * 2;
         });
 
+        // 總計費工時
         const calculatedTotalHours = computed(() => {
           return calculatedRegularHours.value + calculatedOTHours.value;
         });
@@ -719,7 +738,6 @@
             form.value.Timestamp = new Date().toISOString();
           }
 
-          // 寫入服務類別字串
           form.value['Service Category'] = selectedCategories.value.join(',');
 
           try {
@@ -786,6 +804,7 @@
           submitting,
           form,
           selectedCategories,
+          hasExemptCategory,
           calculatedRegularHours,
           calculatedOTHours,
           calculatedTotalHours,

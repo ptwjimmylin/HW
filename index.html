@@ -12,7 +12,7 @@
   <style>
     :root {
       --base-font-size: 13px;
-      --table-font-size: 12.5px;
+      --table-font-size: 12px;
     }
     body {
       font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -85,7 +85,7 @@
       </div>
     </header>
 
-    <!-- 緊湊型狀態儀表板 -->
+    <!-- 狀態儀表板 -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
       <div @click="statusFilter = 'ALL'" :class="['py-2 px-3.5 rounded-xl border-2 shadow-sm flex items-center justify-between cursor-pointer transition select-none', statusFilter === 'ALL' ? 'bg-white border-sky-600 ring-2 ring-sky-200' : 'bg-white border-sky-200']">
         <div>
@@ -120,26 +120,26 @@
       </div>
     </div>
 
-    <!-- 🔥 新增：當前篩選期間工時統計面板 (Hours Summary) -->
+    <!-- 期間工時總覽面板 -->
     <div class="bg-white/90 backdrop-blur-sm p-3 rounded-xl border border-sky-300 shadow-sm flex flex-wrap items-center justify-between gap-3 text-xs">
       <div class="flex items-center gap-2">
         <span class="px-2 py-0.5 bg-sky-600 text-white font-bold rounded text-[11px]">⏱️ 期間工時總覽</span>
-        <span class="text-slate-500 text-[11px] font-medium">即時統計當前查詢結果之時數</span>
+        <span class="text-slate-500 text-[11px] font-medium">即時統計當前查詢時數</span>
       </div>
       <div class="flex flex-wrap items-center gap-4 text-[11px]">
         <div>On-site 計費工時: <span class="font-bold text-sky-900 font-mono text-sm">{{ hoursSummary.onsiteCharged }} hrs</span></div>
         <div>OT / Holiday (加倍): <span class="font-bold text-rose-600 font-mono text-sm">{{ hoursSummary.otCharged }} hrs</span></div>
-        <div class="border-l pl-3 border-slate-200">Warranty 工時: <span class="font-bold text-slate-700 font-mono">{{ hoursSummary.warrantyHrs }}h</span></div>
-        <div>Project 工時: <span class="font-bold text-slate-700 font-mono">{{ hoursSummary.projectHrs }}h</span></div>
-        <div>Contract 工時: <span class="font-bold text-slate-700 font-mono">{{ hoursSummary.contractHrs }}h</span></div>
+        <div class="border-l pl-3 border-slate-200">Warranty: <span class="font-bold text-slate-700 font-mono">{{ hoursSummary.warrantyHrs }}h</span></div>
+        <div>Project: <span class="font-bold text-slate-700 font-mono">{{ hoursSummary.projectHrs }}h</span></div>
+        <div>Contract: <span class="font-bold text-slate-700 font-mono">{{ hoursSummary.contractHrs }}h</span></div>
         <div class="bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200">
-          <span class="text-indigo-950 font-bold">總計費工時 (Total Charged): </span>
+          <span class="text-indigo-950 font-bold">總計費工時: </span>
           <span class="font-black text-indigo-700 font-mono text-sm">{{ hoursSummary.totalCharged }} hrs</span>
         </div>
       </div>
     </div>
 
-    <!-- 控制列：新增「依月份」篩選功能 -->
+    <!-- 控制列 -->
     <div class="flex flex-col lg:flex-row justify-between items-center gap-2.5 bg-white p-2.5 rounded-xl shadow-sm border border-sky-200 text-xs">
       <div class="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
         <div class="flex items-center gap-1 bg-sky-50 p-1 rounded-lg border border-sky-200 shadow-inner">
@@ -149,19 +149,16 @@
             <button @click="dateFilterMode = 'range'" :class="['px-2 py-0.5 font-bold rounded transition', dateFilterMode === 'range' ? 'bg-sky-600 text-white' : 'text-slate-600']">指定區間</button>
           </div>
 
-          <!-- 模式 1: 依週 -->
           <div v-if="dateFilterMode === 'week'" class="flex items-center gap-1 px-1">
             <input type="week" v-model="selectedWeek" class="bg-white border border-sky-300 rounded px-1.5 py-0.5 text-xs font-bold text-slate-800 focus:outline-none">
             <button @click="selectedWeek = ''" v-if="selectedWeek" class="text-sky-700 hover:text-sky-900 font-bold">重置</button>
           </div>
 
-          <!-- 模式 2: 依月份 -->
           <div v-else-if="dateFilterMode === 'month'" class="flex items-center gap-1 px-1">
             <input type="month" v-model="selectedMonth" class="bg-white border border-sky-300 rounded px-1.5 py-0.5 text-xs font-bold text-slate-800 focus:outline-none">
             <button @click="selectedMonth = ''" v-if="selectedMonth" class="text-sky-700 hover:text-sky-900 font-bold">重置</button>
           </div>
 
-          <!-- 模式 3: 指定區間 -->
           <div v-else class="flex items-center gap-1 px-1">
             <input type="date" v-model="startDate" title="開始日期" class="bg-white border border-sky-300 rounded px-1.5 py-0.5 text-xs font-bold text-slate-800 focus:outline-none">
             <span class="font-bold text-slate-400">至</span>
@@ -196,7 +193,7 @@
       </button>
     </div>
 
-    <!-- 表格區 -->
+    <!-- 滿版無橫向滾動條表格區 -->
     <div class="bg-white rounded-xl shadow-md border border-sky-200 overflow-hidden">
       <div class="w-full overflow-hidden">
         <table class="w-full text-left text-slate-800 border-collapse text-table-body" style="table-layout: fixed;">
@@ -235,18 +232,18 @@
                 <div class="text-[11px] text-slate-700 font-mono font-bold">{{ formatDate(item.Timestamp) }}</div>
               </td>
 
-              <!-- Service & Hours -->
+              <!-- Service & Hours (修復讀取邏輯) -->
               <td class="py-2 px-2 overflow-hidden leading-tight">
                 <div class="flex flex-wrap gap-0.5 mb-0.5">
-                  <span v-for="cat in (item['Service Category'] || '').split(',').filter(Boolean)" :key="cat" class="px-1 py-0.2 bg-sky-100 text-sky-800 font-bold text-[9.5px] rounded border border-sky-200">
+                  <span v-for="cat in getCategories(item['Service Category'])" :key="cat" class="px-1 py-0.2 bg-sky-100 text-sky-800 font-bold text-[9.5px] rounded border border-sky-200">
                     {{ cat }}
                   </span>
                   <span v-if="!item['Service Category']" class="text-slate-400">-</span>
                 </div>
                 <div class="text-[10px] font-mono text-slate-600">
-                  <div>{{ item['Engineers Count'] || 0 }}人 | Onsite: {{ item['Onsite Regular Hours'] || 0 }}h</div>
-                  <div>合約: {{ item['Contract Regular Hours'] || 0 }}h | OT: {{ item['OT Hours'] || 0 }}h</div>
-                  <div class="text-indigo-700 font-bold">總計費: {{ item['Total Charged Hours'] || 0 }}h</div>
+                  <div>{{ getVal(item, 'Engineers Count', 0) }}人 | Onsite: {{ getVal(item, 'Onsite Regular Hours', 0) }}h</div>
+                  <div>合約: {{ getVal(item, 'Contract Regular Hours', 0) }}h | OT: {{ getVal(item, 'OT Hours', 0) }}h</div>
+                  <div class="text-indigo-700 font-bold">總計費: {{ getVal(item, 'Total Charged Hours', 0) }}h</div>
                 </div>
               </td>
 
@@ -314,7 +311,7 @@
       </div>
     </div>
 
-    <!-- Modal：新增 / 編輯表單 (精準還原資料) -->
+    <!-- Modal：新增 / 編輯表單 (精準回填資料) -->
     <div v-if="showModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-3 z-50">
       <div class="bg-white rounded-2xl max-w-2xl w-full p-5 space-y-3.5 max-h-[92vh] overflow-y-auto shadow-2xl border border-sky-200 text-xs">
         <div class="flex justify-between items-center border-b border-sky-100 pb-2.5">
@@ -325,13 +322,11 @@
           <button @click="showModal = false" class="text-slate-400 hover:text-slate-600">✕</button>
         </div>
         
-        <!-- 紀錄日期 -->
         <div class="bg-sky-50/70 border border-sky-200 p-2.5 rounded-xl">
           <label class="block text-[11px] font-bold text-sky-900 mb-0.5">📅 選擇機況紀錄日期 (Record Date)</label>
           <input type="date" v-model="recordDate" class="w-full bg-white border border-sky-300 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-800 focus:ring-1 focus:ring-sky-500 focus:outline-none">
         </div>
 
-        <!-- 服務類別勾選 -->
         <div class="bg-slate-50 border border-slate-200 p-2.5 rounded-xl space-y-1.5">
           <div class="flex justify-between items-center">
             <label class="block text-[11px] font-bold text-slate-700">服務合約類別 (可複選)</label>
@@ -347,7 +342,6 @@
           </div>
         </div>
 
-        <!-- 工時填寫與動態計費試算 -->
         <div class="bg-indigo-50/60 border border-indigo-200 p-3 rounded-xl space-y-2">
           <div class="text-[11px] font-extrabold text-indigo-900 flex items-center justify-between">
             <span>⏱️ Fab Service 工時填寫與試算</span>
@@ -470,10 +464,9 @@
         const currentSheet = ref('Hitachi');
         const issues = ref([]);
         
-        // 篩選模式：'week' (依週), 'month' (依月份), 'range' (指定日期區間)
         const dateFilterMode = ref('month');
         const selectedWeek = ref('');
-        const selectedMonth = ref(new Date().toISOString().substring(0, 7)); // 預設為當前月份 (YYYY-MM)
+        const selectedMonth = ref(new Date().toISOString().substring(0, 7));
         const startDate = ref('');
         const endDate = ref('');
         const sortOrder = ref('desc');
@@ -488,9 +481,11 @@
         const recordDate = ref('');
         const selectedCategories = ref([]);
 
+        // 升級快取標籤為 v5，強制銷毀舊欄位設定
+        const CACHE_VERSION = 'ptw_columns_percent_v5';
         const loadSavedColumns = () => {
           try {
-            const saved = localStorage.getItem('ptw_columns_percent_v2');
+            const saved = localStorage.getItem(CACHE_VERSION);
             if (saved) {
               const parsed = JSON.parse(saved);
               if (parsed.length === DEFAULT_COLUMNS.length) return parsed;
@@ -503,7 +498,7 @@
 
         const resetColumnWidths = () => {
           columns.value = JSON.parse(JSON.stringify(DEFAULT_COLUMNS));
-          localStorage.removeItem('ptw_columns_percent_v2');
+          localStorage.removeItem(CACHE_VERSION);
         };
 
         const toggleSortOrder = () => {
@@ -529,6 +524,24 @@
           'Contract Regular Hours': 0,
           'OT Hours': 0
         });
+
+        // 多重容錯讀取欄位輔助函式
+        const getVal = (item, key, fallback = '') => {
+          if (!item) return fallback;
+          if (item[key] !== undefined && item[key] !== '') return item[key];
+          const altKey = key.toLowerCase().replace(/\s+/g, '_');
+          for (let k in item) {
+            if (k.toLowerCase().replace(/\s+/g, '_') === altKey) {
+              if (item[k] !== undefined && item[k] !== '') return item[k];
+            }
+          }
+          return fallback;
+        };
+
+        const getCategories = (catStr) => {
+          if (!catStr) return [];
+          return String(catStr).split(',').map(s => s.trim()).filter(Boolean);
+        };
 
         const calculatedOnsiteHours = computed(() => {
           const count = Number(form.value['Engineers Count'] || 0);
@@ -561,7 +574,7 @@
           const onMouseUp = () => {
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('mouseup', onMouseUp);
-            localStorage.setItem('ptw_columns_percent_v2', JSON.stringify(columns.value));
+            localStorage.setItem(CACHE_VERSION, JSON.stringify(columns.value));
           };
 
           window.addEventListener('mousemove', onMouseMove);
@@ -586,7 +599,8 @@
         const fetchData = async () => {
           loading.value = true;
           try {
-            const res = await fetch(`${API_URL}?action=read&sheet=${currentSheet.value}`);
+            // 加入毫秒時間戳記，強制繞過瀏覽器快取
+            const res = await fetch(`${API_URL}?action=read&sheet=${currentSheet.value}&_t=${Date.now()}`);
             const data = await res.json();
             issues.value = Array.isArray(data) ? data : [];
           } catch (e) {
@@ -613,7 +627,6 @@
           return `${d.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
         };
 
-        // 🔥 期間篩選邏輯（週別 / 月份 / 區間）
         const timeFilteredIssues = computed(() => {
           if (dateFilterMode.value === 'week') {
             if (!selectedWeek.value) return issues.value;
@@ -641,7 +654,6 @@
           }
         });
 
-        // 關鍵字與狀態過濾
         const filteredIssues = computed(() => {
           let list = [...timeFilteredIssues.value];
 
@@ -691,7 +703,6 @@
           };
         });
 
-        // 🔥 當前查詢期間之各類工時總計
         const hoursSummary = computed(() => {
           let onsiteCharged = 0;
           let otCharged = 0;
@@ -701,15 +712,15 @@
           let contractHrs = 0;
 
           filteredIssues.value.forEach(i => {
-            const count = Number(i['Engineers Count'] || 0);
-            const onsite = Number(i['Onsite Regular Hours'] || 0);
-            const contract = Number(i['Contract Regular Hours'] || 0);
-            const ot = Number(i['OT Hours'] || 0);
-            const cat = String(i['Service Category'] || '');
+            const count = Number(getVal(i, 'Engineers Count', 0));
+            const onsite = Number(getVal(i, 'Onsite Regular Hours', 0));
+            const contract = Number(getVal(i, 'Contract Regular Hours', 0));
+            const ot = Number(getVal(i, 'OT Hours', 0));
+            const cat = String(getVal(i, 'Service Category', ''));
 
             onsiteCharged += (count * onsite);
             otCharged += (count * ot * 2);
-            totalCharged += Number(i['Total Charged Hours'] || ((count * onsite) + (count * ot * 2)));
+            totalCharged += Number(getVal(i, 'Total Charged Hours', (count * onsite) + (count * ot * 2)));
 
             if (cat.includes('Warranty')) warrantyHrs += (count * contract);
             if (cat.includes('Project')) projectHrs += (count * contract);
@@ -719,7 +730,6 @@
           return { onsiteCharged, otCharged, totalCharged, warrantyHrs, projectHrs, contractHrs };
         });
 
-        // 🔥 開啟 Modal：精準讀取原資料並回填
         const openModal = (item = null) => {
           if (item) {
             isEdit.value = true;
@@ -736,13 +746,13 @@
               'Remain Issue': item['Remain Issue'] || '',
               'Replace Parts Category': item['Replace Parts Category'] || '',
               'Replace Parts PN': item['Replace Parts PN'] || '',
-              'Service Category': item['Service Category'] || '',
-              'Engineers Count': item['Engineers Count'] !== undefined && item['Engineers Count'] !== '' ? Number(item['Engineers Count']) : 1,
-              'Onsite Regular Hours': item['Onsite Regular Hours'] !== undefined && item['Onsite Regular Hours'] !== '' ? Number(item['Onsite Regular Hours']) : 0,
-              'Contract Regular Hours': item['Contract Regular Hours'] !== undefined && item['Contract Regular Hours'] !== '' ? Number(item['Contract Regular Hours']) : 0,
-              'OT Hours': item['OT Hours'] !== undefined && item['OT Hours'] !== '' ? Number(item['OT Hours']) : 0
+              'Service Category': getVal(item, 'Service Category', ''),
+              'Engineers Count': Number(getVal(item, 'Engineers Count', 1)),
+              'Onsite Regular Hours': Number(getVal(item, 'Onsite Regular Hours', 0)),
+              'Contract Regular Hours': Number(getVal(item, 'Contract Regular Hours', 0)),
+              'OT Hours': Number(getVal(item, 'OT Hours', 0))
             };
-            selectedCategories.value = item['Service Category'] ? String(item['Service Category']).split(',').filter(Boolean) : [];
+            selectedCategories.value = getCategories(getVal(item, 'Service Category', ''));
             if (item.Timestamp) {
               const d = new Date(item.Timestamp);
               recordDate.value = !isNaN(d.getTime()) ? d.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
@@ -856,6 +866,8 @@
           submitting,
           form,
           selectedCategories,
+          getVal,
+          getCategories,
           calculatedOnsiteHours,
           calculatedOTHours,
           calculatedTotalHours,

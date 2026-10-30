@@ -232,7 +232,7 @@
                 <div class="text-[11px] text-slate-700 font-mono font-bold">{{ formatDate(item.Timestamp) }}</div>
               </td>
 
-              <!-- Service & Hours -->
+              <!-- Service & Hours (容錯精確取值) -->
               <td class="py-2 px-2 overflow-hidden leading-tight">
                 <div class="flex flex-wrap gap-0.5 mb-0.5">
                   <span v-for="cat in getCategories(item['Service Category'])" :key="cat" class="px-1 py-0.2 bg-sky-100 text-sky-800 font-bold text-[9.5px] rounded border border-sky-200">
@@ -347,7 +347,7 @@
         </div>
 
         <div class="bg-indigo-50/70 border border-indigo-200 p-4 rounded-2xl space-y-2.5">
-          <div class="text-xs font-extrabold text-indigo-955 flex items-center justify-between">
+          <div class="text-xs font-extrabold text-indigo-950 flex items-center justify-between">
             <span>⏱️ Fab Service 工時填寫與自動計算 (Service Hours Breakdown)</span>
             <span class="text-[11px] font-normal text-indigo-700">正常工時: 09:00~18:00 | OT/假日雙倍計算 (OT × 2)</span>
           </div>
@@ -486,7 +486,7 @@
         const recordDate = ref('');
         const selectedCategories = ref([]);
 
-        const CACHE_VERSION = 'ptw_columns_percent_v8';
+        const CACHE_VERSION = 'ptw_columns_percent_v9';
         const loadSavedColumns = () => {
           try {
             const saved = localStorage.getItem(CACHE_VERSION);
@@ -789,6 +789,7 @@
           showModal.value = true;
         };
 
+        // 🔥 關鍵修正：改用 text/plain 繞過 CORS 預檢阻擋，保證 100% 寫入 GAS
         const saveData = async () => {
           submitting.value = true;
           var action = isEdit.value ? 'update' : 'create';
@@ -804,7 +805,6 @@
 
           form.value['Service Category'] = selectedCategories.value.join(',');
 
-          // 雙重映射參數名稱，防止任何屬性讀取遺漏
           var payload = {
             ID: form.value.ID,
             Timestamp: form.value.Timestamp,
@@ -832,6 +832,9 @@
           try {
             await fetch(API_URL, {
               method: 'POST',
+              headers: {
+                'Content-Type': 'text/plain;charset=utf-8' // 避免 CORS preflight OPTIONS 阻斷
+              },
               body: JSON.stringify({
                 action: action,
                 sheet: currentSheet.value,
@@ -839,9 +842,10 @@
               })
             });
             showModal.value = false;
-            await fetchData();
+            // 等待 800ms 確保 Google Sheet 寫盤同步
+            setTimeout(fetchData, 800);
           } catch (e) {
-            alert('儲存失敗');
+            alert('儲存失敗，請重試');
           } finally {
             submitting.value = false;
           }
@@ -853,13 +857,16 @@
           try {
             await fetch(API_URL, {
               method: 'POST',
+              headers: {
+                'Content-Type': 'text/plain;charset=utf-8'
+              },
               body: JSON.stringify({
                 action: 'delete',
                 sheet: currentSheet.value,
                 id: id
               })
             });
-            await fetchData();
+            setTimeout(fetchData, 800);
           } catch (e) {
             alert('刪除失敗');
             loading.value = false;

@@ -232,7 +232,7 @@
                 <div class="text-[11px] text-slate-700 font-mono font-bold">{{ formatDate(item.Timestamp) }}</div>
               </td>
 
-              <!-- Service & Hours (容錯精確取值) -->
+              <!-- Service & Hours: 精確回顯 -->
               <td class="py-2 px-2 overflow-hidden leading-tight">
                 <div class="flex flex-wrap gap-0.5 mb-0.5">
                   <span v-for="cat in getCategories(item['Service Category'])" :key="cat" class="px-1 py-0.2 bg-sky-100 text-sky-800 font-bold text-[9.5px] rounded border border-sky-200">
@@ -486,7 +486,7 @@
         const recordDate = ref('');
         const selectedCategories = ref([]);
 
-        const CACHE_VERSION = 'ptw_columns_percent_v9';
+        const CACHE_VERSION = 'ptw_columns_percent_v10';
         const loadSavedColumns = () => {
           try {
             const saved = localStorage.getItem(CACHE_VERSION);
@@ -789,7 +789,6 @@
           showModal.value = true;
         };
 
-        // 🔥 關鍵修正：改用 text/plain 繞過 CORS 預檢阻擋，保證 100% 寫入 GAS
         const saveData = async () => {
           submitting.value = true;
           var action = isEdit.value ? 'update' : 'create';
@@ -822,18 +821,14 @@
             engineersCount: Number(form.value.engineersCount || 0),
             onsiteHours: Number(form.value.onsiteHours || 0),
             contractHours: Number(form.value.contractHours || 0),
-            otHours: Number(form.value.otHours || 0),
-            "Engineers Count": Number(form.value.engineersCount || 0),
-            "Onsite Regular Hours": Number(form.value.onsiteHours || 0),
-            "Contract Regular Hours": Number(form.value.contractHours || 0),
-            "OT Hours": Number(form.value.otHours || 0)
+            otHours: Number(form.value.otHours || 0)
           };
 
           try {
             await fetch(API_URL, {
               method: 'POST',
               headers: {
-                'Content-Type': 'text/plain;charset=utf-8' // 避免 CORS preflight OPTIONS 阻斷
+                'Content-Type': 'text/plain;charset=utf-8'
               },
               body: JSON.stringify({
                 action: action,
@@ -842,10 +837,9 @@
               })
             });
             showModal.value = false;
-            // 等待 800ms 確保 Google Sheet 寫盤同步
-            setTimeout(fetchData, 800);
+            setTimeout(fetchData, 1000);
           } catch (e) {
-            alert('儲存失敗，請重試');
+            alert('儲存失敗');
           } finally {
             submitting.value = false;
           }
@@ -866,7 +860,7 @@
                 id: id
               })
             });
-            setTimeout(fetchData, 800);
+            setTimeout(fetchData, 1000);
           } catch (e) {
             alert('刪除失敗');
             loading.value = false;

@@ -4,11 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PTW Service Review System</title>
-  <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Tailwind CSS & Vue 3 CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <style>
@@ -28,7 +26,6 @@
     .whitespace-pre-line {
       white-space: pre-line;
     }
-    /* 垂直高度滾動條，保持整齊 */
     .cell-scroll-box {
       max-height: 95px;
       overflow-y: auto;
@@ -65,7 +62,7 @@
 <body class="bg-sky-100/70 min-h-screen text-slate-800 p-2 md:p-4 antialiased selection:bg-sky-600 selection:text-white">
   <div id="app" class="w-full mx-auto space-y-3">
     
-    <!-- 頂部標題與產品切換頁籤 -->
+    <!-- 頂部標題與產品切換 -->
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-white px-4 py-3 rounded-xl shadow-sm border border-sky-200">
       <div class="flex items-center gap-2.5">
         <div class="p-1.5 bg-sky-600 rounded-lg text-white shadow-md shadow-sky-300">
@@ -88,67 +85,83 @@
       </div>
     </header>
 
-    <!-- 緊湊型儀表板 Dashboard -->
+    <!-- 緊湊型狀態儀表板 -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-      <div 
-        @click="statusFilter = 'ALL'"
-        :class="['relative overflow-hidden py-2 px-3.5 rounded-xl transition-all duration-200 cursor-pointer select-none border-2 shadow-sm flex items-center justify-between', statusFilter === 'ALL' ? 'bg-white border-sky-600 shadow-md ring-2 ring-sky-200' : 'bg-white border-sky-200 hover:border-sky-400 hover:shadow']">
-        <div class="absolute top-0 left-0 bottom-0 w-1.5 bg-sky-600"></div>
-        <div class="pl-1">
-          <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">當前查詢 Issue 總數</div>
-          <span v-if="statusFilter === 'ALL'" class="text-[9px] bg-sky-100 text-sky-800 font-bold px-1.5 py-0.2 rounded-full border border-sky-300">顯示中</span>
+      <div @click="statusFilter = 'ALL'" :class="['py-2 px-3.5 rounded-xl border-2 shadow-sm flex items-center justify-between cursor-pointer transition select-none', statusFilter === 'ALL' ? 'bg-white border-sky-600 ring-2 ring-sky-200' : 'bg-white border-sky-200']">
+        <div>
+          <div class="text-[10px] font-bold text-slate-500 uppercase">查詢 Issue 總數</div>
+          <span v-if="statusFilter === 'ALL'" class="text-[9px] bg-sky-100 text-sky-800 font-bold px-1.5 rounded-full border border-sky-300">顯示中</span>
         </div>
-        <div class="text-xl font-black text-slate-900 font-mono tracking-tight">{{ dashboardStats.total }}</div>
+        <div class="text-xl font-black text-slate-900 font-mono">{{ dashboardStats.total }}</div>
       </div>
 
-      <div 
-        @click="statusFilter = 'PLAN'"
-        :class="['relative overflow-hidden py-2 px-3.5 rounded-xl transition-all duration-200 cursor-pointer select-none border-2 shadow-sm flex items-center justify-between', statusFilter === 'PLAN' ? 'bg-amber-50 border-amber-500 shadow-md ring-2 ring-amber-200' : 'bg-white border-sky-200 hover:border-amber-400 hover:shadow']">
-        <div class="absolute top-0 left-0 bottom-0 w-1.5 bg-amber-500"></div>
-        <div class="pl-1">
-          <div class="text-[10px] font-bold text-amber-700 uppercase tracking-wider">有 PLAN TO DO (關注)</div>
-          <span v-if="statusFilter === 'PLAN'" class="text-[9px] bg-amber-200 text-amber-900 font-bold px-1.5 py-0.2 rounded-full border border-amber-300">已篩選</span>
+      <div @click="statusFilter = 'PLAN'" :class="['py-2 px-3.5 rounded-xl border-2 shadow-sm flex items-center justify-between cursor-pointer transition select-none', statusFilter === 'PLAN' ? 'bg-amber-50 border-amber-500 ring-2 ring-amber-200' : 'bg-white border-sky-200']">
+        <div>
+          <div class="text-[10px] font-bold text-amber-700 uppercase">有 PLAN TO DO (關注)</div>
+          <span v-if="statusFilter === 'PLAN'" class="text-[9px] bg-amber-200 text-amber-900 font-bold px-1.5 rounded-full border border-amber-300">已篩選</span>
         </div>
-        <div class="text-xl font-black text-amber-600 font-mono tracking-tight">{{ dashboardStats.hasPlan }}</div>
+        <div class="text-xl font-black text-amber-600 font-mono">{{ dashboardStats.hasPlan }}</div>
       </div>
 
-      <div 
-        @click="statusFilter = 'REMAIN'"
-        :class="['relative overflow-hidden py-2 px-3.5 rounded-xl transition-all duration-200 cursor-pointer select-none border-2 shadow-sm flex items-center justify-between', statusFilter === 'REMAIN' ? 'bg-rose-50 border-rose-500 shadow-md ring-2 ring-rose-200' : 'bg-white border-sky-200 hover:border-rose-400 hover:shadow']">
-        <div class="absolute top-0 left-0 bottom-0 w-1.5 bg-rose-600"></div>
-        <div class="pl-1">
-          <div class="text-[10px] font-bold text-rose-700 uppercase tracking-wider">有 REMAIN ISSUE (警示)</div>
-          <span v-if="statusFilter === 'REMAIN'" class="text-[9px] bg-rose-200 text-rose-900 font-bold px-1.5 py-0.2 rounded-full border border-rose-300">已篩選</span>
+      <div @click="statusFilter = 'REMAIN'" :class="['py-2 px-3.5 rounded-xl border-2 shadow-sm flex items-center justify-between cursor-pointer transition select-none', statusFilter === 'REMAIN' ? 'bg-rose-50 border-rose-500 ring-2 ring-rose-200' : 'bg-white border-sky-200']">
+        <div>
+          <div class="text-[10px] font-bold text-rose-700 uppercase">有 REMAIN ISSUE (警示)</div>
+          <span v-if="statusFilter === 'REMAIN'" class="text-[9px] bg-rose-200 text-rose-900 font-bold px-1.5 rounded-full border border-rose-300">已篩選</span>
         </div>
-        <div class="text-xl font-black text-rose-600 font-mono tracking-tight">{{ dashboardStats.hasRemain }}</div>
+        <div class="text-xl font-black text-rose-600 font-mono">{{ dashboardStats.hasRemain }}</div>
       </div>
 
-      <div 
-        @click="statusFilter = 'CLOSED'"
-        :class="['relative overflow-hidden py-2 px-3.5 rounded-xl transition-all duration-200 cursor-pointer select-none border-2 shadow-sm flex items-center justify-between', statusFilter === 'CLOSED' ? 'bg-emerald-50 border-emerald-500 shadow-md ring-2 ring-emerald-200' : 'bg-white border-sky-200 hover:border-emerald-400 hover:shadow']">
-        <div class="absolute top-0 left-0 bottom-0 w-1.5 bg-emerald-600"></div>
-        <div class="pl-1">
-          <div class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">已完結 (CLOSED)</div>
-          <span v-if="statusFilter === 'CLOSED'" class="text-[9px] bg-emerald-200 text-emerald-900 font-bold px-1.5 py-0.2 rounded-full border border-emerald-300">已篩選</span>
+      <div @click="statusFilter = 'CLOSED'" :class="['py-2 px-3.5 rounded-xl border-2 shadow-sm flex items-center justify-between cursor-pointer transition select-none', statusFilter === 'CLOSED' ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-200' : 'bg-white border-sky-200']">
+        <div>
+          <div class="text-[10px] font-bold text-emerald-700 uppercase">已完結 (CLOSED)</div>
+          <span v-if="statusFilter === 'CLOSED'" class="text-[9px] bg-emerald-200 text-emerald-900 font-bold px-1.5 rounded-full border border-emerald-300">已篩選</span>
         </div>
-        <div class="text-xl font-black text-emerald-600 font-mono tracking-tight">{{ dashboardStats.completed }}</div>
+        <div class="text-xl font-black text-emerald-600 font-mono">{{ dashboardStats.completed }}</div>
       </div>
     </div>
 
-    <!-- 控制列 -->
+    <!-- 🔥 新增：當前篩選期間工時統計面板 (Hours Summary) -->
+    <div class="bg-white/90 backdrop-blur-sm p-3 rounded-xl border border-sky-300 shadow-sm flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div class="flex items-center gap-2">
+        <span class="px-2 py-0.5 bg-sky-600 text-white font-bold rounded text-[11px]">⏱️ 期間工時總覽</span>
+        <span class="text-slate-500 text-[11px] font-medium">即時統計當前查詢結果之時數</span>
+      </div>
+      <div class="flex flex-wrap items-center gap-4 text-[11px]">
+        <div>On-site 計費工時: <span class="font-bold text-sky-900 font-mono text-sm">{{ hoursSummary.onsiteCharged }} hrs</span></div>
+        <div>OT / Holiday (加倍): <span class="font-bold text-rose-600 font-mono text-sm">{{ hoursSummary.otCharged }} hrs</span></div>
+        <div class="border-l pl-3 border-slate-200">Warranty 工時: <span class="font-bold text-slate-700 font-mono">{{ hoursSummary.warrantyHrs }}h</span></div>
+        <div>Project 工時: <span class="font-bold text-slate-700 font-mono">{{ hoursSummary.projectHrs }}h</span></div>
+        <div>Contract 工時: <span class="font-bold text-slate-700 font-mono">{{ hoursSummary.contractHrs }}h</span></div>
+        <div class="bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200">
+          <span class="text-indigo-950 font-bold">總計費工時 (Total Charged): </span>
+          <span class="font-black text-indigo-700 font-mono text-sm">{{ hoursSummary.totalCharged }} hrs</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 控制列：新增「依月份」篩選功能 -->
     <div class="flex flex-col lg:flex-row justify-between items-center gap-2.5 bg-white p-2.5 rounded-xl shadow-sm border border-sky-200 text-xs">
       <div class="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
-        <div class="flex items-center gap-1.5 bg-sky-50 p-1 rounded-lg border border-sky-200 shadow-inner">
+        <div class="flex items-center gap-1 bg-sky-50 p-1 rounded-lg border border-sky-200 shadow-inner">
           <div class="flex bg-white rounded-md p-0.5 border border-sky-200">
-            <button @click="dateFilterMode = 'week'" :class="['px-2 py-0.5 font-bold rounded transition-all', dateFilterMode === 'week' ? 'bg-sky-600 text-white' : 'text-slate-600']">依週</button>
-            <button @click="dateFilterMode = 'range'" :class="['px-2 py-0.5 font-bold rounded transition-all', dateFilterMode === 'range' ? 'bg-sky-600 text-white' : 'text-slate-600']">指定日期</button>
+            <button @click="dateFilterMode = 'week'" :class="['px-2 py-0.5 font-bold rounded transition', dateFilterMode === 'week' ? 'bg-sky-600 text-white' : 'text-slate-600']">依週</button>
+            <button @click="dateFilterMode = 'month'" :class="['px-2 py-0.5 font-bold rounded transition', dateFilterMode === 'month' ? 'bg-sky-600 text-white' : 'text-slate-600']">依月份</button>
+            <button @click="dateFilterMode = 'range'" :class="['px-2 py-0.5 font-bold rounded transition', dateFilterMode === 'range' ? 'bg-sky-600 text-white' : 'text-slate-600']">指定區間</button>
           </div>
 
+          <!-- 模式 1: 依週 -->
           <div v-if="dateFilterMode === 'week'" class="flex items-center gap-1 px-1">
             <input type="week" v-model="selectedWeek" class="bg-white border border-sky-300 rounded px-1.5 py-0.5 text-xs font-bold text-slate-800 focus:outline-none">
             <button @click="selectedWeek = ''" v-if="selectedWeek" class="text-sky-700 hover:text-sky-900 font-bold">重置</button>
           </div>
 
+          <!-- 模式 2: 依月份 -->
+          <div v-else-if="dateFilterMode === 'month'" class="flex items-center gap-1 px-1">
+            <input type="month" v-model="selectedMonth" class="bg-white border border-sky-300 rounded px-1.5 py-0.5 text-xs font-bold text-slate-800 focus:outline-none">
+            <button @click="selectedMonth = ''" v-if="selectedMonth" class="text-sky-700 hover:text-sky-900 font-bold">重置</button>
+          </div>
+
+          <!-- 模式 3: 指定區間 -->
           <div v-else class="flex items-center gap-1 px-1">
             <input type="date" v-model="startDate" title="開始日期" class="bg-white border border-sky-300 rounded px-1.5 py-0.5 text-xs font-bold text-slate-800 focus:outline-none">
             <span class="font-bold text-slate-400">至</span>
@@ -157,8 +170,8 @@
           </div>
         </div>
 
-        <div class="relative w-full sm:w-52">
-          <input type="text" v-model="searchQuery" placeholder="搜尋 Tool / 機況 / 步驟..." class="w-full bg-white border border-sky-200 rounded-lg pl-7 pr-6 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-sky-500 shadow-inner">
+        <div class="relative w-full sm:w-48">
+          <input type="text" v-model="searchQuery" placeholder="搜尋 Tool / 機況 / 類別..." class="w-full bg-white border border-sky-200 rounded-lg pl-7 pr-6 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-sky-500 shadow-inner">
           <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
           <button @click="searchQuery = ''" v-if="searchQuery" class="absolute right-2 top-1 text-slate-400 hover:text-slate-600">✕</button>
         </div>
@@ -177,13 +190,13 @@
         <button @click="resetColumnWidths()" class="text-sky-700 hover:text-sky-900 font-semibold px-2 py-1 bg-sky-50 border border-sky-200 rounded-lg shadow-sm" title="還原最佳化欄寬">自動排版</button>
       </div>
 
-      <button @click="openModal()" class="w-full lg:w-auto bg-slate-900 hover:bg-sky-600 text-white font-bold px-4 py-1.5 rounded-lg shadow-md transition-all duration-200 flex items-center justify-center gap-1.5">
+      <button @click="openModal()" class="w-full lg:w-auto bg-slate-900 hover:bg-sky-600 text-white font-bold px-4 py-1.5 rounded-lg shadow-md transition flex items-center justify-center gap-1.5">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
         <span>新增機況紀錄</span>
       </button>
     </div>
 
-    <!-- 🔥 滿版無左右滾動條表格區 (100% 寬度適應) -->
+    <!-- 表格區 -->
     <div class="bg-white rounded-xl shadow-md border border-sky-200 overflow-hidden">
       <div class="w-full overflow-hidden">
         <table class="w-full text-left text-slate-800 border-collapse text-table-body" style="table-layout: fixed;">
@@ -206,7 +219,6 @@
           </thead>
           <tbody class="divide-y divide-sky-100">
             <tr v-for="item in filteredIssues" :key="item.ID" class="hover:bg-sky-50/50 transition-colors duration-150 align-top">
-              <!-- Status -->
               <td class="py-2 px-2 whitespace-nowrap overflow-hidden">
                 <span v-if="item['Remain Issue'] && String(item['Remain Issue']).trim() !== ''" class="inline-flex items-center gap-1 bg-rose-100 text-rose-800 font-extrabold px-1.5 py-0.5 rounded text-[10.5px] border border-rose-300">
                   <span class="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse"></span>Remain
@@ -219,7 +231,6 @@
                 </span>
               </td>
 
-              <!-- Timestamp -->
               <td class="py-2 px-2 overflow-hidden">
                 <div class="text-[11px] text-slate-700 font-mono font-bold">{{ formatDate(item.Timestamp) }}</div>
               </td>
@@ -233,59 +244,51 @@
                   <span v-if="!item['Service Category']" class="text-slate-400">-</span>
                 </div>
                 <div class="text-[10px] font-mono text-slate-600">
-                  <span>{{ item['Engineers Count'] || 0 }}人 | </span>
-                  <span>{{ item['Onsite Regular Hours'] || 0 }}h | </span>
-                  <span class="text-indigo-700 font-bold">{{ item['Total Charged Hours'] || 0 }}h計</span>
+                  <div>{{ item['Engineers Count'] || 0 }}人 | Onsite: {{ item['Onsite Regular Hours'] || 0 }}h</div>
+                  <div>合約: {{ item['Contract Regular Hours'] || 0 }}h | OT: {{ item['OT Hours'] || 0 }}h</div>
+                  <div class="text-indigo-700 font-bold">總計費: {{ item['Total Charged Hours'] || 0 }}h</div>
                 </div>
               </td>
 
-              <!-- Company / Model -->
               <td class="py-2 px-2 overflow-hidden">
                 <div class="font-extrabold text-slate-900 break-words">{{ item.Company || '-' }}</div>
                 <div class="text-[10.5px] text-slate-500 break-words">{{ item['Model Type'] || '-' }}</div>
               </td>
 
-              <!-- Tool ID / Owner -->
               <td class="py-2 px-2 overflow-hidden">
                 <div class="font-extrabold text-sky-900 font-mono break-all">{{ item['Tool ID'] || '-' }}</div>
                 <div class="text-[10.5px] text-slate-500 break-words">{{ item.Owner || '-' }}</div>
               </td>
 
-              <!-- Issue Description -->
               <td class="py-2 px-2 overflow-hidden">
                 <div class="cell-scroll-box whitespace-pre-line text-slate-800 leading-snug pr-0.5">
                   {{ item['Issue Description'] || '-' }}
                 </div>
               </td>
 
-              <!-- Actions Done -->
               <td class="py-2 px-2 overflow-hidden">
                 <div class="cell-scroll-box whitespace-pre-line text-slate-900 leading-snug border-l border-sky-400 pl-1.5 pr-0.5 bg-sky-50/40 rounded-r">
                   {{ item['Actions Done'] || '-' }}
                 </div>
               </td>
 
-              <!-- Plan to Do -->
               <td class="py-2 px-2 overflow-hidden">
                 <div class="cell-scroll-box whitespace-pre-line font-bold text-amber-900 bg-amber-50/70 rounded p-1.5 border border-amber-200/80 pr-0.5">
                   {{ item['Plan to Do'] || '-' }}
                 </div>
               </td>
 
-              <!-- Remain Issue -->
               <td class="py-2 px-2 overflow-hidden">
                 <div class="cell-scroll-box whitespace-pre-line font-bold text-rose-900 bg-rose-50/70 rounded p-1.5 border border-rose-200/80 pr-0.5">
                   {{ item['Remain Issue'] || '-' }}
                 </div>
               </td>
 
-              <!-- Replace Parts -->
               <td class="py-2 px-2 overflow-hidden text-[11px]">
                 <div class="text-slate-800 font-semibold truncate" :title="item['Replace Parts Category']">{{ item['Replace Parts Category'] || '-' }}</div>
                 <div class="font-mono text-slate-500 truncate" :title="item['Replace Parts PN']">PN: {{ item['Replace Parts PN'] || '-' }}</div>
               </td>
 
-              <!-- Actions -->
               <td class="py-2 px-1 text-center whitespace-nowrap">
                 <div class="flex justify-center items-center gap-1">
                   <button @click="openModal(item)" class="p-1 text-slate-500 hover:text-sky-600 hover:bg-sky-100 rounded transition" title="編輯">
@@ -311,7 +314,7 @@
       </div>
     </div>
 
-    <!-- Modal：新增 / 編輯表單 -->
+    <!-- Modal：新增 / 編輯表單 (精準還原資料) -->
     <div v-if="showModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-3 z-50">
       <div class="bg-white rounded-2xl max-w-2xl w-full p-5 space-y-3.5 max-h-[92vh] overflow-y-auto shadow-2xl border border-sky-200 text-xs">
         <div class="flex justify-between items-center border-b border-sky-100 pb-2.5">
@@ -449,18 +452,17 @@
 
     const { createApp, ref, computed, onMounted } = Vue;
 
-    // 🔥 依百分比 (100% 滿版無橫向滾動條) 分配欄寬
     const DEFAULT_COLUMNS = [
       { key: 'Status', label: 'Status', width: 6 },
       { key: 'Timestamp', label: 'Timestamp', width: 7 },
-      { key: 'ServiceType', label: 'Service & Hours', width: 10 },
+      { key: 'ServiceType', label: 'Service & Hours', width: 11 },
       { key: 'Company', label: 'Company / Model', width: 8.5 },
       { key: 'ToolID', label: 'Tool ID / Owner', width: 8 },
       { key: 'IssueDescription', label: 'Issue Description', width: 17 },
-      { key: 'ActionsDone', label: 'Actions Done', width: 20 },
+      { key: 'ActionsDone', label: 'Actions Done', width: 19 },
       { key: 'PlanToDo', label: 'Plan to Do', width: 9.5 },
       { key: 'RemainIssue', label: 'Remain Issue', width: 9.5 },
-      { key: 'ReplaceParts', label: 'Parts Info', width: 7.5 }
+      { key: 'ReplaceParts', label: 'Parts Info', width: 7 }
     ];
 
     createApp({
@@ -468,8 +470,10 @@
         const currentSheet = ref('Hitachi');
         const issues = ref([]);
         
-        const dateFilterMode = ref('week');
+        // 篩選模式：'week' (依週), 'month' (依月份), 'range' (指定日期區間)
+        const dateFilterMode = ref('month');
         const selectedWeek = ref('');
+        const selectedMonth = ref(new Date().toISOString().substring(0, 7)); // 預設為當前月份 (YYYY-MM)
         const startDate = ref('');
         const endDate = ref('');
         const sortOrder = ref('desc');
@@ -486,7 +490,7 @@
 
         const loadSavedColumns = () => {
           try {
-            const saved = localStorage.getItem('ptw_columns_percent_v1');
+            const saved = localStorage.getItem('ptw_columns_percent_v2');
             if (saved) {
               const parsed = JSON.parse(saved);
               if (parsed.length === DEFAULT_COLUMNS.length) return parsed;
@@ -499,7 +503,7 @@
 
         const resetColumnWidths = () => {
           columns.value = JSON.parse(JSON.stringify(DEFAULT_COLUMNS));
-          localStorage.removeItem('ptw_columns_percent_v1');
+          localStorage.removeItem('ptw_columns_percent_v2');
         };
 
         const toggleSortOrder = () => {
@@ -557,7 +561,7 @@
           const onMouseUp = () => {
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('mouseup', onMouseUp);
-            localStorage.setItem('ptw_columns_percent_v1', JSON.stringify(columns.value));
+            localStorage.setItem('ptw_columns_percent_v2', JSON.stringify(columns.value));
           };
 
           window.addEventListener('mousemove', onMouseMove);
@@ -609,10 +613,19 @@
           return `${d.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
         };
 
+        // 🔥 期間篩選邏輯（週別 / 月份 / 區間）
         const timeFilteredIssues = computed(() => {
           if (dateFilterMode.value === 'week') {
             if (!selectedWeek.value) return issues.value;
             return issues.value.filter(i => getWeekString(i.Timestamp) === selectedWeek.value);
+          } else if (dateFilterMode.value === 'month') {
+            if (!selectedMonth.value) return issues.value;
+            return issues.value.filter(i => {
+              if (!i.Timestamp) return false;
+              const d = new Date(i.Timestamp);
+              if (isNaN(d.getTime())) return false;
+              return d.toISOString().substring(0, 7) === selectedMonth.value;
+            });
           } else {
             if (!startDate.value && !endDate.value) return issues.value;
             return issues.value.filter(i => {
@@ -628,6 +641,7 @@
           }
         });
 
+        // 關鍵字與狀態過濾
         const filteredIssues = computed(() => {
           let list = [...timeFilteredIssues.value];
 
@@ -677,10 +691,57 @@
           };
         });
 
+        // 🔥 當前查詢期間之各類工時總計
+        const hoursSummary = computed(() => {
+          let onsiteCharged = 0;
+          let otCharged = 0;
+          let totalCharged = 0;
+          let warrantyHrs = 0;
+          let projectHrs = 0;
+          let contractHrs = 0;
+
+          filteredIssues.value.forEach(i => {
+            const count = Number(i['Engineers Count'] || 0);
+            const onsite = Number(i['Onsite Regular Hours'] || 0);
+            const contract = Number(i['Contract Regular Hours'] || 0);
+            const ot = Number(i['OT Hours'] || 0);
+            const cat = String(i['Service Category'] || '');
+
+            onsiteCharged += (count * onsite);
+            otCharged += (count * ot * 2);
+            totalCharged += Number(i['Total Charged Hours'] || ((count * onsite) + (count * ot * 2)));
+
+            if (cat.includes('Warranty')) warrantyHrs += (count * contract);
+            if (cat.includes('Project')) projectHrs += (count * contract);
+            if (cat.includes('Contract')) contractHrs += (count * contract);
+          });
+
+          return { onsiteCharged, otCharged, totalCharged, warrantyHrs, projectHrs, contractHrs };
+        });
+
+        // 🔥 開啟 Modal：精準讀取原資料並回填
         const openModal = (item = null) => {
           if (item) {
             isEdit.value = true;
-            form.value = { ...item };
+            form.value = {
+              ID: item.ID || '',
+              Timestamp: item.Timestamp || '',
+              Company: item.Company || '',
+              'Model Type': item['Model Type'] || '',
+              'Tool ID': item['Tool ID'] || '',
+              Owner: item.Owner || '',
+              'Issue Description': item['Issue Description'] || '',
+              'Actions Done': item['Actions Done'] || '',
+              'Plan to Do': item['Plan to Do'] || '',
+              'Remain Issue': item['Remain Issue'] || '',
+              'Replace Parts Category': item['Replace Parts Category'] || '',
+              'Replace Parts PN': item['Replace Parts PN'] || '',
+              'Service Category': item['Service Category'] || '',
+              'Engineers Count': item['Engineers Count'] !== undefined && item['Engineers Count'] !== '' ? Number(item['Engineers Count']) : 1,
+              'Onsite Regular Hours': item['Onsite Regular Hours'] !== undefined && item['Onsite Regular Hours'] !== '' ? Number(item['Onsite Regular Hours']) : 0,
+              'Contract Regular Hours': item['Contract Regular Hours'] !== undefined && item['Contract Regular Hours'] !== '' ? Number(item['Contract Regular Hours']) : 0,
+              'OT Hours': item['OT Hours'] !== undefined && item['OT Hours'] !== '' ? Number(item['OT Hours']) : 0
+            };
             selectedCategories.value = item['Service Category'] ? String(item['Service Category']).split(',').filter(Boolean) : [];
             if (item.Timestamp) {
               const d = new Date(item.Timestamp);
@@ -780,6 +841,7 @@
           issues,
           dateFilterMode,
           selectedWeek,
+          selectedMonth,
           startDate,
           endDate,
           recordDate,
@@ -799,6 +861,7 @@
           calculatedTotalHours,
           filteredIssues,
           dashboardStats,
+          hoursSummary,
           toggleSortOrder,
           startResize,
           resetColumnWidths,

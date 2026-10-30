@@ -112,7 +112,7 @@
       </div>
 
       <div 
-        @click="statusFilter = statusFilter === 'PLAN' ? 'ALL' : 'PLAN'"
+        @click="statusFilter = 'PLAN'"
         :class="['relative overflow-hidden py-2.5 px-4 rounded-xl transition-all duration-200 cursor-pointer select-none border-2 shadow-sm flex items-center justify-between', statusFilter === 'PLAN' ? 'bg-amber-50 border-amber-500 shadow-md ring-2 ring-amber-200' : 'bg-white border-sky-200 hover:border-amber-400 hover:shadow']">
         <div class="absolute top-0 left-0 bottom-0 w-1.5 bg-amber-500"></div>
         <div class="pl-1">
@@ -123,7 +123,7 @@
       </div>
 
       <div 
-        @click="statusFilter = statusFilter === 'REMAIN' ? 'ALL' : 'REMAIN'"
+        @click="statusFilter = 'REMAIN'"
         :class="['relative overflow-hidden py-2.5 px-4 rounded-xl transition-all duration-200 cursor-pointer select-none border-2 shadow-sm flex items-center justify-between', statusFilter === 'REMAIN' ? 'bg-rose-50 border-rose-500 shadow-md ring-2 ring-rose-200' : 'bg-white border-sky-200 hover:border-rose-400 hover:shadow']">
         <div class="absolute top-0 left-0 bottom-0 w-1.5 bg-rose-600"></div>
         <div class="pl-1">
@@ -134,7 +134,7 @@
       </div>
 
       <div 
-        @click="statusFilter = statusFilter === 'CLOSED' ? 'ALL' : 'CLOSED'"
+        @click="statusFilter = 'CLOSED'"
         :class="['relative overflow-hidden py-2.5 px-4 rounded-xl transition-all duration-200 cursor-pointer select-none border-2 shadow-sm flex items-center justify-between', statusFilter === 'CLOSED' ? 'bg-emerald-50 border-emerald-500 shadow-md ring-2 ring-emerald-200' : 'bg-white border-sky-200 hover:border-emerald-400 hover:shadow']">
         <div class="absolute top-0 left-0 bottom-0 w-1.5 bg-emerald-600"></div>
         <div class="pl-1">
@@ -239,10 +239,12 @@
                   </span>
                   <span v-if="!item['Service Category']" class="text-xs text-slate-400">-</span>
                 </div>
-                <div class="text-[11px] font-mono text-slate-600">
+                <div class="text-[11px] font-mono text-slate-600 leading-tight">
                   <div>人數: <span class="font-bold text-slate-900">{{ item['Engineers Count'] || 0 }}</span> 人</div>
-                  <div>正常: {{ item['Regular Hours'] || 0 }}h | OT: {{ item['OT Hours'] || 0 }}h</div>
-                  <div class="font-bold text-indigo-700 mt-0.5">總計費: {{ item['Total Charged Hours'] || 0 }} hrs</div>
+                  <div>On-site: {{ item['Onsite Regular Hours'] || 0 }}h</div>
+                  <div>合約工時: {{ item['Contract Regular Hours'] || 0 }}h (免計)</div>
+                  <div>OT工時: {{ item['OT Hours'] || 0 }}h (加倍)</div>
+                  <div class="font-bold text-indigo-700 mt-1">計費: {{ item['Total Charged Hours'] || 0 }} hrs</div>
                 </div>
               </td>
 
@@ -303,7 +305,7 @@
       </div>
     </div>
 
-    <!-- Modal：新增 / 編輯表單 (整合 On-site 正常工時與合約免計費規則) -->
+    <!-- Modal：新增 / 編輯表單 (獨立拆分 On-site 與 Warranty/Project/Contract 正常工時) -->
     <div v-if="showModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div class="bg-white rounded-2xl max-w-3xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl border border-sky-200">
         <div class="flex justify-between items-center border-b border-sky-100 pb-3">
@@ -325,7 +327,7 @@
           <div class="flex justify-between items-center">
             <label class="block text-xs font-bold text-slate-700">服務合約類別 (可複選)</label>
             <span class="text-[11px] font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-              Warranty / Project / Contract 正常工時不計費；On-site 正常計費
+              On-site 正常計費；Warranty / Project / Contract 不計費
             </span>
           </div>
           <div class="flex flex-wrap gap-4">
@@ -336,45 +338,61 @@
           </div>
         </div>
 
-        <!-- 工時填寫與動態計費試算 -->
+        <!-- 🔥 工時填寫與動態計費試算：拆成 4 格 (人數、On-site工時、合約工時、OT工時) -->
         <div class="bg-indigo-50/60 border border-indigo-200 p-4 rounded-xl space-y-3">
           <div class="text-xs font-extrabold text-indigo-900 flex items-center justify-between">
             <span>⏱️ Fab Service 工時填寫與自動計費試算</span>
             <span class="text-[11px] font-normal text-indigo-600">正常工時: 09:00~18:00 | OT/假日工時一律加倍</span>
           </div>
 
-          <div class="grid grid-cols-3 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
             <div>
               <label class="block text-[11px] font-bold text-slate-700 mb-1">工程師人數 (人)</label>
-              <input type="number" min="0" step="1" v-model.number="form['Engineers Count']" placeholder="例如: 2" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              <input type="number" min="0" step="1" v-model.number="form['Engineers Count']" placeholder="例如: 2" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-none">
             </div>
+            
+            <!-- 欄位 1: On-site 正常工時 -->
+            <div>
+              <label class="block text-[11px] font-bold text-indigo-900 mb-1">
+                On-site 工時 <span class="text-emerald-600 font-normal">(正常計費)</span>
+              </label>
+              <input type="number" min="0" step="0.5" v-model.number="form['Onsite Regular Hours']" placeholder="hrs" class="w-full bg-white border border-indigo-300 rounded-lg px-2.5 py-1.5 text-xs font-bold text-indigo-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            </div>
+
+            <!-- 欄位 2: Warranty / Project / Contract 正常工時 -->
             <div>
               <label class="block text-[11px] font-bold text-slate-700 mb-1">
-                正常工時 (單人 hrs)
-                <span v-if="hasExemptCategory" class="text-rose-600 font-normal">(不計費)</span>
+                合約工時 <span class="text-amber-700 font-normal">(不計費)</span>
               </label>
-              <input type="number" min="0" step="0.5" v-model.number="form['Regular Hours']" placeholder="例如: 6" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              <input type="number" min="0" step="0.5" v-model.number="form['Contract Regular Hours']" placeholder="hrs" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-600 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
             </div>
+
+            <!-- 欄位 3: OT / Holiday -->
             <div>
-              <label class="block text-[11px] font-bold text-rose-700 mb-1">OT / Holiday (單人 hrs, 加倍)</label>
-              <input type="number" min="0" step="0.5" v-model.number="form['OT Hours']" placeholder="例如: 3" class="w-full bg-white border border-rose-300 rounded-lg px-3 py-1.5 text-xs font-bold text-rose-700 focus:ring-2 focus:ring-rose-500 focus:outline-none">
+              <label class="block text-[11px] font-bold text-rose-700 mb-1">
+                OT / Holiday <span class="text-rose-500 font-normal">(加倍)</span>
+              </label>
+              <input type="number" min="0" step="0.5" v-model.number="form['OT Hours']" placeholder="hrs" class="w-full bg-white border border-rose-300 rounded-lg px-2.5 py-1.5 text-xs font-bold text-rose-700 focus:ring-2 focus:ring-rose-500 focus:outline-none">
             </div>
           </div>
 
           <!-- 即時計算結果顯示 -->
           <div class="bg-white p-3 rounded-lg border border-indigo-100 flex flex-wrap justify-between items-center text-xs">
             <div class="space-y-1">
-              <div class="flex items-center gap-1.5">
-                <span class="text-slate-600">正常計費工時:</span>
-                <span v-if="hasExemptCategory" class="font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                  {{ form['Engineers Count'] || 0 }} 人 × {{ form['Regular Hours'] || 0 }} hrs = 0 hrs (合約涵蓋，不計費)
-                </span>
-                <span v-else class="font-bold text-slate-800">
-                  {{ form['Engineers Count'] || 0 }} 人 × {{ form['Regular Hours'] || 0 }} hrs = {{ calculatedRegularHours }} hrs
+              <div>
+                <span class="text-slate-600">On-site 計費工時:</span>
+                <span class="font-bold text-indigo-900">
+                  {{ form['Engineers Count'] || 0 }} 人 × {{ form['Onsite Regular Hours'] || 0 }} hrs = {{ calculatedOnsiteHours }} hrs
                 </span>
               </div>
               <div>
-                <span class="text-slate-600">OT/假日計費(雙倍):</span>
+                <span class="text-slate-600">合約工時 (Warranty/Project/Contract):</span>
+                <span class="font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                  {{ form['Engineers Count'] || 0 }} 人 × {{ form['Contract Regular Hours'] || 0 }} hrs = 0 hrs (合約涵蓋，不計費)
+                </span>
+              </div>
+              <div>
+                <span class="text-slate-600">OT/假日計費 (雙倍):</span>
                 <span class="font-bold text-rose-600">
                   {{ form['Engineers Count'] || 0 }} 人 × {{ form['OT Hours'] || 0 }} hrs × 2 = {{ calculatedOTHours }} hrs
                 </span>
@@ -456,7 +474,7 @@
     const DEFAULT_COLUMNS = [
       { key: 'Status', label: 'Status', width: 110 },
       { key: 'Timestamp', label: 'Timestamp', width: 120 },
-      { key: 'ServiceType', label: 'Service & Hours', width: 160 },
+      { key: 'ServiceType', label: 'Service & Hours', width: 170 },
       { key: 'Company', label: 'Company / Model', width: 130 },
       { key: 'ToolID', label: 'Tool ID / Owner', width: 130 },
       { key: 'IssueDescription', label: 'Issue Description', width: 300 },
@@ -489,7 +507,7 @@
 
         const loadSavedColumns = () => {
           try {
-            const saved = localStorage.getItem('ptw_columns_width_v2');
+            const saved = localStorage.getItem('ptw_columns_width_v3');
             if (saved) {
               const parsed = JSON.parse(saved);
               if (parsed.length === DEFAULT_COLUMNS.length) return parsed;
@@ -502,7 +520,7 @@
 
         const resetColumnWidths = () => {
           columns.value = JSON.parse(JSON.stringify(DEFAULT_COLUMNS));
-          localStorage.removeItem('ptw_columns_width_v2');
+          localStorage.removeItem('ptw_columns_width_v3');
         };
 
         const toggleSortOrder = () => {
@@ -524,35 +542,28 @@
           'Replace Parts PN': '',
           'Service Category': '',
           'Engineers Count': 1,
-          'Regular Hours': 0,
+          'Onsite Regular Hours': 0,
+          'Contract Regular Hours': 0,
           'OT Hours': 0
         });
 
-        // 🔥 判斷是否勾選 Warranty / Project / Contract（勾選任一則正常工時免計費）
-        const hasExemptCategory = computed(() => {
-          return selectedCategories.value.some(cat => ['Warranty', 'Project', 'Contract'].includes(cat));
-        });
-
-        // 🔥 正常計費工時：若勾選 Warranty / Project / Contract 則為 0，若只勾選 On-site 則正常計算
-        const calculatedRegularHours = computed(() => {
-          if (hasExemptCategory.value) {
-            return 0;
-          }
+        // 🔥 On-site 工時正常計費
+        const calculatedOnsiteHours = computed(() => {
           const count = Number(form.value['Engineers Count'] || 0);
-          const hrs = Number(form.value['Regular Hours'] || 0);
+          const hrs = Number(form.value['Onsite Regular Hours'] || 0);
           return count * hrs;
         });
 
-        // OT 工時加倍計算
+        // OT 工時加倍計費
         const calculatedOTHours = computed(() => {
           const count = Number(form.value['Engineers Count'] || 0);
           const hrs = Number(form.value['OT Hours'] || 0);
           return count * hrs * 2;
         });
 
-        // 總計費工時
+        // 總計費工時 = On-site計費 + OT計費（合約正常工時不計入計費）
         const calculatedTotalHours = computed(() => {
-          return calculatedRegularHours.value + calculatedOTHours.value;
+          return calculatedOnsiteHours.value + calculatedOTHours.value;
         });
 
         const startResize = (e, index) => {
@@ -568,7 +579,7 @@
           const onMouseUp = () => {
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('mouseup', onMouseUp);
-            localStorage.setItem('ptw_columns_width_v2', JSON.stringify(columns.value));
+            localStorage.setItem('ptw_columns_width_v3', JSON.stringify(columns.value));
           };
 
           window.addEventListener('mousemove', onMouseMove);
@@ -718,7 +729,8 @@
               'Replace Parts PN': '',
               'Service Category': '',
               'Engineers Count': 1,
-              'Regular Hours': 0,
+              'Onsite Regular Hours': 0,
+              'Contract Regular Hours': 0,
               'OT Hours': 0
             };
           }
@@ -804,8 +816,7 @@
           submitting,
           form,
           selectedCategories,
-          hasExemptCategory,
-          calculatedRegularHours,
+          calculatedOnsiteHours,
           calculatedOTHours,
           calculatedTotalHours,
           filteredIssues,

@@ -232,7 +232,7 @@
                 <div class="text-[11px] text-slate-700 font-mono font-bold">{{ formatDate(item.Timestamp) }}</div>
               </td>
 
-              <!-- Service & Hours: 精確回顯 -->
+              <!-- Service & Hours (容錯精確取值) -->
               <td class="py-2 px-2 overflow-hidden leading-tight">
                 <div class="flex flex-wrap gap-0.5 mb-0.5">
                   <span v-for="cat in getCategories(item['Service Category'])" :key="cat" class="px-1 py-0.2 bg-sky-100 text-sky-800 font-bold text-[9.5px] rounded border border-sky-200">
@@ -447,7 +447,8 @@
   </div>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbx9uocDdwRN8Aywsi8T2D9EHXb_azlHZhaDr-pEn-RRsx1EqFKBuWV19Dc_P5TVu5yViA/exec";
+    // ⚠️ 請確保此處為您剛剛「新增部署」所複製的全新 URL
+    const API_URL = "https://script.google.com/macros/s/AKfycby4e3ChAPvpUFPeMMgf4Grd0rGgb4302Cid5-4AV78aUmA4Dxdmyc0uYFiGHwhpQj0lZw/exec";
 
     const { createApp, ref, computed, onMounted } = Vue;
 
@@ -486,7 +487,7 @@
         const recordDate = ref('');
         const selectedCategories = ref([]);
 
-        const CACHE_VERSION = 'ptw_columns_percent_v10';
+        const CACHE_VERSION = 'ptw_columns_percent_v11';
         const loadSavedColumns = () => {
           try {
             const saved = localStorage.getItem(CACHE_VERSION);
@@ -529,7 +530,6 @@
           otHours: 0
         });
 
-        // 徹底兼容 Google Sheet 欄位標題與小寫格式
         const getVal = (item, key, fallback = '') => {
           if (!item) return fallback;
           if (item[key] !== undefined && item[key] !== '') return item[key];

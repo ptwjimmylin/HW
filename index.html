@@ -11,8 +11,8 @@
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <style>
     :root {
-      --base-font-size: 13px;
-      --table-font-size: 12px;
+      --base-font-size: 14px;
+      --table-font-size: 13px;
     }
     body {
       font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -134,7 +134,7 @@
         <div>Contract: <span class="font-bold text-slate-700 font-mono">{{ hoursSummary.contractHrs }}h</span></div>
         <div class="bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200">
           <span class="text-indigo-950 font-bold">總計費工時 (Total Charged): </span>
-          <span class="font-black text-indigo-700 font-mono text-sm">{{ hoursSummary.totalCharged }} hrs</span>
+          <span class="font-black text-indigo-700 font-mono text-base">{{ hoursSummary.totalCharged }} hrs</span>
         </div>
       </div>
     </div>
@@ -177,11 +177,12 @@
           <span>{{ sortOrder === 'desc' ? '日期：新 → 舊' : '日期：舊 → 新' }}</span>
         </button>
 
+        <!-- 字體大小按鈕（帶持久記憶） -->
         <div class="flex items-center gap-1 bg-sky-100/80 p-0.5 rounded-lg border border-sky-200">
           <span class="text-[10px] font-bold text-slate-600 px-1.5">字體</span>
-          <button @click="changeFontSize('sm')" :class="['px-2 py-0.5 rounded text-[11px] font-bold', fontSize === 'sm' ? 'bg-sky-600 text-white' : 'bg-white text-slate-700']">小</button>
-          <button @click="changeFontSize('md')" :class="['px-2 py-0.5 rounded text-[11px] font-bold', fontSize === 'md' ? 'bg-sky-600 text-white' : 'bg-white text-slate-700']">中</button>
-          <button @click="changeFontSize('lg')" :class="['px-2 py-0.5 rounded text-[11px] font-bold', fontSize === 'lg' ? 'bg-sky-600 text-white' : 'bg-white text-slate-700']">大</button>
+          <button @click="changeFontSize('sm')" :class="['px-2 py-0.5 rounded text-[11px] font-bold', fontSize === 'sm' ? 'bg-sky-600 text-white shadow-sm' : 'bg-white text-slate-700']">小</button>
+          <button @click="changeFontSize('md')" :class="['px-2 py-0.5 rounded text-[11px] font-bold', fontSize === 'md' ? 'bg-sky-600 text-white shadow-sm' : 'bg-white text-slate-700']">中</button>
+          <button @click="changeFontSize('lg')" :class="['px-2 py-0.5 rounded text-[11px] font-bold', fontSize === 'lg' ? 'bg-sky-600 text-white shadow-sm' : 'bg-white text-slate-700']">大</button>
         </div>
 
         <button @click="resetColumnWidths()" class="text-sky-700 hover:text-sky-900 font-semibold px-2 py-1 bg-sky-50 border border-sky-200 rounded-lg shadow-sm" title="還原最佳化欄寬">自動排版</button>
@@ -203,9 +204,9 @@
                 v-for="(col, index) in columns" 
                 :key="index" 
                 :style="{ width: col.width + '%' }" 
-                :class="['relative py-2.5 px-2 border-r border-sky-100 select-none overflow-hidden text-ellipsis whitespace-nowrap', col.key === 'Timestamp' ? 'cursor-pointer hover:bg-sky-100/70 transition' : '']"
+                :class="['relative py-2.5 px-2 border-r border-sky-100 select-none overflow-hidden text-ellipsis whitespace-nowrap', col.key === 'Timestamp' ? 'cursor-pointer hover:bg-sky-100/70 transition' : '', col.key === 'Status' ? 'text-center' : '']"
                 @click="col.key === 'Timestamp' ? toggleSortOrder() : null">
-                <div class="flex items-center gap-1">
+                <div class="flex items-center gap-1" :class="col.key === 'Status' ? 'justify-center' : ''">
                   <span>{{ col.label }}</span>
                   <span v-if="col.key === 'Timestamp'" class="text-sky-600 font-black">{{ sortOrder === 'desc' ? '↓' : '↑' }}</span>
                 </div>
@@ -216,34 +217,49 @@
           </thead>
           <tbody class="divide-y divide-sky-100">
             <tr v-for="item in filteredIssues" :key="item.ID" class="hover:bg-sky-50/50 transition-colors duration-150 align-top">
-              <td class="py-2 px-2 whitespace-nowrap overflow-hidden">
-                <span v-if="item['Remain Issue'] && String(item['Remain Issue']).trim() !== ''" class="inline-flex items-center gap-1 bg-rose-100 text-rose-800 font-extrabold px-1.5 py-0.5 rounded text-[10.5px] border border-rose-300">
-                  <span class="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse"></span>Remain
-                </span>
-                <span v-else-if="item['Plan to Do'] && String(item['Plan to Do']).trim() !== ''" class="inline-flex items-center gap-1 bg-amber-100 text-amber-800 font-extrabold px-1.5 py-0.5 rounded text-[10.5px] border border-amber-300">
-                  <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>Plan
-                </span>
-                <span v-else class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 font-extrabold px-1.5 py-0.5 rounded text-[10.5px] border border-emerald-300">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>Closed
-                </span>
+              
+              <!-- 🔥 STATUS 欄位：純燈號顯示（無文字） -->
+              <td class="py-2.5 px-2 text-center whitespace-nowrap overflow-hidden">
+                <div class="flex justify-center items-center">
+                  <!-- 殘留問題：紅燈閃爍 -->
+                  <span v-if="item['Remain Issue'] && String(item['Remain Issue']).trim() !== ''" 
+                        title="有殘留問題 (Remain Issue)" 
+                        class="relative flex h-3.5 w-3.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-rose-600 shadow-sm shadow-rose-300"></span>
+                  </span>
+                  <!-- 計畫中：黃燈 -->
+                  <span v-else-if="item['Plan to Do'] && String(item['Plan to Do']).trim() !== ''" 
+                        title="有後續計畫 (Plan to Do)" 
+                        class="relative inline-flex rounded-full h-3.5 w-3.5 bg-amber-500 shadow-sm shadow-amber-200">
+                  </span>
+                  <!-- 已完結：綠燈 -->
+                  <span v-else 
+                        title="已結案 (Closed)" 
+                        class="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 shadow-sm shadow-emerald-200">
+                  </span>
+                </div>
               </td>
 
               <td class="py-2 px-2 overflow-hidden">
                 <div class="text-[11px] text-slate-700 font-mono font-bold">{{ formatDate(item.Timestamp) }}</div>
               </td>
 
-              <!-- Service & Hours (容錯精確取值) -->
+              <!-- 🔥 SERVICE & HOURS 欄位：數字與小時字體加大加粗 -->
               <td class="py-2 px-2 overflow-hidden leading-tight">
-                <div class="flex flex-wrap gap-0.5 mb-0.5">
-                  <span v-for="cat in getCategories(item['Service Category'])" :key="cat" class="px-1 py-0.2 bg-sky-100 text-sky-800 font-bold text-[9.5px] rounded border border-sky-200">
+                <div class="flex flex-wrap gap-0.5 mb-1">
+                  <span v-for="cat in getCategories(item['Service Category'])" :key="cat" class="px-1.5 py-0.5 bg-sky-100 text-sky-800 font-bold text-[10px] rounded border border-sky-200">
                     {{ cat }}
                   </span>
                   <span v-if="!item['Service Category']" class="text-slate-400">-</span>
                 </div>
-                <div class="text-[10px] font-mono text-slate-600">
-                  <div>{{ getVal(item, 'Engineers Count', 0) }}人 | Onsite: {{ getVal(item, 'Onsite Regular Hours', 0) }}h</div>
+                <div class="text-[12px] font-mono text-slate-700 space-y-0.5">
+                  <div>人數: <span class="font-extrabold text-slate-900 text-[13px]">{{ getVal(item, 'Engineers Count', 0) }}</span> 人</div>
+                  <div>Onsite: <span class="font-bold text-slate-900">{{ getVal(item, 'Onsite Regular Hours', 0) }}</span> hrs</div>
                   <div>合約: {{ getVal(item, 'Contract Regular Hours', 0) }}h | OT: {{ getVal(item, 'OT Hours', 0) }}h</div>
-                  <div class="text-indigo-700 font-bold">總計費: {{ getVal(item, 'Total Charged Hours', 0) }}h</div>
+                  <div class="text-indigo-800 font-black text-[13px] pt-0.5">
+                    總計費: <span class="text-indigo-600 font-mono text-[14px]">{{ getVal(item, 'Total Charged Hours', 0) }}</span> hrs
+                  </div>
                 </div>
               </td>
 
@@ -311,7 +327,7 @@
       </div>
     </div>
 
-    <!-- 超大無捲軸寬版彈窗 (max-w-6xl) + 中英雙語對照 -->
+    <!-- 超大無捲軸寬版彈窗 (max-w-6xl) -->
     <div v-if="showModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div class="bg-white rounded-3xl max-w-6xl w-full p-7 space-y-4 shadow-2xl border border-sky-200">
         <div class="flex justify-between items-center border-b border-sky-100 pb-3">
@@ -447,22 +463,22 @@
   </div>
 
   <script>
-    // ⚠️ 請確保此處為您剛剛「新增部署」所複製的全新 URL
-    const API_URL = "https://script.google.com/macros/s/AKfycby4e3ChAPvpUFPeMMgf4Grd0rGgb4302Cid5-4AV78aUmA4Dxdmyc0uYFiGHwhpQj0lZw/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbx9uocDdwRN8Aywsi8T2D9EHXb_azlHZhaDr-pEn-RRsx1EqFKBuWV19Dc_P5TVu5yViA/exec";
 
     const { createApp, ref, computed, onMounted } = Vue;
 
+    // 🔥 縮小 Status 欄位寬度（純燈號佔比 4%）
     const DEFAULT_COLUMNS = [
-      { key: 'Status', label: 'Status', width: 6 },
+      { key: 'Status', label: 'Status', width: 4 },
       { key: 'Timestamp', label: 'Timestamp', width: 7 },
-      { key: 'ServiceType', label: 'Service & Hours', width: 11 },
+      { key: 'ServiceType', label: 'Service & Hours', width: 12 },
       { key: 'Company', label: 'Company / Model', width: 8.5 },
       { key: 'ToolID', label: 'Tool ID / Owner', width: 8 },
       { key: 'IssueDescription', label: 'Issue Description', width: 17 },
       { key: 'ActionsDone', label: 'Actions Done', width: 19 },
       { key: 'PlanToDo', label: 'Plan to Do', width: 9.5 },
       { key: 'RemainIssue', label: 'Remain Issue', width: 9.5 },
-      { key: 'ReplaceParts', label: 'Parts Info', width: 7 }
+      { key: 'ReplaceParts', label: 'Parts Info', width: 6.5 }
     ];
 
     createApp({
@@ -479,7 +495,11 @@
 
         const searchQuery = ref('');
         const statusFilter = ref('ALL');
-        const fontSize = ref('sm');
+        
+        // 🔥 字體大小：持久化記憶設定（預設為大或先前所選）
+        const savedFontSize = localStorage.getItem('ptw_font_size') || 'lg';
+        const fontSize = ref(savedFontSize);
+
         const showModal = ref(false);
         const isEdit = ref(false);
         const loading = ref(false);
@@ -487,7 +507,7 @@
         const recordDate = ref('');
         const selectedCategories = ref([]);
 
-        const CACHE_VERSION = 'ptw_columns_percent_v11';
+        const CACHE_VERSION = 'ptw_columns_percent_v12';
         const loadSavedColumns = () => {
           try {
             const saved = localStorage.getItem(CACHE_VERSION);
@@ -572,7 +592,7 @@
           var onMouseMove = (moveEvent) => {
             var deltaX = moveEvent.clientX - startX;
             var deltaPercent = (deltaX / tableWidth) * 100;
-            columns.value[index].width = Math.max(4, startWidth + deltaPercent);
+            columns.value[index].width = Math.max(3, startWidth + deltaPercent);
           };
 
           var onMouseUp = () => {
@@ -585,8 +605,14 @@
           window.addEventListener('mouseup', onMouseUp);
         };
 
+        // 🔥 改變字體大小並永久寫入 LocalStorage
         const changeFontSize = (size) => {
           fontSize.value = size;
+          localStorage.setItem('ptw_font_size', size);
+          applyFontSize(size);
+        };
+
+        const applyFontSize = (size) => {
           var root = document.documentElement;
           if (size === 'sm') {
             root.style.setProperty('--base-font-size', '12px');
@@ -873,7 +899,10 @@
           return isNaN(d.getTime()) ? str : d.toLocaleDateString('zh-TW');
         };
 
-        onMounted(fetchData);
+        onMounted(() => {
+          applyFontSize(fontSize.value);
+          fetchData();
+        });
 
         return {
           currentSheet,

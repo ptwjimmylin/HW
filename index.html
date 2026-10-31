@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>PTW Service Review System</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -59,18 +59,18 @@
     }
   </style>
 </head>
-<body class="bg-sky-100/70 min-h-screen text-slate-800 p-2 md:p-4 antialiased selection:bg-sky-600 selection:text-white">
+<body class="bg-sky-100/70 min-h-screen text-slate-800 p-2 sm:p-4 antialiased selection:bg-sky-600 selection:text-white pb-10">
   <div id="app" class="w-full mx-auto space-y-3">
     
     <!-- 頂部標題與產品切換 -->
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-white px-4 py-3 rounded-xl shadow-sm border border-sky-200">
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-white px-3 sm:px-4 py-3 rounded-xl shadow-sm border border-sky-200">
       <div class="flex items-center gap-2.5">
-        <div class="p-1.5 bg-sky-600 rounded-lg text-white shadow-md shadow-sky-300">
+        <div class="p-1.5 bg-sky-600 rounded-lg text-white shadow-md shadow-sky-300 flex-shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
         </div>
         <div>
-          <h1 class="text-lg font-extrabold text-slate-900 tracking-tight">PTW Service Review System</h1>
-          <p class="text-[11px] text-slate-500 font-medium">週會機況審查與智能追蹤系統 (Weekly Review & Tracking)</p>
+          <h1 class="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight leading-tight">PTW Service Review</h1>
+          <p class="text-[10px] sm:text-[11px] text-slate-500 font-medium">週會機況審查與智能追蹤系統 (Mobile & Desktop)</p>
         </div>
       </div>
       
@@ -79,123 +79,215 @@
           v-for="product in ['Hitachi', 'SEZ_SpinTec']" 
           :key="product"
           @click="switchSheet(product)"
-          :class="['flex-1 md:flex-none px-5 py-1.5 rounded-lg font-bold text-xs tracking-wide transition-all duration-200 shadow-sm', currentSheet === product ? 'bg-sky-600 text-white border border-sky-700 shadow-md' : 'bg-white text-slate-700 hover:bg-sky-50 border border-sky-200']">
+          :class="['flex-1 md:flex-none px-4 sm:px-5 py-1.5 rounded-lg font-bold text-xs tracking-wide transition-all duration-200 shadow-sm text-center', currentSheet === product ? 'bg-sky-600 text-white border border-sky-700 shadow-md' : 'bg-white text-slate-700 hover:bg-sky-50 border border-sky-200']">
           {{ product }}
         </button>
       </div>
     </header>
 
-    <!-- 狀態儀表板 -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-      <div @click="statusFilter = 'ALL'" :class="['py-2 px-3.5 rounded-xl border-2 shadow-sm flex items-center justify-between cursor-pointer transition select-none', statusFilter === 'ALL' ? 'bg-white border-sky-600 ring-2 ring-sky-200' : 'bg-white border-sky-200']">
+    <!-- 狀態儀表板：手機端自適應 2x2 排列 -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
+      <div @click="statusFilter = 'ALL'" :class="['py-2 px-3 rounded-xl border-2 shadow-sm flex items-center justify-between cursor-pointer transition select-none', statusFilter === 'ALL' ? 'bg-white border-sky-600 ring-2 ring-sky-200' : 'bg-white border-sky-200']">
         <div>
-          <div class="text-[10px] font-bold text-slate-500 uppercase">當前 Issue 總數 (Total Issues)</div>
-          <span v-if="statusFilter === 'ALL'" class="text-[9px] bg-sky-100 text-sky-800 font-bold px-1.5 rounded-full border border-sky-300">顯示中 (Active)</span>
+          <div class="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase">總數 (Total)</div>
+          <span v-if="statusFilter === 'ALL'" class="text-[8px] sm:text-[9px] bg-sky-100 text-sky-800 font-bold px-1 rounded-full border border-sky-300">顯示中</span>
         </div>
-        <div class="text-xl font-black text-slate-900 font-mono">{{ dashboardStats.total }}</div>
+        <div class="text-lg sm:text-xl font-black text-slate-900 font-mono">{{ dashboardStats.total }}</div>
       </div>
 
-      <div @click="statusFilter = 'PLAN'" :class="['py-2 px-3.5 rounded-xl border-2 shadow-sm flex items-center justify-between cursor-pointer transition select-none', statusFilter === 'PLAN' ? 'bg-amber-50 border-amber-500 ring-2 ring-amber-200' : 'bg-white border-sky-200']">
+      <div @click="statusFilter = 'PLAN'" :class="['py-2 px-3 rounded-xl border-2 shadow-sm flex items-center justify-between cursor-pointer transition select-none', statusFilter === 'PLAN' ? 'bg-amber-50 border-amber-500 ring-2 ring-amber-200' : 'bg-white border-sky-200']">
         <div>
-          <div class="text-[10px] font-bold text-amber-700 uppercase">有 PLAN TO DO (關注)</div>
-          <span v-if="statusFilter === 'PLAN'" class="text-[9px] bg-amber-200 text-amber-900 font-bold px-1.5 rounded-full border border-amber-300">已篩選 (Filtered)</span>
+          <div class="text-[9px] sm:text-[10px] font-bold text-amber-700 uppercase">關注 (Plan)</div>
+          <span v-if="statusFilter === 'PLAN'" class="text-[8px] sm:text-[9px] bg-amber-200 text-amber-900 font-bold px-1 rounded-full border border-amber-300">已篩選</span>
         </div>
-        <div class="text-xl font-black text-amber-600 font-mono">{{ dashboardStats.hasPlan }}</div>
+        <div class="text-lg sm:text-xl font-black text-amber-600 font-mono">{{ dashboardStats.hasPlan }}</div>
       </div>
 
-      <div @click="statusFilter = 'REMAIN'" :class="['py-2 px-3.5 rounded-xl border-2 shadow-sm flex items-center justify-between cursor-pointer transition select-none', statusFilter === 'REMAIN' ? 'bg-rose-50 border-rose-500 ring-2 ring-rose-200' : 'bg-white border-sky-200']">
+      <div @click="statusFilter = 'REMAIN'" :class="['py-2 px-3 rounded-xl border-2 shadow-sm flex items-center justify-between cursor-pointer transition select-none', statusFilter === 'REMAIN' ? 'bg-rose-50 border-rose-500 ring-2 ring-rose-200' : 'bg-white border-sky-200']">
         <div>
-          <div class="text-[10px] font-bold text-rose-700 uppercase">有 REMAIN ISSUE (警示)</div>
-          <span v-if="statusFilter === 'REMAIN'" class="text-[9px] bg-rose-200 text-rose-900 font-bold px-1.5 rounded-full border border-rose-300">已篩選 (Filtered)</span>
+          <div class="text-[9px] sm:text-[10px] font-bold text-rose-700 uppercase">警示 (Remain)</div>
+          <span v-if="statusFilter === 'REMAIN'" class="text-[8px] sm:text-[9px] bg-rose-200 text-rose-900 font-bold px-1 rounded-full border border-rose-300">已篩選</span>
         </div>
-        <div class="text-xl font-black text-rose-600 font-mono">{{ dashboardStats.hasRemain }}</div>
+        <div class="text-lg sm:text-xl font-black text-rose-600 font-mono">{{ dashboardStats.hasRemain }}</div>
       </div>
 
-      <div @click="statusFilter = 'CLOSED'" :class="['py-2 px-3.5 rounded-xl border-2 shadow-sm flex items-center justify-between cursor-pointer transition select-none', statusFilter === 'CLOSED' ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-200' : 'bg-white border-sky-200']">
+      <div @click="statusFilter = 'CLOSED'" :class="['py-2 px-3 rounded-xl border-2 shadow-sm flex items-center justify-between cursor-pointer transition select-none', statusFilter === 'CLOSED' ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-200' : 'bg-white border-sky-200']">
         <div>
-          <div class="text-[10px] font-bold text-emerald-700 uppercase">已完結 (CLOSED)</div>
-          <span v-if="statusFilter === 'CLOSED'" class="text-[9px] bg-emerald-200 text-emerald-900 font-bold px-1.5 rounded-full border border-emerald-300">已篩選 (Filtered)</span>
+          <div class="text-[9px] sm:text-[10px] font-bold text-emerald-700 uppercase">完結 (Closed)</div>
+          <span v-if="statusFilter === 'CLOSED'" class="text-[8px] sm:text-[9px] bg-emerald-200 text-emerald-900 font-bold px-1 rounded-full border border-emerald-300">已篩選</span>
         </div>
-        <div class="text-xl font-black text-emerald-600 font-mono">{{ dashboardStats.completed }}</div>
+        <div class="text-lg sm:text-xl font-black text-emerald-600 font-mono">{{ dashboardStats.completed }}</div>
       </div>
     </div>
 
     <!-- 期間工時總覽面板 -->
-    <div class="bg-white/90 backdrop-blur-sm p-3 rounded-xl border border-sky-300 shadow-sm flex flex-wrap items-center justify-between gap-3 text-xs">
-      <div class="flex items-center gap-2">
-        <span class="px-2 py-0.5 bg-sky-600 text-white font-bold rounded text-[11px]">⏱️ 期間工時總覽 (Hours Summary)</span>
-        <span class="text-slate-500 text-[11px] font-medium">即時統計當前查詢時數</span>
+    <div class="bg-white/90 backdrop-blur-sm p-2.5 sm:p-3 rounded-xl border border-sky-300 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-2.5 text-xs">
+      <div class="flex items-center gap-1.5">
+        <span class="px-2 py-0.5 bg-sky-600 text-white font-bold rounded text-[10px] sm:text-[11px]">⏱️ 期間工時總覽</span>
+        <span class="text-slate-500 text-[10px] sm:text-[11px]">統計當前查詢結果</span>
       </div>
-      <div class="flex flex-wrap items-center gap-4 text-[11px]">
-        <div>On-site 計費工時: <span class="font-bold text-sky-900 font-mono text-sm">{{ hoursSummary.onsiteCharged }} hrs</span></div>
-        <div>OT / Holiday (加倍): <span class="font-bold text-rose-600 font-mono text-sm">{{ hoursSummary.otCharged }} hrs</span></div>
-        <div class="border-l pl-3 border-slate-200">Warranty: <span class="font-bold text-slate-700 font-mono">{{ hoursSummary.warrantyHrs }}h</span></div>
-        <div>Project: <span class="font-bold text-slate-700 font-mono">{{ hoursSummary.projectHrs }}h</span></div>
-        <div>Contract: <span class="font-bold text-slate-700 font-mono">{{ hoursSummary.contractHrs }}h</span></div>
-        <div class="bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200">
-          <span class="text-indigo-950 font-bold">總計費工時 (Total Charged): </span>
-          <span class="font-black text-indigo-700 font-mono text-base">{{ hoursSummary.totalCharged }} hrs</span>
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
+        <div>On-site 計費: <span class="font-bold text-sky-900 font-mono">{{ hoursSummary.onsiteCharged }}h</span></div>
+        <div>OT(加倍): <span class="font-bold text-rose-600 font-mono">{{ hoursSummary.otCharged }}h</span></div>
+        <div class="text-slate-500">Warranty: {{ hoursSummary.warrantyHrs }}h | Project: {{ hoursSummary.projectHrs }}h | Contract: {{ hoursSummary.contractHrs }}h</div>
+        <div class="bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 mt-0.5 sm:mt-0">
+          <span class="text-indigo-950 font-bold">總計費: </span>
+          <span class="font-black text-indigo-700 font-mono text-sm sm:text-base">{{ hoursSummary.totalCharged }} hrs</span>
         </div>
       </div>
     </div>
 
-    <!-- 控制列 -->
-    <div class="flex flex-col lg:flex-row justify-between items-center gap-2.5 bg-white p-2.5 rounded-xl shadow-sm border border-sky-200 text-xs">
-      <div class="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
-        <div class="flex items-center gap-1 bg-sky-50 p-1 rounded-lg border border-sky-200 shadow-inner">
+    <!-- 控制列：手機端自動折疊排列 -->
+    <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-2 bg-white p-2 sm:p-2.5 rounded-xl shadow-sm border border-sky-200 text-xs">
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="flex items-center gap-1 bg-sky-50 p-1 rounded-lg border border-sky-200 w-full sm:w-auto">
           <div class="flex bg-white rounded-md p-0.5 border border-sky-200">
-            <button @click="dateFilterMode = 'week'" :class="['px-2 py-0.5 font-bold rounded transition', dateFilterMode === 'week' ? 'bg-sky-600 text-white' : 'text-slate-600']">依週 (Week)</button>
-            <button @click="dateFilterMode = 'month'" :class="['px-2 py-0.5 font-bold rounded transition', dateFilterMode === 'month' ? 'bg-sky-600 text-white' : 'text-slate-600']">依月份 (Month)</button>
-            <button @click="dateFilterMode = 'range'" :class="['px-2 py-0.5 font-bold rounded transition', dateFilterMode === 'range' ? 'bg-sky-600 text-white' : 'text-slate-600']">指定區間 (Range)</button>
+            <button @click="dateFilterMode = 'week'" :class="['px-2 py-0.5 font-bold rounded transition text-[11px]', dateFilterMode === 'week' ? 'bg-sky-600 text-white' : 'text-slate-600']">依週</button>
+            <button @click="dateFilterMode = 'month'" :class="['px-2 py-0.5 font-bold rounded transition text-[11px]', dateFilterMode === 'month' ? 'bg-sky-600 text-white' : 'text-slate-600']">依月份</button>
+            <button @click="dateFilterMode = 'range'" :class="['px-2 py-0.5 font-bold rounded transition text-[11px]', dateFilterMode === 'range' ? 'bg-sky-600 text-white' : 'text-slate-600']">區間</button>
           </div>
 
-          <div v-if="dateFilterMode === 'week'" class="flex items-center gap-1 px-1">
-            <input type="week" v-model="selectedWeek" class="bg-white border border-sky-300 rounded px-1.5 py-0.5 text-xs font-bold text-slate-800 focus:outline-none">
-            <button @click="selectedWeek = ''" v-if="selectedWeek" class="text-sky-700 hover:text-sky-900 font-bold">重置</button>
+          <div v-if="dateFilterMode === 'week'" class="flex items-center gap-1 px-1 flex-1 sm:flex-none">
+            <input type="week" v-model="selectedWeek" class="bg-white border border-sky-300 rounded px-1.5 py-0.5 text-xs font-bold text-slate-800 focus:outline-none w-full sm:w-auto">
+            <button @click="selectedWeek = ''" v-if="selectedWeek" class="text-sky-700 hover:text-sky-900 font-bold text-[11px]">重置</button>
           </div>
 
-          <div v-else-if="dateFilterMode === 'month'" class="flex items-center gap-1 px-1">
-            <input type="month" v-model="selectedMonth" class="bg-white border border-sky-300 rounded px-1.5 py-0.5 text-xs font-bold text-slate-800 focus:outline-none">
-            <button @click="selectedMonth = ''" v-if="selectedMonth" class="text-sky-700 hover:text-sky-900 font-bold">重置</button>
+          <div v-else-if="dateFilterMode === 'month'" class="flex items-center gap-1 px-1 flex-1 sm:flex-none">
+            <input type="month" v-model="selectedMonth" class="bg-white border border-sky-300 rounded px-1.5 py-0.5 text-xs font-bold text-slate-800 focus:outline-none w-full sm:w-auto">
+            <button @click="selectedMonth = ''" v-if="selectedMonth" class="text-sky-700 hover:text-sky-900 font-bold text-[11px]">重置</button>
           </div>
 
-          <div v-else class="flex items-center gap-1 px-1">
-            <input type="date" v-model="startDate" title="開始日期" class="bg-white border border-sky-300 rounded px-1.5 py-0.5 text-xs font-bold text-slate-800 focus:outline-none">
-            <span class="font-bold text-slate-400">至</span>
-            <input type="date" v-model="endDate" title="結束日期" class="bg-white border border-sky-300 rounded px-1.5 py-0.5 text-xs font-bold text-slate-800 focus:outline-none">
-            <button @click="startDate = ''; endDate = '';" v-if="startDate || endDate" class="text-sky-700 hover:text-sky-900 font-bold">重置</button>
+          <div v-else class="flex items-center gap-1 px-1 flex-1 sm:flex-none">
+            <input type="date" v-model="startDate" title="開始" class="bg-white border border-sky-300 rounded px-1 py-0.5 text-[11px] font-bold text-slate-800 focus:outline-none w-1/2 sm:w-auto">
+            <span class="font-bold text-slate-400">-</span>
+            <input type="date" v-model="endDate" title="結束" class="bg-white border border-sky-300 rounded px-1 py-0.5 text-[11px] font-bold text-slate-800 focus:outline-none w-1/2 sm:w-auto">
+            <button @click="startDate = ''; endDate = '';" v-if="startDate || endDate" class="text-sky-700 hover:text-sky-900 font-bold text-[11px]">重置</button>
           </div>
         </div>
 
-        <div class="relative w-full sm:w-48">
-          <input type="text" v-model="searchQuery" placeholder="搜尋 Tool / 機況 / 類別..." class="w-full bg-white border border-sky-200 rounded-lg pl-7 pr-6 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-sky-500 shadow-inner">
+        <div class="relative flex-1 sm:w-44">
+          <input type="text" v-model="searchQuery" placeholder="搜尋 Tool / 機況..." class="w-full bg-white border border-sky-200 rounded-lg pl-7 pr-6 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-sky-500 shadow-inner">
           <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
           <button @click="searchQuery = ''" v-if="searchQuery" class="absolute right-2 top-1 text-slate-400 hover:text-slate-600">✕</button>
         </div>
 
-        <button @click="toggleSortOrder()" class="flex items-center gap-1 font-bold px-2.5 py-1 rounded-lg border shadow-sm bg-white border-sky-300 text-sky-800 hover:bg-sky-50">
-          <span>{{ sortOrder === 'desc' ? '日期：新 → 舊' : '日期：舊 → 新' }}</span>
+        <button @click="toggleSortOrder()" class="flex items-center gap-1 font-bold px-2 py-1 rounded-lg border shadow-sm bg-white border-sky-300 text-sky-800 hover:bg-sky-50 text-[11px]">
+          <span>{{ sortOrder === 'desc' ? '最新↓' : '最舊↑' }}</span>
         </button>
 
-        <!-- 字體大小按鈕（帶持久記憶） -->
-        <div class="flex items-center gap-1 bg-sky-100/80 p-0.5 rounded-lg border border-sky-200">
-          <span class="text-[10px] font-bold text-slate-600 px-1.5">字體</span>
-          <button @click="changeFontSize('sm')" :class="['px-2 py-0.5 rounded text-[11px] font-bold', fontSize === 'sm' ? 'bg-sky-600 text-white shadow-sm' : 'bg-white text-slate-700']">小</button>
-          <button @click="changeFontSize('md')" :class="['px-2 py-0.5 rounded text-[11px] font-bold', fontSize === 'md' ? 'bg-sky-600 text-white shadow-sm' : 'bg-white text-slate-700']">中</button>
-          <button @click="changeFontSize('lg')" :class="['px-2 py-0.5 rounded text-[11px] font-bold', fontSize === 'lg' ? 'bg-sky-600 text-white shadow-sm' : 'bg-white text-slate-700']">大</button>
+        <div class="flex items-center gap-0.5 bg-sky-100/80 p-0.5 rounded-lg border border-sky-200">
+          <span class="text-[9px] font-bold text-slate-600 px-1">字體</span>
+          <button @click="changeFontSize('sm')" :class="['px-1.5 py-0.5 rounded text-[10px] font-bold', fontSize === 'sm' ? 'bg-sky-600 text-white shadow-sm' : 'bg-white text-slate-700']">小</button>
+          <button @click="changeFontSize('md')" :class="['px-1.5 py-0.5 rounded text-[10px] font-bold', fontSize === 'md' ? 'bg-sky-600 text-white shadow-sm' : 'bg-white text-slate-700']">中</button>
+          <button @click="changeFontSize('lg')" :class="['px-1.5 py-0.5 rounded text-[10px] font-bold', fontSize === 'lg' ? 'bg-sky-600 text-white shadow-sm' : 'bg-white text-slate-700']">大</button>
         </div>
-
-        <button @click="resetColumnWidths()" class="text-sky-700 hover:text-sky-900 font-semibold px-2 py-1 bg-sky-50 border border-sky-200 rounded-lg shadow-sm" title="還原最佳化欄寬">自動排版</button>
       </div>
 
-      <button @click="openModal()" class="w-full lg:w-auto bg-slate-900 hover:bg-sky-600 text-white font-bold px-4 py-1.5 rounded-lg shadow-md transition flex items-center justify-center gap-1.5">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+      <button @click="openModal()" class="w-full md:w-auto bg-slate-900 hover:bg-sky-600 text-white font-bold px-4 py-2 md:py-1.5 rounded-lg shadow-md transition flex items-center justify-center gap-1.5 mt-1 md:mt-0">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
         <span>新增機況紀錄 (+ New)</span>
       </button>
     </div>
 
-    <!-- 表格區 -->
-    <div class="bg-white rounded-xl shadow-md border border-sky-200 overflow-hidden">
+    <!-- 📱 視圖模式 1：手機版專屬卡片式視圖 (Mobile Card View - 在 md:hidden 顯示) -->
+    <div class="block md:hidden space-y-3">
+      <div v-for="item in filteredIssues" :key="item.ID" class="bg-white rounded-2xl p-4 shadow-sm border border-sky-200 space-y-3">
+        
+        <!-- 卡片頂部：狀態燈號 + 機台 Tool ID + 日期 + 操作按鈕 -->
+        <div class="flex justify-between items-start border-b border-sky-100 pb-2.5">
+          <div class="flex items-center gap-2">
+            <!-- 狀態燈號 -->
+            <span v-if="item['Remain Issue'] && String(item['Remain Issue']).trim() !== ''" class="relative flex h-3.5 w-3.5">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-rose-600 shadow-sm shadow-rose-300"></span>
+            </span>
+            <span v-else-if="item['Plan to Do'] && String(item['Plan to Do']).trim() !== ''" class="relative inline-flex rounded-full h-3.5 w-3.5 bg-amber-500 shadow-sm shadow-amber-200"></span>
+            <span v-else class="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 shadow-sm shadow-emerald-200"></span>
+
+            <div>
+              <div class="font-black text-sky-900 font-mono text-base leading-tight">{{ item['Tool ID'] || '-' }}</div>
+              <div class="text-[11px] text-slate-500">{{ item.Company || '-' }} · {{ item['Model Type'] || '-' }}</div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-1">
+            <span class="text-[11px] text-slate-500 font-mono font-bold mr-1">{{ formatDate(item.Timestamp) }}</span>
+            <button @click="openModal(item)" class="p-1.5 text-slate-500 hover:text-sky-600 bg-slate-50 rounded-lg border border-sky-100">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+            </button>
+            <button @click="deleteItem(item.ID)" class="p-1.5 text-slate-500 hover:text-rose-600 bg-slate-50 rounded-lg border border-sky-100">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- 卡片中段：工時與服務類別 Badge -->
+        <div class="bg-sky-50/70 p-2.5 rounded-xl border border-sky-200/60 flex justify-between items-center text-xs">
+          <div>
+            <div class="flex flex-wrap gap-1 mb-1">
+              <span v-for="cat in getCategories(item['Service Category'])" :key="cat" class="px-1.5 py-0.2 bg-white text-sky-800 font-bold text-[10px] rounded border border-sky-300">
+                {{ cat }}
+              </span>
+              <span v-if="!item['Service Category']" class="text-slate-400 text-[10px]">-</span>
+            </div>
+            <div class="text-[11px] text-slate-600 font-mono">
+              {{ getVal(item, 'Engineers Count', 0) }}人 · Onsite: {{ getVal(item, 'Onsite Regular Hours', 0) }}h · OT: {{ getVal(item, 'OT Hours', 0) }}h
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10px] text-slate-400 font-bold">總計費</div>
+            <div class="text-base font-black text-indigo-700 font-mono">{{ getVal(item, 'Total Charged Hours', 0) }} <span class="text-xs">h</span></div>
+          </div>
+        </div>
+
+        <!-- 問題描述與處置步驟 -->
+        <div class="space-y-1.5 text-xs">
+          <div>
+            <span class="font-bold text-slate-500 text-[11px]">問題描述：</span>
+            <div class="text-slate-800 whitespace-pre-line leading-relaxed mt-0.5 bg-slate-50 p-2 rounded-lg border border-slate-100">
+              {{ item['Issue Description'] || '-' }}
+            </div>
+          </div>
+
+          <div>
+            <span class="font-bold text-slate-500 text-[11px]">處置步驟 (Actions Done)：</span>
+            <div class="text-slate-900 whitespace-pre-line leading-relaxed mt-0.5 bg-sky-50/40 p-2 rounded-lg border-l-2 border-sky-500">
+              {{ item['Actions Done'] || '-' }}
+            </div>
+          </div>
+        </div>
+
+        <!-- 警示項目 (Plan to Do / Remain Issue) -->
+        <div v-if="item['Plan to Do'] || item['Remain Issue']" class="grid grid-cols-1 gap-2 pt-1">
+          <div v-if="item['Plan to Do'] && String(item['Plan to Do']).trim() !== ''" class="bg-amber-50 border border-amber-200/80 p-2 rounded-xl text-xs">
+            <span class="font-bold text-amber-900 text-[11px]">後續計畫 (Plan to Do)：</span>
+            <div class="font-semibold text-amber-800 mt-0.5 whitespace-pre-line">{{ item['Plan to Do'] }}</div>
+          </div>
+          <div v-if="item['Remain Issue'] && String(item['Remain Issue']).trim() !== ''" class="bg-rose-50 border border-rose-200/80 p-2 rounded-xl text-xs">
+            <span class="font-bold text-rose-900 text-[11px]">殘留問題 (Remain Issue)：</span>
+            <div class="font-semibold text-rose-800 mt-0.5 whitespace-pre-line">{{ item['Remain Issue'] }}</div>
+          </div>
+        </div>
+
+        <!-- 零件更換 -->
+        <div v-if="item['Replace Parts Category'] || item['Replace Parts PN']" class="text-[11px] text-slate-500 border-t border-slate-100 pt-1.5 flex justify-between">
+          <span>零件類別: <strong class="text-slate-700">{{ item['Replace Parts Category'] || '-' }}</strong></span>
+          <span>PN: <strong class="font-mono text-slate-700">{{ item['Replace Parts PN'] || '-' }}</strong></span>
+        </div>
+
+      </div>
+
+      <div v-if="filteredIssues.length === 0" class="text-center py-12 text-slate-500 bg-white rounded-2xl border border-sky-200">
+        <div v-if="loading" class="flex items-center justify-center gap-1.5 text-sky-600 font-bold">
+          <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+          <span>資料讀取中...</span>
+        </div>
+        <span v-else class="font-bold">當前條件下尚無機況紀錄</span>
+      </div>
+    </div>
+
+    <!-- 💻 視圖模式 2：桌機/平板版滿版表格 (Desktop Table View - 在 hidden md:block 顯示) -->
+    <div class="hidden md:block bg-white rounded-xl shadow-md border border-sky-200 overflow-hidden">
       <div class="w-full overflow-hidden">
         <table class="w-full text-left text-slate-800 border-collapse text-table-body" style="table-layout: fixed;">
           <thead class="bg-sky-50/90 text-slate-700 font-bold uppercase tracking-wider text-[11px] border-b border-sky-200">
@@ -218,26 +310,15 @@
           <tbody class="divide-y divide-sky-100">
             <tr v-for="item in filteredIssues" :key="item.ID" class="hover:bg-sky-50/50 transition-colors duration-150 align-top">
               
-              <!-- 🔥 STATUS 欄位：純燈號顯示（無文字） -->
+              <!-- STATUS 純燈號 -->
               <td class="py-2.5 px-2 text-center whitespace-nowrap overflow-hidden">
                 <div class="flex justify-center items-center">
-                  <!-- 殘留問題：紅燈閃爍 -->
-                  <span v-if="item['Remain Issue'] && String(item['Remain Issue']).trim() !== ''" 
-                        title="有殘留問題 (Remain Issue)" 
-                        class="relative flex h-3.5 w-3.5">
+                  <span v-if="item['Remain Issue'] && String(item['Remain Issue']).trim() !== ''" title="有殘留問題" class="relative flex h-3.5 w-3.5">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-rose-600 shadow-sm shadow-rose-300"></span>
                   </span>
-                  <!-- 計畫中：黃燈 -->
-                  <span v-else-if="item['Plan to Do'] && String(item['Plan to Do']).trim() !== ''" 
-                        title="有後續計畫 (Plan to Do)" 
-                        class="relative inline-flex rounded-full h-3.5 w-3.5 bg-amber-500 shadow-sm shadow-amber-200">
-                  </span>
-                  <!-- 已完結：綠燈 -->
-                  <span v-else 
-                        title="已結案 (Closed)" 
-                        class="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 shadow-sm shadow-emerald-200">
-                  </span>
+                  <span v-else-if="item['Plan to Do'] && String(item['Plan to Do']).trim() !== ''" title="有後續計畫" class="relative inline-flex rounded-full h-3.5 w-3.5 bg-amber-500 shadow-sm shadow-amber-200"></span>
+                  <span v-else title="已結案" class="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 shadow-sm shadow-emerald-200"></span>
                 </div>
               </td>
 
@@ -245,7 +326,7 @@
                 <div class="text-[11px] text-slate-700 font-mono font-bold">{{ formatDate(item.Timestamp) }}</div>
               </td>
 
-              <!-- 🔥 SERVICE & HOURS 欄位：數字與小時字體加大加粗 -->
+              <!-- SERVICE & HOURS 大字體工時 -->
               <td class="py-2 px-2 overflow-hidden leading-tight">
                 <div class="flex flex-wrap gap-0.5 mb-1">
                   <span v-for="cat in getCategories(item['Service Category'])" :key="cat" class="px-1.5 py-0.5 bg-sky-100 text-sky-800 font-bold text-[10px] rounded border border-sky-200">
@@ -327,34 +408,35 @@
       </div>
     </div>
 
-    <!-- 超大無捲軸寬版彈窗 (max-w-6xl) -->
-    <div v-if="showModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div class="bg-white rounded-3xl max-w-6xl w-full p-7 space-y-4 shadow-2xl border border-sky-200">
-        <div class="flex justify-between items-center border-b border-sky-100 pb-3">
+    <!-- 📱/💻 響應式彈窗 (Modal)：手機上為全螢幕，桌機上為寬螢幕居中 -->
+    <div v-if="showModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+      <div class="bg-white rounded-t-3xl sm:rounded-3xl max-w-6xl w-full p-4 sm:p-7 space-y-3.5 sm:space-y-4 shadow-2xl border border-sky-200 max-h-[92vh] overflow-y-auto">
+        <div class="flex justify-between items-center border-b border-sky-100 pb-2.5">
           <div>
-            <h3 class="text-xl font-black text-slate-900">
-              {{ isEdit ? '編輯機況紀錄 (Edit Service Review)' : '新增機況紀錄 (New Service Review)' }}
+            <h3 class="text-base sm:text-xl font-black text-slate-900">
+              {{ isEdit ? '編輯機況紀錄 (Edit)' : '新增機況紀錄 (+ New)' }}
             </h3>
-            <p class="text-xs text-slate-500 mt-0.5">分類工作表 (Target Sheet)：<span class="font-bold text-sky-600 text-sm">{{ currentSheet }}</span></p>
+            <p class="text-[11px] text-slate-500 mt-0.5">分類工作表：<span class="font-bold text-sky-600">{{ currentSheet }}</span></p>
           </div>
           <button @click="showModal = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold p-1">✕</button>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="bg-sky-50/70 border border-sky-200 p-3 rounded-2xl">
+        <!-- 日期與類別 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="bg-sky-50/70 border border-sky-200 p-2.5 sm:p-3 rounded-2xl">
             <label class="block text-xs font-bold text-sky-950 mb-1">📅 選擇機況紀錄日期 (Record Date)</label>
-            <input type="date" v-model="recordDate" class="w-full bg-white border border-sky-300 rounded-xl px-3 py-1.5 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+            <input type="date" v-model="recordDate" class="w-full bg-white border border-sky-300 rounded-xl px-3 py-1.5 text-xs sm:text-sm font-bold text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none">
           </div>
 
-          <div class="bg-slate-50 border border-slate-200 p-3 rounded-2xl space-y-1.5">
+          <div class="bg-slate-50 border border-slate-200 p-2.5 sm:p-3 rounded-2xl space-y-1">
             <div class="flex justify-between items-center">
-              <label class="block text-xs font-bold text-slate-800">服務合約類別 (Service Category - 可複選)</label>
-              <span class="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                On-site 計費；其他合約免計費
+              <label class="block text-xs font-bold text-slate-800">服務合約類別 (Service Category)</label>
+              <span class="text-[10px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">
+                On-site 計費；其他免計
               </span>
             </div>
-            <div class="flex flex-wrap gap-4 pt-1">
-              <label v-for="cat in ['Warranty', 'Project', 'On-site', 'Contract']" :key="cat" class="flex items-center gap-2 cursor-pointer select-none text-xs font-bold text-slate-700">
+            <div class="flex flex-wrap gap-3 pt-1">
+              <label v-for="cat in ['Warranty', 'Project', 'On-site', 'Contract']" :key="cat" class="flex items-center gap-1.5 cursor-pointer select-none text-xs font-bold text-slate-700">
                 <input type="checkbox" :value="cat" v-model="selectedCategories" class="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 border-slate-300">
                 <span>{{ cat }}</span>
               </label>
@@ -362,99 +444,103 @@
           </div>
         </div>
 
-        <div class="bg-indigo-50/70 border border-indigo-200 p-4 rounded-2xl space-y-2.5">
-          <div class="text-xs font-extrabold text-indigo-950 flex items-center justify-between">
-            <span>⏱️ Fab Service 工時填寫與自動計算 (Service Hours Breakdown)</span>
-            <span class="text-[11px] font-normal text-indigo-700">正常工時: 09:00~18:00 | OT/假日雙倍計算 (OT × 2)</span>
+        <!-- 工時填寫與計算 -->
+        <div class="bg-indigo-50/70 border border-indigo-200 p-3 sm:p-4 rounded-2xl space-y-2">
+          <div class="text-xs font-extrabold text-indigo-950 flex flex-col sm:flex-row justify-between gap-1">
+            <span>⏱️ Fab Service 工時填寫與試算</span>
+            <span class="text-[10px] sm:text-[11px] font-normal text-indigo-700">正常: 09:00~18:00 | OT/假日雙倍 (OT × 2)</span>
           </div>
 
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
             <div>
-              <label class="block text-xs font-bold text-slate-800 mb-1">工程師人數 (Engineers Count)</label>
-              <input type="number" min="0" step="1" v-model.number="form.engineersCount" placeholder="人數" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-sm font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              <label class="block text-[11px] font-bold text-slate-800 mb-0.5">人數 (Count)</label>
+              <input type="number" min="0" step="1" v-model.number="form.engineersCount" placeholder="人數" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-bold focus:outline-none">
             </div>
             <div>
-              <label class="block text-xs font-bold text-indigo-950 mb-1">On-site工時 (On-site Regular) <span class="text-emerald-600 font-normal">(計費)</span></label>
-              <input type="number" min="0" step="0.5" v-model.number="form.onsiteHours" placeholder="hrs" class="w-full bg-white border border-indigo-300 rounded-xl px-3 py-1.5 text-sm font-bold text-indigo-950 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              <label class="block text-[11px] font-bold text-indigo-950 mb-0.5">On-site (計費)</label>
+              <input type="number" min="0" step="0.5" v-model.number="form.onsiteHours" placeholder="hrs" class="w-full bg-white border border-indigo-300 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-bold text-indigo-950 focus:outline-none">
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-800 mb-1">合約工時 (Contract Regular) <span class="text-amber-700 font-normal">(免計)</span></label>
-              <input type="number" min="0" step="0.5" v-model.number="form.contractHours" placeholder="hrs" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              <label class="block text-[11px] font-bold text-slate-800 mb-0.5">合約工時 (免計)</label>
+              <input type="number" min="0" step="0.5" v-model.number="form.contractHours" placeholder="hrs" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-bold text-slate-700 focus:outline-none">
             </div>
             <div>
-              <label class="block text-xs font-bold text-rose-700 mb-1">OT / Holiday 加班 (Overtime) <span class="text-rose-500 font-normal">(加倍)</span></label>
-              <input type="number" min="0" step="0.5" v-model.number="form.otHours" placeholder="hrs" class="w-full bg-white border border-rose-300 rounded-xl px-3 py-1.5 text-sm font-bold text-rose-700 focus:ring-2 focus:ring-rose-500 focus:outline-none">
+              <label class="block text-[11px] font-bold text-rose-700 mb-0.5">OT 加班 (加倍)</label>
+              <input type="number" min="0" step="0.5" v-model.number="form.otHours" placeholder="hrs" class="w-full bg-white border border-rose-300 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-bold text-rose-700 focus:outline-none">
             </div>
           </div>
 
-          <div class="bg-white p-3 rounded-xl border border-indigo-100 flex justify-between items-center text-xs">
-            <div class="space-y-0.5">
-              <div>On-site計費 (Charged): <span class="font-bold text-indigo-900">{{ calculatedOnsiteHours }}h</span> | 合約工時: <span class="text-amber-700 font-bold">0h (免計)</span></div>
-              <div>OT/假日計費(雙倍): <span class="font-bold text-rose-600">{{ calculatedOTHours }}h</span></div>
+          <div class="bg-white p-2.5 rounded-xl border border-indigo-100 flex justify-between items-center text-xs">
+            <div class="text-[11px]">
+              On-site: <span class="font-bold text-indigo-900">{{ calculatedOnsiteHours }}h</span> | OT: <span class="font-bold text-rose-600">{{ calculatedOTHours }}h</span>
             </div>
             <div class="text-right">
-              <span class="text-slate-400 font-bold uppercase text-[10px] mr-1.5">總計費工時 (Total Charged):</span>
-              <span class="text-2xl font-black text-indigo-700 font-mono">{{ calculatedTotalHours }} <span class="text-xs">hrs</span></span>
+              <span class="text-slate-400 font-bold uppercase text-[9px] mr-1">總計費:</span>
+              <span class="text-lg sm:text-2xl font-black text-indigo-700 font-mono">{{ calculatedTotalHours }} <span class="text-xs">hrs</span></span>
             </div>
           </div>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <!-- 機台基本資料 -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5">
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">客戶公司 (Company)</label>
-            <input v-model="form.Company" class="w-full bg-slate-50 border border-sky-200 rounded-xl px-3 py-1.5 text-xs font-semibold focus:bg-white focus:outline-none">
+            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">客戶公司 (Company)</label>
+            <input v-model="form.Company" class="w-full bg-slate-50 border border-sky-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold focus:bg-white focus:outline-none">
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">機台型號 (Model Type)</label>
-            <input v-model="form['Model Type']" class="w-full bg-slate-50 border border-sky-200 rounded-xl px-3 py-1.5 text-xs font-semibold focus:bg-white focus:outline-none">
+            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">機台型號 (Model Type)</label>
+            <input v-model="form['Model Type']" class="w-full bg-slate-50 border border-sky-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold focus:bg-white focus:outline-none">
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">機台編號 (Tool ID)</label>
-            <input v-model="form['Tool ID']" class="w-full bg-slate-50 border border-sky-200 rounded-xl px-3 py-1.5 text-xs font-semibold focus:bg-white focus:outline-none">
+            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">機台編號 (Tool ID)</label>
+            <input v-model="form['Tool ID']" class="w-full bg-slate-50 border border-sky-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold focus:bg-white focus:outline-none">
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">負責工程師 (Owner)</label>
-            <input v-model="form.Owner" class="w-full bg-slate-50 border border-sky-200 rounded-xl px-3 py-1.5 text-xs font-semibold focus:bg-white focus:outline-none">
+            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">負責工程師 (Owner)</label>
+            <input v-model="form.Owner" class="w-full bg-slate-50 border border-sky-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold focus:bg-white focus:outline-none">
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <!-- 問題描述與處置步驟 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">問題描述 (Issue Description)</label>
-            <textarea v-model="form['Issue Description']" rows="2" class="w-full bg-slate-50 border border-sky-200 rounded-xl px-3 py-1.5 text-xs font-medium focus:bg-white focus:outline-none"></textarea>
+            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">問題描述 (Issue Description)</label>
+            <textarea v-model="form['Issue Description']" rows="2" class="w-full bg-slate-50 border border-sky-200 rounded-xl px-2.5 py-1.5 text-xs font-medium focus:bg-white focus:outline-none"></textarea>
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">處置步驟說明 (Actions Done)</label>
-            <textarea v-model="form['Actions Done']" rows="2" class="w-full bg-slate-50 border border-sky-200 rounded-xl px-3 py-1.5 text-xs font-medium focus:bg-white focus:outline-none" placeholder="詳細維護步驟..."></textarea>
+            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">處置步驟 (Actions Done)</label>
+            <textarea v-model="form['Actions Done']" rows="2" class="w-full bg-slate-50 border border-sky-200 rounded-xl px-2.5 py-1.5 text-xs font-medium focus:bg-white focus:outline-none" placeholder="詳細維護步驟..."></textarea>
           </div>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-amber-50 border border-amber-300 p-3 rounded-2xl">
+        <!-- 警示狀態 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 bg-amber-50 border border-amber-300 p-2.5 rounded-2xl">
           <div>
-            <label class="block text-xs font-bold text-amber-950 mb-1">後續計畫 (Plan to Do - 觸發 Plan 警示)</label>
-            <input v-model="form['Plan to Do']" class="w-full bg-white border border-amber-300 rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none">
+            <label class="block text-[11px] font-bold text-amber-950 mb-0.5">後續計畫 (Plan to Do - 關注)</label>
+            <input v-model="form['Plan to Do']" class="w-full bg-white border border-amber-300 rounded-xl px-2.5 py-1.5 text-xs font-semibold focus:outline-none">
           </div>
           <div>
-            <label class="block text-xs font-bold text-rose-950 mb-1">殘留問題 (Remain Issue - 觸發 Remain 警示)</label>
-            <input v-model="form['Remain Issue']" class="w-full bg-white border border-rose-300 rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">更換零件類別 (Replace Parts Category)</label>
-            <input v-model="form['Replace Parts Category']" class="w-full bg-slate-50 border border-sky-200 rounded-xl px-3 py-1.5 text-xs font-semibold focus:bg-white focus:outline-none">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">更換零件料號 (Replace Parts PN)</label>
-            <input v-model="form['Replace Parts PN']" class="w-full bg-slate-50 border border-sky-200 rounded-xl px-3 py-1.5 text-xs font-semibold focus:bg-white focus:outline-none">
+            <label class="block text-[11px] font-bold text-rose-950 mb-0.5">殘留問題 (Remain Issue - 警示)</label>
+            <input v-model="form['Remain Issue']" class="w-full bg-white border border-rose-300 rounded-xl px-2.5 py-1.5 text-xs font-semibold focus:outline-none">
           </div>
         </div>
 
-        <div class="flex justify-end gap-3 pt-3 border-t border-sky-100">
-          <button @click="showModal = false" class="px-5 py-2 font-bold text-slate-600 hover:bg-slate-100 rounded-xl text-xs">取消 (Cancel)</button>
-          <button @click="saveData()" :disabled="submitting" class="px-6 py-2 font-extrabold bg-sky-600 text-white rounded-xl hover:bg-sky-700 disabled:opacity-50 shadow-md text-xs">
-            {{ submitting ? '處理儲存中 (Saving)...' : '儲存變更 (Save Changes)' }}
+        <!-- 零件更換 -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">更換零件類別 (Category)</label>
+            <input v-model="form['Replace Parts Category']" class="w-full bg-slate-50 border border-sky-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold focus:bg-white focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">更換零件料號 (PN)</label>
+            <input v-model="form['Replace Parts PN']" class="w-full bg-slate-50 border border-sky-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold focus:bg-white focus:outline-none">
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2.5 pt-2 border-t border-sky-100">
+          <button @click="showModal = false" class="flex-1 sm:flex-none px-4 py-2 font-bold text-slate-600 hover:bg-slate-100 rounded-xl text-xs">取消 (Cancel)</button>
+          <button @click="saveData()" :disabled="submitting" class="flex-1 sm:flex-none px-6 py-2 font-extrabold bg-sky-600 text-white rounded-xl hover:bg-sky-700 disabled:opacity-50 shadow-md text-xs">
+            {{ submitting ? '儲存中...' : '儲存變更 (Save)' }}
           </button>
         </div>
       </div>
@@ -467,7 +553,6 @@
 
     const { createApp, ref, computed, onMounted } = Vue;
 
-    // 🔥 縮小 Status 欄位寬度（純燈號佔比 4%）
     const DEFAULT_COLUMNS = [
       { key: 'Status', label: 'Status', width: 4 },
       { key: 'Timestamp', label: 'Timestamp', width: 7 },
@@ -496,7 +581,7 @@
         const searchQuery = ref('');
         const statusFilter = ref('ALL');
         
-        // 🔥 字體大小：持久化記憶設定（預設為大或先前所選）
+        // 讀取持久化字體大小設定
         const savedFontSize = localStorage.getItem('ptw_font_size') || 'lg';
         const fontSize = ref(savedFontSize);
 
@@ -507,7 +592,7 @@
         const recordDate = ref('');
         const selectedCategories = ref([]);
 
-        const CACHE_VERSION = 'ptw_columns_percent_v12';
+        const CACHE_VERSION = 'ptw_columns_percent_v13';
         const loadSavedColumns = () => {
           try {
             const saved = localStorage.getItem(CACHE_VERSION);
@@ -587,7 +672,7 @@
           e.preventDefault();
           var startX = e.clientX;
           var startWidth = columns.value[index].width;
-          var tableWidth = document.querySelector('table').clientWidth || 1600;
+          var tableWidth = document.querySelector('table') ? document.querySelector('table').clientWidth : 1600;
 
           var onMouseMove = (moveEvent) => {
             var deltaX = moveEvent.clientX - startX;
@@ -605,7 +690,6 @@
           window.addEventListener('mouseup', onMouseUp);
         };
 
-        // 🔥 改變字體大小並永久寫入 LocalStorage
         const changeFontSize = (size) => {
           fontSize.value = size;
           localStorage.setItem('ptw_font_size', size);

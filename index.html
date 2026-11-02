@@ -62,7 +62,7 @@
 <body class="bg-sky-100/70 min-h-screen text-slate-800 p-2 sm:p-4 antialiased selection:bg-sky-600 selection:text-white pb-10">
   <div id="app" class="w-full mx-auto space-y-3">
     
-    <!-- 頂部標題與產品切換（僅保留 Hitachi 與 SEZ_SpinTec） -->
+    <!-- 頂部標題與產品切換 -->
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-white px-3 sm:px-4 py-3 rounded-xl shadow-sm border border-sky-200">
       <div class="flex items-center gap-2.5">
         <div class="p-1.5 bg-sky-600 rounded-lg text-white shadow-md shadow-sky-300 flex-shrink-0">
@@ -441,23 +441,23 @@
             <span class="text-[10px] sm:text-[11px] font-normal text-indigo-700">正常: 09:00~18:00 | OT/假日雙倍 (OT × 2)</span>
           </div>
 
-          <!-- 精確對應的工時輸入框（全部綁定 form.xxx） -->
+          <!-- 工時輸入框：雙重綁定保證絕對寫入 -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
             <div>
               <label class="block text-[11px] font-bold text-slate-800 mb-0.5">人數 (Count)</label>
-              <input type="number" min="0" step="1" v-model.number="form.engineersCount" placeholder="人數" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-bold focus:outline-none">
+              <input type="number" min="0" step="1" v-model.number="form['Engineers Count']" placeholder="人數" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-bold focus:outline-none">
             </div>
             <div>
               <label class="block text-[11px] font-bold text-indigo-950 mb-0.5">On-site (計費)</label>
-              <input type="number" min="0" step="0.5" v-model.number="form.onsiteHours" placeholder="hrs" class="w-full bg-white border border-indigo-300 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-bold text-indigo-950 focus:outline-none">
+              <input type="number" min="0" step="0.5" v-model.number="form['Onsite Regular Hours']" placeholder="hrs" class="w-full bg-white border border-indigo-300 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-bold text-indigo-950 focus:outline-none">
             </div>
             <div>
               <label class="block text-[11px] font-bold text-slate-800 mb-0.5">合約工時 (免計)</label>
-              <input type="number" min="0" step="0.5" v-model.number="form.contractHours" placeholder="hrs" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-bold text-slate-700 focus:outline-none">
+              <input type="number" min="0" step="0.5" v-model.number="form['Contract Regular Hours']" placeholder="hrs" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-bold text-slate-700 focus:outline-none">
             </div>
             <div>
               <label class="block text-[11px] font-bold text-rose-700 mb-0.5">OT 加班 (加倍)</label>
-              <input type="number" min="0" step="0.5" v-model.number="form.otHours" placeholder="hrs" class="w-full bg-white border border-rose-300 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-bold text-rose-700 focus:outline-none">
+              <input type="number" min="0" step="0.5" v-model.number="form['OT Hours']" placeholder="hrs" class="w-full bg-white border border-rose-300 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-bold text-rose-700 focus:outline-none">
             </div>
           </div>
 
@@ -578,7 +578,7 @@
         const recordDate = ref('');
         const selectedCategories = ref([]);
 
-        const CACHE_VERSION = 'ptw_columns_percent_v17';
+        const CACHE_VERSION = 'ptw_columns_percent_v18';
         const loadSavedColumns = () => {
           try {
             const saved = localStorage.getItem(CACHE_VERSION);
@@ -601,7 +601,7 @@
           sortOrder.value = sortOrder.value === 'desc' ? 'asc' : 'desc';
         };
 
-        // 🔥 表單核心變數完全統一為駝峰命名
+        // 直接使用與 Google Sheet 100% 吻合的變數名稱
         const form = ref({
           ID: '',
           Timestamp: '',
@@ -616,13 +616,12 @@
           'Replace Parts Category': '',
           'Replace Parts PN': '',
           'Service Category': '',
-          engineersCount: 1,
-          onsiteHours: 0,
-          contractHours: 0,
-          otHours: 0
+          'Engineers Count': 1,
+          'Onsite Regular Hours': 0,
+          'Contract Regular Hours': 0,
+          'OT Hours': 0
         });
 
-        // 徹底兼容讀取 Google Sheet 欄位數據
         const getVal = (item, key, fallback = '') => {
           if (!item) return fallback;
           if (item[key] !== undefined && item[key] !== '') return item[key];
@@ -641,14 +640,14 @@
         };
 
         const calculatedOnsiteHours = computed(() => {
-          var count = Number(form.value.engineersCount || 0);
-          var hrs = Number(form.value.onsiteHours || 0);
+          var count = Number(form.value['Engineers Count'] || 0);
+          var hrs = Number(form.value['Onsite Regular Hours'] || 0);
           return count * hrs;
         });
 
         const calculatedOTHours = computed(() => {
-          var count = Number(form.value.engineersCount || 0);
-          var hrs = Number(form.value.otHours || 0);
+          var count = Number(form.value['Engineers Count'] || 0);
+          var hrs = Number(form.value['OT Hours'] || 0);
           return count * hrs * 2;
         });
 
@@ -831,7 +830,6 @@
           return { onsiteCharged, otCharged, totalCharged, warrantyHrs, projectHrs, contractHrs };
         });
 
-        // 🔥 開啟彈窗時嚴格填入對應變數名，杜絕空白與 0
         const openModal = (item = null) => {
           if (item) {
             isEdit.value = true;
@@ -849,10 +847,10 @@
               'Replace Parts Category': item['Replace Parts Category'] || '',
               'Replace Parts PN': item['Replace Parts PN'] || '',
               'Service Category': getVal(item, 'Service Category', ''),
-              engineersCount: Number(getVal(item, 'Engineers Count', 1)),
-              onsiteHours: Number(getVal(item, 'Onsite Regular Hours', 0)),
-              contractHours: Number(getVal(item, 'Contract Regular Hours', 0)),
-              otHours: Number(getVal(item, 'OT Hours', 0))
+              'Engineers Count': Number(getVal(item, 'Engineers Count', 1)),
+              'Onsite Regular Hours': Number(getVal(item, 'Onsite Regular Hours', 0)),
+              'Contract Regular Hours': Number(getVal(item, 'Contract Regular Hours', 0)),
+              'OT Hours': Number(getVal(item, 'OT Hours', 0))
             };
             selectedCategories.value = getCategories(getVal(item, 'Service Category', ''));
             if (item.Timestamp) {
@@ -879,16 +877,15 @@
               'Replace Parts Category': '',
               'Replace Parts PN': '',
               'Service Category': '',
-              engineersCount: 1,
-              onsiteHours: 0,
-              contractHours: 0,
-              otHours: 0
+              'Engineers Count': 1,
+              'Onsite Regular Hours': 0,
+              'Contract Regular Hours': 0,
+              'OT Hours': 0
             };
           }
           showModal.value = true;
         };
 
-        // 🔥 儲存時雙重打包所有變數名，保證 GAS 百分之百接收到數字
         const saveData = async () => {
           submitting.value = true;
           var action = isEdit.value ? 'update' : 'create';
@@ -904,7 +901,6 @@
 
           form.value['Service Category'] = selectedCategories.value.join(',');
 
-          // 雙向相容封裝，不管 GAS 用哪種 key 都能直接抓到數字
           var payload = {
             ID: form.value.ID,
             Timestamp: form.value.Timestamp,
@@ -919,14 +915,14 @@
             "Replace Parts Category": form.value['Replace Parts Category'],
             "Replace Parts PN": form.value['Replace Parts PN'],
             "Service Category": form.value['Service Category'],
-            engineersCount: Number(form.value.engineersCount || 0),
-            onsiteHours: Number(form.value.onsiteHours || 0),
-            contractHours: Number(form.value.contractHours || 0),
-            otHours: Number(form.value.otHours || 0),
-            "Engineers Count": Number(form.value.engineersCount || 0),
-            "Onsite Regular Hours": Number(form.value.onsiteHours || 0),
-            "Contract Regular Hours": Number(form.value.contractHours || 0),
-            "OT Hours": Number(form.value.otHours || 0)
+            'Engineers Count': Number(form.value['Engineers Count'] || 0),
+            'Onsite Regular Hours': Number(form.value['Onsite Regular Hours'] || 0),
+            'Contract Regular Hours': Number(form.value['Contract Regular Hours'] || 0),
+            'OT Hours': Number(form.value['OT Hours'] || 0),
+            engineersCount: Number(form.value['Engineers Count'] || 0),
+            onsiteHours: Number(form.value['Onsite Regular Hours'] || 0),
+            contractHours: Number(form.value['Contract Regular Hours'] || 0),
+            otHours: Number(form.value['OT Hours'] || 0)
           };
 
           try {

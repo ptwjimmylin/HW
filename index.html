@@ -578,7 +578,7 @@
         const recordDate = ref('');
         const selectedCategories = ref([]);
 
-        const CACHE_VERSION = 'ptw_columns_percent_v15';
+        const CACHE_VERSION = 'ptw_columns_percent_v16';
         const loadSavedColumns = () => {
           try {
             const saved = localStorage.getItem(CACHE_VERSION);
@@ -904,6 +904,7 @@
 
           form.value['Service Category'] = selectedCategories.value.join(',');
 
+          // 雙向相容封裝，不管 GAS 用哪種 key 都能直接抓到數字
           var payload = {
             ID: form.value.ID,
             Timestamp: form.value.Timestamp,

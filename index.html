@@ -62,7 +62,7 @@
 <body class="bg-sky-100/70 min-h-screen text-slate-800 p-2 sm:p-4 antialiased selection:bg-sky-600 selection:text-white pb-10">
   <div id="app" class="w-full mx-auto space-y-3">
     
-    <!-- 頂部標題與產品切換（僅保留 Hitachi 與 SEZ_SpinTec） -->
+    <!-- 頂部標題與產品切換 -->
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-white px-3 sm:px-4 py-3 rounded-xl shadow-sm border border-sky-200">
       <div class="flex items-center gap-2.5">
         <div class="p-1.5 bg-sky-600 rounded-lg text-white shadow-md shadow-sky-300 flex-shrink-0">
@@ -79,13 +79,13 @@
           v-for="product in ['Hitachi', 'SEZ_SpinTec']" 
           :key="product"
           @click="switchSheet(product)"
-          :class="['flex-1 md:flex-none px-5 py-1.5 rounded-lg font-bold text-xs tracking-wide transition-all duration-200 shadow-sm text-center', currentSheet === product ? 'bg-sky-600 text-white border border-sky-700 shadow-md' : 'bg-white text-slate-700 hover:bg-sky-50 border border-sky-200']">
+          :class="['flex-1 md:flex-none px-4 sm:px-5 py-1.5 rounded-lg font-bold text-xs tracking-wide transition-all duration-200 shadow-sm text-center', currentSheet === product ? 'bg-sky-600 text-white border border-sky-700 shadow-md' : 'bg-white text-slate-700 hover:bg-sky-50 border border-sky-200']">
           {{ product }}
         </button>
       </div>
     </header>
 
-    <!-- 狀態儀表板 -->
+    <!-- 狀態儀表板：手機端自適應 2x2 排列 -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
       <div @click="statusFilter = 'ALL'" :class="['py-2 px-3 rounded-xl border-2 shadow-sm flex items-center justify-between cursor-pointer transition select-none', statusFilter === 'ALL' ? 'bg-white border-sky-600 ring-2 ring-sky-200' : 'bg-white border-sky-200']">
         <div>
@@ -137,7 +137,7 @@
       </div>
     </div>
 
-    <!-- 控制列 -->
+    <!-- 控制列：手機端自動折疊排列 -->
     <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-2 bg-white p-2 sm:p-2.5 rounded-xl shadow-sm border border-sky-200 text-xs">
       <div class="flex flex-wrap items-center gap-2">
         <div class="flex items-center gap-1 bg-sky-50 p-1 rounded-lg border border-sky-200 w-full sm:w-auto">
@@ -189,11 +189,14 @@
       </button>
     </div>
 
-    <!-- 手機版專屬卡片式視圖 (Mobile Card View) -->
+    <!-- 📱 視圖模式 1：手機版專屬卡片式視圖 (Mobile Card View - 在 md:hidden 顯示) -->
     <div class="block md:hidden space-y-3">
       <div v-for="item in filteredIssues" :key="item.ID" class="bg-white rounded-2xl p-4 shadow-sm border border-sky-200 space-y-3">
+        
+        <!-- 卡片頂部：狀態燈號 + 機台 Tool ID + 日期 + 操作按鈕 -->
         <div class="flex justify-between items-start border-b border-sky-100 pb-2.5">
           <div class="flex items-center gap-2">
+            <!-- 狀態燈號 -->
             <span v-if="item['Remain Issue'] && String(item['Remain Issue']).trim() !== ''" class="relative flex h-3.5 w-3.5">
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
               <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-rose-600 shadow-sm shadow-rose-300"></span>
@@ -218,6 +221,7 @@
           </div>
         </div>
 
+        <!-- 卡片中段：工時與服務類別 Badge -->
         <div class="bg-sky-50/70 p-2.5 rounded-xl border border-sky-200/60 flex justify-between items-center text-xs">
           <div>
             <div class="flex flex-wrap gap-1 mb-1">
@@ -236,6 +240,7 @@
           </div>
         </div>
 
+        <!-- 問題描述與處置步驟 -->
         <div class="space-y-1.5 text-xs">
           <div>
             <span class="font-bold text-slate-500 text-[11px]">問題描述：</span>
@@ -252,6 +257,7 @@
           </div>
         </div>
 
+        <!-- 警示項目 (Plan to Do / Remain Issue) -->
         <div v-if="item['Plan to Do'] || item['Remain Issue']" class="grid grid-cols-1 gap-2 pt-1">
           <div v-if="item['Plan to Do'] && String(item['Plan to Do']).trim() !== ''" class="bg-amber-50 border border-amber-200/80 p-2 rounded-xl text-xs">
             <span class="font-bold text-amber-900 text-[11px]">後續計畫 (Plan to Do)：</span>
@@ -263,10 +269,12 @@
           </div>
         </div>
 
+        <!-- 零件更換 -->
         <div v-if="item['Replace Parts Category'] || item['Replace Parts PN']" class="text-[11px] text-slate-500 border-t border-slate-100 pt-1.5 flex justify-between">
           <span>零件類別: <strong class="text-slate-700">{{ item['Replace Parts Category'] || '-' }}</strong></span>
           <span>PN: <strong class="font-mono text-slate-700">{{ item['Replace Parts PN'] || '-' }}</strong></span>
         </div>
+
       </div>
 
       <div v-if="filteredIssues.length === 0" class="text-center py-12 text-slate-500 bg-white rounded-2xl border border-sky-200">
@@ -278,7 +286,7 @@
       </div>
     </div>
 
-    <!-- 桌機/平板滿版表格視圖 (Desktop Table View) -->
+    <!-- 💻 視圖模式 2：桌機/平板版滿版表格 (Desktop Table View - 在 hidden md:block 顯示) -->
     <div class="hidden md:block bg-white rounded-xl shadow-md border border-sky-200 overflow-hidden">
       <div class="w-full overflow-hidden">
         <table class="w-full text-left text-slate-800 border-collapse text-table-body" style="table-layout: fixed;">
@@ -400,7 +408,7 @@
       </div>
     </div>
 
-    <!-- 彈窗 (Modal) -->
+    <!-- 📱/💻 響應式彈窗 (Modal)：手機上為全螢幕，桌機上為寬螢幕居中 -->
     <div v-if="showModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
       <div class="bg-white rounded-t-3xl sm:rounded-3xl max-w-6xl w-full p-4 sm:p-7 space-y-3.5 sm:space-y-4 shadow-2xl border border-sky-200 max-h-[92vh] overflow-y-auto">
         <div class="flex justify-between items-center border-b border-sky-100 pb-2.5">
@@ -413,6 +421,7 @@
           <button @click="showModal = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold p-1">✕</button>
         </div>
         
+        <!-- 日期與類別 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div class="bg-sky-50/70 border border-sky-200 p-2.5 sm:p-3 rounded-2xl">
             <label class="block text-xs font-bold text-sky-950 mb-1">📅 選擇機況紀錄日期 (Record Date)</label>
@@ -435,13 +444,13 @@
           </div>
         </div>
 
+        <!-- 工時填寫與計算 -->
         <div class="bg-indigo-50/70 border border-indigo-200 p-3 sm:p-4 rounded-2xl space-y-2">
-          <div class="text-xs font-extrabold text-indigo-955 flex flex-col sm:flex-row justify-between gap-1">
+          <div class="text-xs font-extrabold text-indigo-950 flex flex-col sm:flex-row justify-between gap-1">
             <span>⏱️ Fab Service 工時填寫與試算</span>
             <span class="text-[10px] sm:text-[11px] font-normal text-indigo-700">正常: 09:00~18:00 | OT/假日雙倍 (OT × 2)</span>
           </div>
 
-          <!-- 精確對應的工時輸入框 -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
             <div>
               <label class="block text-[11px] font-bold text-slate-800 mb-0.5">人數 (Count)</label>
@@ -472,6 +481,7 @@
           </div>
         </div>
 
+        <!-- 機台基本資料 -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5">
           <div>
             <label class="block text-[11px] font-bold text-slate-700 mb-0.5">客戶公司 (Company)</label>
@@ -491,6 +501,7 @@
           </div>
         </div>
 
+        <!-- 問題描述與處置步驟 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
           <div>
             <label class="block text-[11px] font-bold text-slate-700 mb-0.5">問題描述 (Issue Description)</label>
@@ -502,6 +513,7 @@
           </div>
         </div>
         
+        <!-- 警示狀態 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 bg-amber-50 border border-amber-300 p-2.5 rounded-2xl">
           <div>
             <label class="block text-[11px] font-bold text-amber-950 mb-0.5">後續計畫 (Plan to Do - 關注)</label>
@@ -513,6 +525,7 @@
           </div>
         </div>
 
+        <!-- 零件更換 -->
         <div class="grid grid-cols-2 gap-2.5">
           <div>
             <label class="block text-[11px] font-bold text-slate-700 mb-0.5">更換零件類別 (Category)</label>
@@ -568,6 +581,7 @@
         const searchQuery = ref('');
         const statusFilter = ref('ALL');
         
+        // 讀取持久化字體大小設定
         const savedFontSize = localStorage.getItem('ptw_font_size') || 'lg';
         const fontSize = ref(savedFontSize);
 
@@ -578,7 +592,7 @@
         const recordDate = ref('');
         const selectedCategories = ref([]);
 
-        const CACHE_VERSION = 'ptw_columns_percent_v15';
+        const CACHE_VERSION = 'ptw_columns_percent_v13';
         const loadSavedColumns = () => {
           try {
             const saved = localStorage.getItem(CACHE_VERSION);
@@ -601,7 +615,6 @@
           sortOrder.value = sortOrder.value === 'desc' ? 'asc' : 'desc';
         };
 
-        // 🔥 表單核心變數完全統一為駝峰命名
         const form = ref({
           ID: '',
           Timestamp: '',
@@ -622,7 +635,6 @@
           otHours: 0
         });
 
-        // 徹底兼容讀取 Google Sheet 欄位數據
         const getVal = (item, key, fallback = '') => {
           if (!item) return fallback;
           if (item[key] !== undefined && item[key] !== '') return item[key];
@@ -831,7 +843,6 @@
           return { onsiteCharged, otCharged, totalCharged, warrantyHrs, projectHrs, contractHrs };
         });
 
-        // 🔥 開啟彈窗時嚴格填入對應變數名，杜絕空白與 0
         const openModal = (item = null) => {
           if (item) {
             isEdit.value = true;
@@ -888,7 +899,6 @@
           showModal.value = true;
         };
 
-        // 🔥 儲存時雙重打包所有變數名，保證 GAS 百分之百接收到數字
         const saveData = async () => {
           submitting.value = true;
           var action = isEdit.value ? 'update' : 'create';
@@ -921,11 +931,7 @@
             engineersCount: Number(form.value.engineersCount || 0),
             onsiteHours: Number(form.value.onsiteHours || 0),
             contractHours: Number(form.value.contractHours || 0),
-            otHours: Number(form.value.otHours || 0),
-            "Engineers Count": Number(form.value.engineersCount || 0),
-            "Onsite Regular Hours": Number(form.value.onsiteHours || 0),
-            "Contract Regular Hours": Number(form.value.contractHours || 0),
-            "OT Hours": Number(form.value.otHours || 0)
+            otHours: Number(form.value.otHours || 0)
           };
 
           try {

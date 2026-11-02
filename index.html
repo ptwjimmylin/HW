@@ -441,7 +441,7 @@
             <span class="text-[10px] sm:text-[11px] font-normal text-indigo-700">正常: 09:00~18:00 | OT/假日雙倍 (OT × 2)</span>
           </div>
 
-          <!-- 精確對應的工時輸入框 -->
+          <!-- 精確對應的工時輸入框（全部綁定 form.xxx） -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
             <div>
               <label class="block text-[11px] font-bold text-slate-800 mb-0.5">人數 (Count)</label>
@@ -578,7 +578,7 @@
         const recordDate = ref('');
         const selectedCategories = ref([]);
 
-        const CACHE_VERSION = 'ptw_columns_percent_v16';
+        const CACHE_VERSION = 'ptw_columns_percent_v17';
         const loadSavedColumns = () => {
           try {
             const saved = localStorage.getItem(CACHE_VERSION);

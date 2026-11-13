@@ -62,133 +62,145 @@
 <body class="bg-sky-100/70 min-h-screen text-slate-800 p-2 sm:p-4 antialiased selection:bg-sky-600 selection:text-white pb-10">
   <div id="app" class="w-full mx-auto space-y-3">
     
-    <!-- 頂部標題與產品切換 -->
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-white px-3 sm:px-4 py-3 rounded-xl shadow-sm border border-sky-200">
-      <div class="flex items-center gap-2.5">
-        <div class="p-1.5 bg-sky-600 rounded-lg text-white shadow-md shadow-sky-300 flex-shrink-0">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-        </div>
-        <div>
-          <h1 class="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight leading-tight">PTW Service Review</h1>
-          <p class="text-[10px] sm:text-[11px] text-slate-500 font-medium">週會機況審查與智能追蹤系統 (Mobile & Desktop)</p>
-        </div>
-      </div>
+    <!-- 🔒 固定頂部區塊：當往下拉 Slide Bar 時，Dashboard 與控制列保持固定不動 -->
+    <div class="md:sticky md:top-0 md:z-30 bg-sky-100/95 backdrop-blur-md pt-1 pb-2.5 -mx-2 px-2 sm:-mx-4 sm:px-4 space-y-2.5 border-b border-sky-200/80 shadow-sm">
       
-      <div class="flex gap-1.5 bg-sky-100/80 p-1 rounded-xl border border-sky-200 w-full md:w-auto">
-        <button 
-          v-for="product in ['Hitachi', 'SEZ_SpinTec']" 
-          :key="product"
-          @click="switchSheet(product)"
-          :class="['flex-1 md:flex-none px-5 py-1.5 rounded-lg font-bold text-xs tracking-wide transition-all duration-200 shadow-sm text-center', currentSheet === product ? 'bg-sky-600 text-white border border-sky-700 shadow-md' : 'bg-white text-slate-700 hover:bg-sky-50 border border-sky-200']">
-          {{ product }}
-        </button>
-      </div>
-    </header>
-
-    <!-- 狀態儀表板 -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
-      <div @click="statusFilter = 'ALL'" :class="['py-2 px-3 rounded-xl border-2 shadow-sm flex items-center justify-between cursor-pointer transition select-none', statusFilter === 'ALL' ? 'bg-white border-sky-600 ring-2 ring-sky-200' : 'bg-white border-sky-200']">
-        <div>
-          <div class="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase">總數 (Total)</div>
-          <span v-if="statusFilter === 'ALL'" class="text-[8px] sm:text-[9px] bg-sky-100 text-sky-800 font-bold px-1 rounded-full border border-sky-300">顯示中</span>
+      <!-- 頂部標題與產品切換 -->
+      <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-white px-3 sm:px-4 py-2.5 rounded-xl shadow-sm border border-sky-200">
+        <div class="flex items-center gap-2.5">
+          <div class="p-1.5 bg-sky-600 rounded-lg text-white shadow-md shadow-sky-300 flex-shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          </div>
+          <div>
+            <h1 class="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight leading-tight">PTW Service Review</h1>
+            <p class="text-[10px] sm:text-[11px] text-slate-500 font-medium">週會機況審查與智能追蹤系統 (Mobile & Desktop)</p>
+          </div>
         </div>
-        <div class="text-lg sm:text-xl font-black text-slate-900 font-mono">{{ dashboardStats.total }}</div>
+        
+        <div class="flex gap-1.5 bg-sky-100/80 p-1 rounded-xl border border-sky-200 w-full md:w-auto">
+          <button 
+            v-for="product in ['Hitachi', 'SEZ_SpinTec']" 
+            :key="product"
+            @click="switchSheet(product)"
+            :class="['flex-1 md:flex-none px-5 py-1.5 rounded-lg font-bold text-xs tracking-wide transition-all duration-200 shadow-sm text-center', currentSheet === product ? 'bg-sky-600 text-white border border-sky-700 shadow-md' : 'bg-white text-slate-700 hover:bg-sky-50 border border-sky-200']">
+            {{ product }}
+          </button>
+        </div>
+      </header>
+
+      <!-- 狀態儀表板 -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
+        <div @click="statusFilter = 'ALL'" :class="['py-2 px-3 rounded-xl border-2 shadow-sm flex items-center justify-between cursor-pointer transition select-none', statusFilter === 'ALL' ? 'bg-white border-sky-600 ring-2 ring-sky-200' : 'bg-white border-sky-200']">
+          <div>
+            <div class="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase">總數 (Total)</div>
+            <span v-if="statusFilter === 'ALL'" class="text-[8px] sm:text-[9px] bg-sky-100 text-sky-800 font-bold px-1 rounded-full border border-sky-300">顯示中</span>
+          </div>
+          <div class="text-lg sm:text-xl font-black text-slate-900 font-mono">{{ dashboardStats.total }}</div>
+        </div>
+
+        <div @click="statusFilter = 'PLAN'" :class="['py-2 px-3 rounded-xl border-2 shadow-sm flex items-center justify-between cursor-pointer transition select-none', statusFilter === 'PLAN' ? 'bg-amber-50 border-amber-500 ring-2 ring-amber-200' : 'bg-white border-sky-200']">
+          <div>
+            <div class="text-[9px] sm:text-[10px] font-bold text-amber-700 uppercase">關注 (Plan)</div>
+            <span v-if="statusFilter === 'PLAN'" class="text-[8px] sm:text-[9px] bg-amber-200 text-amber-900 font-bold px-1 rounded-full border border-amber-300">已篩選</span>
+          </div>
+          <div class="text-lg sm:text-xl font-black text-amber-600 font-mono">{{ dashboardStats.hasPlan }}</div>
+        </div>
+
+        <div @click="statusFilter = 'REMAIN'" :class="['py-2 px-3 rounded-xl border-2 shadow-sm flex items-center justify-between cursor-pointer transition select-none', statusFilter === 'REMAIN' ? 'bg-rose-50 border-rose-500 ring-2 ring-rose-200' : 'bg-white border-sky-200']">
+          <div>
+            <div class="text-[9px] sm:text-[10px] font-bold text-rose-700 uppercase">警示 (Remain)</div>
+            <span v-if="statusFilter === 'REMAIN'" class="text-[8px] sm:text-[9px] bg-rose-200 text-rose-900 font-bold px-1 rounded-full border border-rose-300">已篩選</span>
+          </div>
+          <div class="text-lg sm:text-xl font-black text-rose-600 font-mono">{{ dashboardStats.hasRemain }}</div>
+        </div>
+
+        <div @click="statusFilter = 'CLOSED'" :class="['py-2 px-3 rounded-xl border-2 shadow-sm flex items-center justify-between cursor-pointer transition select-none', statusFilter === 'CLOSED' ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-200' : 'bg-white border-sky-200']">
+          <div>
+            <div class="text-[9px] sm:text-[10px] font-bold text-emerald-700 uppercase">完結 (Closed)</div>
+            <span v-if="statusFilter === 'CLOSED'" class="text-[8px] sm:text-[9px] bg-emerald-200 text-emerald-900 font-bold px-1 rounded-full border border-emerald-300">已篩選</span>
+          </div>
+          <div class="text-lg sm:text-xl font-black text-emerald-600 font-mono">{{ dashboardStats.completed }}</div>
+        </div>
       </div>
 
-      <div @click="statusFilter = 'PLAN'" :class="['py-2 px-3 rounded-xl border-2 shadow-sm flex items-center justify-between cursor-pointer transition select-none', statusFilter === 'PLAN' ? 'bg-amber-50 border-amber-500 ring-2 ring-amber-200' : 'bg-white border-sky-200']">
-        <div>
-          <div class="text-[9px] sm:text-[10px] font-bold text-amber-700 uppercase">關注 (Plan)</div>
-          <span v-if="statusFilter === 'PLAN'" class="text-[8px] sm:text-[9px] bg-amber-200 text-amber-900 font-bold px-1 rounded-full border border-amber-300">已篩選</span>
+      <!-- 期間工時總覽面板 -->
+      <div class="bg-white/95 backdrop-blur-sm p-2 sm:px-3 sm:py-2 rounded-xl border border-sky-300 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-2 text-xs">
+        <div class="flex items-center gap-1.5">
+          <span class="px-2 py-0.5 bg-sky-600 text-white font-bold rounded text-[10px] sm:text-[11px]">⏱️ 期間工時總覽</span>
+          <span class="text-slate-500 text-[10px] sm:text-[11px]">統計當前查詢結果</span>
         </div>
-        <div class="text-lg sm:text-xl font-black text-amber-600 font-mono">{{ dashboardStats.hasPlan }}</div>
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
+          <div>On-site 計費: <span class="font-bold text-sky-900 font-mono">{{ hoursSummary.onsiteCharged }}h</span></div>
+          <div>OT(加倍): <span class="font-bold text-rose-600 font-mono">{{ hoursSummary.otCharged }}h</span></div>
+          <div class="text-slate-500">Warranty: {{ hoursSummary.warrantyHrs }}h | Project: {{ hoursSummary.projectHrs }}h | Contract: {{ hoursSummary.contractHrs }}h</div>
+          <div class="bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 mt-0.5 sm:mt-0">
+            <span class="text-indigo-950 font-bold">總計費: </span>
+            <span class="font-black text-indigo-700 font-mono text-sm sm:text-base">{{ hoursSummary.totalCharged }} hrs</span>
+          </div>
+        </div>
       </div>
 
-      <div @click="statusFilter = 'REMAIN'" :class="['py-2 px-3 rounded-xl border-2 shadow-sm flex items-center justify-between cursor-pointer transition select-none', statusFilter === 'REMAIN' ? 'bg-rose-50 border-rose-500 ring-2 ring-rose-200' : 'bg-white border-sky-200']">
-        <div>
-          <div class="text-[9px] sm:text-[10px] font-bold text-rose-700 uppercase">警示 (Remain)</div>
-          <span v-if="statusFilter === 'REMAIN'" class="text-[8px] sm:text-[9px] bg-rose-200 text-rose-900 font-bold px-1 rounded-full border border-rose-300">已篩選</span>
+      <!-- 控制列 -->
+      <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-2 bg-white p-2 rounded-xl shadow-sm border border-sky-200 text-xs">
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="flex items-center gap-1 bg-sky-50 p-1 rounded-lg border border-sky-200 w-full sm:w-auto">
+            <div class="flex bg-white rounded-md p-0.5 border border-sky-200">
+              <button @click="dateFilterMode = 'week'" :class="['px-2 py-0.5 font-bold rounded transition text-[11px]', dateFilterMode === 'week' ? 'bg-sky-600 text-white' : 'text-slate-600']">依週</button>
+              <button @click="dateFilterMode = 'month'" :class="['px-2 py-0.5 font-bold rounded transition text-[11px]', dateFilterMode === 'month' ? 'bg-sky-600 text-white' : 'text-slate-600']">依月份</button>
+              <button @click="dateFilterMode = 'range'" :class="['px-2 py-0.5 font-bold rounded transition text-[11px]', dateFilterMode === 'range' ? 'bg-sky-600 text-white' : 'text-slate-600']">區間</button>
+            </div>
+
+            <div v-if="dateFilterMode === 'week'" class="flex items-center gap-1 px-1 flex-1 sm:flex-none">
+              <input type="week" v-model="selectedWeek" class="bg-white border border-sky-300 rounded px-1.5 py-0.5 text-xs font-bold text-slate-800 focus:outline-none w-full sm:w-auto">
+              <button @click="selectedWeek = ''" v-if="selectedWeek" class="text-sky-700 hover:text-sky-900 font-bold text-[11px]">重置</button>
+            </div>
+
+            <div v-else-if="dateFilterMode === 'month'" class="flex items-center gap-1 px-1 flex-1 sm:flex-none">
+              <input type="month" v-model="selectedMonth" class="bg-white border border-sky-300 rounded px-1.5 py-0.5 text-xs font-bold text-slate-800 focus:outline-none w-full sm:w-auto">
+              <button @click="selectedMonth = ''" v-if="selectedMonth" class="text-sky-700 hover:text-sky-900 font-bold text-[11px]">重置</button>
+            </div>
+
+            <div v-else class="flex items-center gap-1 px-1 flex-1 sm:flex-none">
+              <input type="date" v-model="startDate" title="開始" class="bg-white border border-sky-300 rounded px-1 py-0.5 text-[11px] font-bold text-slate-800 focus:outline-none w-1/2 sm:w-auto">
+              <span class="font-bold text-slate-400">-</span>
+              <input type="date" v-model="endDate" title="結束" class="bg-white border border-sky-300 rounded px-1 py-0.5 text-[11px] font-bold text-slate-800 focus:outline-none w-1/2 sm:w-auto">
+              <button @click="startDate = ''; endDate = '';" v-if="startDate || endDate" class="text-sky-700 hover:text-sky-900 font-bold text-[11px]">重置</button>
+            </div>
+          </div>
+
+          <div class="relative flex-1 sm:w-44">
+            <input type="text" v-model="searchQuery" placeholder="搜尋 Tool / 機況..." class="w-full bg-white border border-sky-200 rounded-lg pl-7 pr-6 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-sky-500 shadow-inner">
+            <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <button @click="searchQuery = ''" v-if="searchQuery" class="absolute right-2 top-1 text-slate-400 hover:text-slate-600">✕</button>
+          </div>
+
+          <button @click="toggleSortOrder()" class="flex items-center gap-1 font-bold px-2 py-1 rounded-lg border shadow-sm bg-white border-sky-300 text-sky-800 hover:bg-sky-50 text-[11px]">
+            <span>{{ sortOrder === 'desc' ? '最新↓' : '最舊↑' }}</span>
+          </button>
+
+          <!-- 字體大小按鈕 -->
+          <div class="flex items-center gap-0.5 bg-sky-100/80 p-0.5 rounded-lg border border-sky-200">
+            <span class="text-[9px] font-bold text-slate-600 px-1">字體</span>
+            <button @click="changeFontSize('sm')" :class="['px-1.5 py-0.5 rounded text-[10px] font-bold', fontSize === 'sm' ? 'bg-sky-600 text-white shadow-sm' : 'bg-white text-slate-700']">小</button>
+            <button @click="changeFontSize('md')" :class="['px-1.5 py-0.5 rounded text-[10px] font-bold', fontSize === 'md' ? 'bg-sky-600 text-white shadow-sm' : 'bg-white text-slate-700']">中</button>
+            <button @click="changeFontSize('lg')" :class="['px-1.5 py-0.5 rounded text-[10px] font-bold', fontSize === 'lg' ? 'bg-sky-600 text-white shadow-sm' : 'bg-white text-slate-700']">大</button>
+          </div>
         </div>
-        <div class="text-lg sm:text-xl font-black text-rose-600 font-mono">{{ dashboardStats.hasRemain }}</div>
+
+        <!-- 右側按鈕組：AI 歷史案例查詢 + 新增機況 -->
+        <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto mt-1 md:mt-0">
+          <button @click="openAIQueryModal()" class="w-full sm:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold px-3.5 py-2 md:py-1.5 rounded-lg shadow-md transition flex items-center justify-center gap-1.5">
+            <span>🤖 AI 歷史案例查詢</span>
+          </button>
+          <button @click="openModal()" class="w-full sm:w-auto bg-slate-900 hover:bg-sky-600 text-white font-bold px-4 py-2 md:py-1.5 rounded-lg shadow-md transition flex items-center justify-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            <span>新增機況紀錄 (+ New)</span>
+          </button>
+        </div>
       </div>
 
-      <div @click="statusFilter = 'CLOSED'" :class="['py-2 px-3 rounded-xl border-2 shadow-sm flex items-center justify-between cursor-pointer transition select-none', statusFilter === 'CLOSED' ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-200' : 'bg-white border-sky-200']">
-        <div>
-          <div class="text-[9px] sm:text-[10px] font-bold text-emerald-700 uppercase">完結 (Closed)</div>
-          <span v-if="statusFilter === 'CLOSED'" class="text-[8px] sm:text-[9px] bg-emerald-200 text-emerald-900 font-bold px-1 rounded-full border border-emerald-300">已篩選</span>
-        </div>
-        <div class="text-lg sm:text-xl font-black text-emerald-600 font-mono">{{ dashboardStats.completed }}</div>
-      </div>
     </div>
-
-    <!-- 期間工時總覽面板 -->
-    <div class="bg-white/90 backdrop-blur-sm p-2.5 sm:p-3 rounded-xl border border-sky-300 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-2.5 text-xs">
-      <div class="flex items-center gap-1.5">
-        <span class="px-2 py-0.5 bg-sky-600 text-white font-bold rounded text-[10px] sm:text-[11px]">⏱️ 期間工時總覽</span>
-        <span class="text-slate-500 text-[10px] sm:text-[11px]">統計當前查詢結果</span>
-      </div>
-      <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
-        <div>On-site 計費: <span class="font-bold text-sky-900 font-mono">{{ hoursSummary.onsiteCharged }}h</span></div>
-        <div>OT(加倍): <span class="font-bold text-rose-600 font-mono">{{ hoursSummary.otCharged }}h</span></div>
-        <div class="text-slate-500">Warranty: {{ hoursSummary.warrantyHrs }}h | Project: {{ hoursSummary.projectHrs }}h | Contract: {{ hoursSummary.contractHrs }}h</div>
-        <div class="bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 mt-0.5 sm:mt-0">
-          <span class="text-indigo-950 font-bold">總計費: </span>
-          <span class="font-black text-indigo-700 font-mono text-sm sm:text-base">{{ hoursSummary.totalCharged }} hrs</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- 控制列 -->
-    <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-2 bg-white p-2 sm:p-2.5 rounded-xl shadow-sm border border-sky-200 text-xs">
-      <div class="flex flex-wrap items-center gap-2">
-        <div class="flex items-center gap-1 bg-sky-50 p-1 rounded-lg border border-sky-200 w-full sm:w-auto">
-          <div class="flex bg-white rounded-md p-0.5 border border-sky-200">
-            <button @click="dateFilterMode = 'week'" :class="['px-2 py-0.5 font-bold rounded transition text-[11px]', dateFilterMode === 'week' ? 'bg-sky-600 text-white' : 'text-slate-600']">依週</button>
-            <button @click="dateFilterMode = 'month'" :class="['px-2 py-0.5 font-bold rounded transition text-[11px]', dateFilterMode === 'month' ? 'bg-sky-600 text-white' : 'text-slate-600']">依月份</button>
-            <button @click="dateFilterMode = 'range'" :class="['px-2 py-0.5 font-bold rounded transition text-[11px]', dateFilterMode === 'range' ? 'bg-sky-600 text-white' : 'text-slate-600']">區間</button>
-          </div>
-
-          <div v-if="dateFilterMode === 'week'" class="flex items-center gap-1 px-1 flex-1 sm:flex-none">
-            <input type="week" v-model="selectedWeek" class="bg-white border border-sky-300 rounded px-1.5 py-0.5 text-xs font-bold text-slate-800 focus:outline-none w-full sm:w-auto">
-            <button @click="selectedWeek = ''" v-if="selectedWeek" class="text-sky-700 hover:text-sky-900 font-bold text-[11px]">重置</button>
-          </div>
-
-          <div v-else-if="dateFilterMode === 'month'" class="flex items-center gap-1 px-1 flex-1 sm:flex-none">
-            <input type="month" v-model="selectedMonth" class="bg-white border border-sky-300 rounded px-1.5 py-0.5 text-xs font-bold text-slate-800 focus:outline-none w-full sm:w-auto">
-            <button @click="selectedMonth = ''" v-if="selectedMonth" class="text-sky-700 hover:text-sky-900 font-bold text-[11px]">重置</button>
-          </div>
-
-          <div v-else class="flex items-center gap-1 px-1 flex-1 sm:flex-none">
-            <input type="date" v-model="startDate" title="開始" class="bg-white border border-sky-300 rounded px-1 py-0.5 text-[11px] font-bold text-slate-800 focus:outline-none w-1/2 sm:w-auto">
-            <span class="font-bold text-slate-400">-</span>
-            <input type="date" v-model="endDate" title="結束" class="bg-white border border-sky-300 rounded px-1 py-0.5 text-[11px] font-bold text-slate-800 focus:outline-none w-1/2 sm:w-auto">
-            <button @click="startDate = ''; endDate = '';" v-if="startDate || endDate" class="text-sky-700 hover:text-sky-900 font-bold text-[11px]">重置</button>
-          </div>
-        </div>
-
-        <div class="relative flex-1 sm:w-44">
-          <input type="text" v-model="searchQuery" placeholder="搜尋 Tool / 機況..." class="w-full bg-white border border-sky-200 rounded-lg pl-7 pr-6 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-sky-500 shadow-inner">
-          <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-          <button @click="searchQuery = ''" v-if="searchQuery" class="absolute right-2 top-1 text-slate-400 hover:text-slate-600">✕</button>
-        </div>
-
-        <button @click="toggleSortOrder()" class="flex items-center gap-1 font-bold px-2 py-1 rounded-lg border shadow-sm bg-white border-sky-300 text-sky-800 hover:bg-sky-50 text-[11px]">
-          <span>{{ sortOrder === 'desc' ? '最新↓' : '最舊↑' }}</span>
-        </button>
-
-        <!-- 字體大小按鈕 -->
-        <div class="flex items-center gap-0.5 bg-sky-100/80 p-0.5 rounded-lg border border-sky-200">
-          <span class="text-[9px] font-bold text-slate-600 px-1">字體</span>
-          <button @click="changeFontSize('sm')" :class="['px-1.5 py-0.5 rounded text-[10px] font-bold', fontSize === 'sm' ? 'bg-sky-600 text-white shadow-sm' : 'bg-white text-slate-700']">小</button>
-          <button @click="changeFontSize('md')" :class="['px-1.5 py-0.5 rounded text-[10px] font-bold', fontSize === 'md' ? 'bg-sky-600 text-white shadow-sm' : 'bg-white text-slate-700']">中</button>
-          <button @click="changeFontSize('lg')" :class="['px-1.5 py-0.5 rounded text-[10px] font-bold', fontSize === 'lg' ? 'bg-sky-600 text-white shadow-sm' : 'bg-white text-slate-700']">大</button>
-        </div>
-      </div>
-
-      <button @click="openModal()" class="w-full md:w-auto bg-slate-900 hover:bg-sky-600 text-white font-bold px-4 py-2 md:py-1.5 rounded-lg shadow-md transition flex items-center justify-center gap-1.5 mt-1 md:mt-0">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-        <span>新增機況紀錄 (+ New)</span>
-      </button>
-    </div>
+    <!-- 🔒 固定頂部區塊結束 -->
 
     <!-- 📱 手機版專屬卡片式視圖 (Mobile View) -->
     <div class="block md:hidden space-y-3">
@@ -399,7 +411,46 @@
       </div>
     </div>
 
-    <!-- 彈窗 (Modal) -->
+    <!-- 🤖 獨立 AI 歷史案例查詢彈窗 (隨時查詢過去案子) -->
+    <div v-if="showAIModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+      <div class="bg-white rounded-t-3xl sm:rounded-3xl max-w-3xl w-full p-5 sm:p-6 space-y-4 shadow-2xl border border-purple-200 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center border-b border-purple-100 pb-3">
+          <div>
+            <h3 class="text-lg font-black text-purple-950 flex items-center gap-2">
+              🤖 AI 歷史維修知識庫查詢
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">自動檢索 Hitachi 與 SEZ_SpinTec 所有歷史案子，快速找出過去解法與料號</p>
+          </div>
+          <button @click="showAIModal = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold p-1">✕</button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">機台型號 (Model Type，選填)</label>
+            <input v-model="aiSearchModel" placeholder="例如: S-9380" class="w-full bg-slate-50 border border-purple-200 rounded-xl px-3 py-2 text-xs font-semibold focus:bg-white focus:outline-none">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-slate-700 mb-1">異常現象、Alarm Code 或關鍵字</label>
+            <input v-model="aiSearchQuery" @keyup.enter="runStandaloneAIQuery()" placeholder="例如: Robot vacuum alarm、Sensor 異常、漏水..." class="w-full bg-slate-50 border border-purple-200 rounded-xl px-3 py-2 text-xs font-semibold focus:bg-white focus:outline-none">
+          </div>
+        </div>
+
+        <div class="flex justify-end">
+          <button @click="runStandaloneAIQuery()" :disabled="aiStandaloneLoading" class="w-full sm:w-auto px-5 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-md text-xs disabled:opacity-50">
+            {{ aiStandaloneLoading ? '⏳ 正在檢索所有歷史案件中...' : '✨ 開始比對歷史案子' }}
+          </button>
+        </div>
+
+        <div v-if="aiStandaloneResult" class="bg-purple-50/90 border border-purple-200 border-l-4 border-l-purple-600 p-4 rounded-2xl space-y-2 shadow-inner">
+          <div class="text-xs font-extrabold text-purple-950">📋 AI 歷史案例分析結果：</div>
+          <div class="text-xs sm:text-sm text-slate-800 whitespace-pre-line leading-relaxed max-h-80 overflow-y-auto pr-1">
+            {{ aiStandaloneResult }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 新增/編輯機況彈窗 (Modal) -->
     <div v-if="showModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
       <div class="bg-white rounded-t-3xl sm:rounded-3xl max-w-6xl w-full p-4 sm:p-7 space-y-3.5 sm:space-y-4 shadow-2xl border border-sky-200 max-h-[92vh] overflow-y-auto">
         <div class="flex justify-between items-center border-b border-sky-100 pb-2.5">
@@ -493,7 +544,6 @@
           <div>
             <div class="flex justify-between items-center mb-1">
               <label class="block text-[11px] font-bold text-slate-700">問題描述 (Issue Description)</label>
-              <!-- ✨ AI 歷史案例診斷按鈕 -->
               <button 
                 type="button" 
                 @click="askAIHistory()" 
@@ -510,7 +560,6 @@
           </div>
         </div>
 
-        <!-- ✨ AI 診斷結果顯示卡片 -->
         <div v-if="aiResult" class="bg-purple-50/90 border border-purple-200 border-l-4 border-l-purple-600 p-3.5 rounded-2xl space-y-1.5 shadow-inner">
           <div class="flex justify-between items-center">
             <span class="text-xs font-extrabold text-purple-950 flex items-center gap-1.5">
@@ -599,9 +648,16 @@
         const recordDate = ref('');
         const selectedCategories = ref([]);
 
-        // ✨ AI 狀態變數
+        // 新增/編輯彈窗內的 AI 狀態
         const aiLoading = ref(false);
         const aiResult = ref('');
+
+        // 獨立 AI 知識庫查詢彈窗狀態
+        const showAIModal = ref(false);
+        const aiSearchModel = ref('');
+        const aiSearchQuery = ref('');
+        const aiStandaloneLoading = ref(false);
+        const aiStandaloneResult = ref('');
 
         const CACHE_VERSION = 'ptw_columns_percent_v20';
         const loadSavedColumns = () => {
@@ -755,7 +811,7 @@
           if (dateFilterMode === 'week') {
             if (!selectedWeek.value) return issues.value;
             return issues.value.filter(i => getWeekString(i.Timestamp) === selectedWeek.value);
-          } else if (dateFilterMode.value === 'month') {
+          } else if (dateFilterMode === 'month') {
             if (!selectedMonth.value) return issues.value;
             return issues.value.filter(i => {
               if (!i.Timestamp) return false;
@@ -854,7 +910,7 @@
           return { onsiteCharged, otCharged, totalCharged, warrantyHrs, projectHrs, contractHrs };
         });
 
-        // ✨ 呼叫後端 AI 診斷功能
+        // 新增/編輯彈窗內的 AI 診斷
         const askAIHistory = async () => {
           var desc = form.value['Issue Description'];
           if (!desc || desc.trim() === '') {
@@ -863,14 +919,12 @@
           }
 
           aiLoading.value = true;
-          aiResult.value = "正在比對 Hitachi 與 SEZ_SpinTec 歷史維修資料庫，請稍候約 3~5 秒...";
+          aiResult.value = "正在比對 Hitachi 與 SEZ_SpinTec 所有歷史案子，請稍候約 3~5 秒...";
 
           try {
             var res = await fetch(API_URL, {
               method: 'POST',
-              headers: {
-                'Content-Type': 'text/plain;charset=utf-8'
-              },
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
               body: JSON.stringify({
                 action: 'askAI',
                 sheet: currentSheet.value,
@@ -893,8 +947,51 @@
           }
         };
 
+        // 獨立 AI 知識庫查詢彈窗
+        const openAIQueryModal = () => {
+          aiSearchModel.value = '';
+          aiSearchQuery.value = '';
+          aiStandaloneResult.value = '';
+          showAIModal.value = true;
+        };
+
+        const runStandaloneAIQuery = async () => {
+          if (!aiSearchQuery.value || aiSearchQuery.value.trim() === '') {
+            alert("請輸入要查詢的異常關鍵字或現象！");
+            return;
+          }
+
+          aiStandaloneLoading.value = true;
+          aiStandaloneResult.value = "正在搜尋過去所有歷史案子並進行交叉比對，請稍候約 3~5 秒...";
+
+          try {
+            var res = await fetch(API_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: JSON.stringify({
+                action: 'askAI',
+                sheet: currentSheet.value,
+                data: {
+                  "Model Type": aiSearchModel.value,
+                  "Issue Description": aiSearchQuery.value
+                }
+              })
+            });
+            var json = await res.json();
+            if (json.status === 'success') {
+              aiStandaloneResult.value = json.reply;
+            } else {
+              aiStandaloneResult.value = "❌ 查詢錯誤：" + (json.message || "未知錯誤");
+            }
+          } catch (e) {
+            aiStandaloneResult.value = "❌ 網路連線失敗或 GAS 尚未更新部署版本，請確認後再試。";
+          } finally {
+            aiStandaloneLoading.value = false;
+          }
+        };
+
         const openModal = (item = null) => {
-          aiResult.value = ''; // 每次開啟彈窗清空上次 AI 診斷結果
+          aiResult.value = '';
           if (item) {
             isEdit.value = true;
             form.value = {
@@ -1063,6 +1160,11 @@
           submitting,
           aiLoading,
           aiResult,
+          showAIModal,
+          aiSearchModel,
+          aiSearchQuery,
+          aiStandaloneLoading,
+          aiStandaloneResult,
           form,
           selectedCategories,
           getVal,
@@ -1080,6 +1182,8 @@
           switchSheet,
           fetchData,
           askAIHistory,
+          openAIQueryModal,
+          runStandaloneAIQuery,
           openModal,
           saveData,
           deleteItem,

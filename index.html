@@ -62,7 +62,7 @@
 <body class="bg-sky-100/70 min-h-screen text-slate-800 p-2 sm:p-4 antialiased selection:bg-sky-600 selection:text-white pb-10">
   <div id="app" class="w-full mx-auto space-y-3">
     
-    <!-- 🔒 固定頂部區塊：當往下拉 Slide Bar 時，Dashboard 與控制列保持固定不動 -->
+    <!-- 固定頂部區塊：往下拉 Slide Bar 時保持固定不動 -->
     <div class="md:sticky md:top-0 md:z-30 bg-sky-100/95 backdrop-blur-md pt-1 pb-2.5 -mx-2 px-2 sm:-mx-4 sm:px-4 space-y-2.5 border-b border-sky-200/80 shadow-sm">
       
       <!-- 頂部標題與產品切換 -->
@@ -200,9 +200,9 @@
       </div>
 
     </div>
-    <!-- 🔒 固定頂部區塊結束 -->
+    <!-- 固定頂部區塊結束 -->
 
-    <!-- 📱 手機版專屬卡片式視圖 (Mobile View) -->
+    <!-- 手機版專屬卡片式視圖 (Mobile View) -->
     <div class="block md:hidden space-y-3">
       <div v-for="item in filteredIssues" :key="item.ID" class="bg-white rounded-2xl p-4 shadow-sm border border-sky-200 space-y-3">
         <div class="flex justify-between items-start border-b border-sky-100 pb-2.5">
@@ -291,7 +291,7 @@
       </div>
     </div>
 
-    <!-- 💻 電腦/平板滿版表格視圖 (Desktop View) -->
+    <!-- 電腦/平板滿版表格視圖 (Desktop View) -->
     <div class="hidden md:block bg-white rounded-xl shadow-md border border-sky-200 overflow-hidden">
       <div class="w-full overflow-hidden">
         <table class="w-full text-left text-slate-800 border-collapse text-table-body" style="table-layout: fixed;">
@@ -411,7 +411,7 @@
       </div>
     </div>
 
-    <!-- 🤖 獨立 AI 歷史案例查詢彈窗 (隨時查詢過去案子) -->
+    <!-- 獨立 AI 歷史案例查詢彈窗 (隨時查詢過去案子) -->
     <div v-if="showAIModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
       <div class="bg-white rounded-t-3xl sm:rounded-3xl max-w-3xl w-full p-5 sm:p-6 space-y-4 shadow-2xl border border-purple-200 max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center border-b border-purple-100 pb-3">
@@ -648,11 +648,9 @@
         const recordDate = ref('');
         const selectedCategories = ref([]);
 
-        // 新增/編輯彈窗內的 AI 狀態
         const aiLoading = ref(false);
         const aiResult = ref('');
 
-        // 獨立 AI 知識庫查詢彈窗狀態
         const showAIModal = ref(false);
         const aiSearchModel = ref('');
         const aiSearchQuery = ref('');
@@ -910,7 +908,6 @@
           return { onsiteCharged, otCharged, totalCharged, warrantyHrs, projectHrs, contractHrs };
         });
 
-        // 新增/編輯彈窗內的 AI 診斷
         const askAIHistory = async () => {
           var desc = form.value['Issue Description'];
           if (!desc || desc.trim() === '') {
@@ -947,7 +944,6 @@
           }
         };
 
-        // 獨立 AI 知識庫查詢彈窗
         const openAIQueryModal = () => {
           aiSearchModel.value = '';
           aiSearchQuery.value = '';

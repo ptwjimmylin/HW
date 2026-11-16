@@ -57,6 +57,44 @@
     .resizer:hover, .resizer.resizing {
       background: #0284C7;
     }
+    /* AI 表格樣式 */
+    .ai-markdown-body table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0 12px 0;
+      font-size: 12px;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .ai-markdown-body th {
+      background: #ede9fe;
+      color: #4c1d95;
+      font-weight: 700;
+      text-align: left;
+      padding: 8px 10px;
+      border: 1px solid #ddd6fe;
+      white-space: nowrap;
+    }
+    .ai-markdown-body td {
+      padding: 7px 10px;
+      border: 1px solid #e2e8f0;
+      color: #1e293b;
+      vertical-align: top;
+      line-height: 1.45;
+    }
+    .ai-markdown-body tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+    .ai-markdown-body h3 {
+      font-size: 14px;
+      font-weight: 800;
+      color: #3b0764;
+      margin: 14px 0 6px 0;
+      padding-bottom: 4px;
+      border-bottom: 2px solid #ddd6fe;
+    }
   </style>
 </head>
 <body class="bg-sky-100/70 min-h-screen text-slate-800 p-2 sm:p-4 antialiased selection:bg-sky-600 selection:text-white pb-10">
@@ -411,15 +449,15 @@
       </div>
     </div>
 
-    <!-- 獨立 AI 歷史案例查詢彈窗 (隨時查詢過去案子) -->
+    <!-- 獨立 AI 歷史案例查詢彈窗 (放大寬度以完整顯示雙語表格) -->
     <div v-if="showAIModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
-      <div class="bg-white rounded-t-3xl sm:rounded-3xl max-w-3xl w-full p-5 sm:p-6 space-y-4 shadow-2xl border border-purple-200 max-h-[90vh] overflow-y-auto">
+      <div class="bg-white rounded-t-3xl sm:rounded-3xl max-w-5xl w-full p-5 sm:p-6 space-y-4 shadow-2xl border border-purple-200 max-h-[92vh] overflow-y-auto">
         <div class="flex justify-between items-center border-b border-purple-100 pb-3">
           <div>
             <h3 class="text-lg font-black text-purple-950 flex items-center gap-2">
               🤖 AI 歷史維修知識庫查詢
             </h3>
-            <p class="text-xs text-slate-500 mt-0.5">自動檢索 Hitachi 與 SEZ_SpinTec 所有歷史案子，快速找出過去解法與料號</p>
+            <p class="text-xs text-slate-500 mt-0.5">自動檢索 Hitachi 與 SEZ_SpinTec 所有歷史案子，以中英文表格呈現過去解法與料號</p>
           </div>
           <button @click="showAIModal = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold p-1">✕</button>
         </div>
@@ -441,11 +479,9 @@
           </button>
         </div>
 
-        <div v-if="aiStandaloneResult" class="bg-purple-50/90 border border-purple-200 border-l-4 border-l-purple-600 p-4 rounded-2xl space-y-2 shadow-inner">
+        <div v-if="aiStandaloneResult" class="bg-purple-50/70 border border-purple-200 border-l-4 border-l-purple-600 p-4 rounded-2xl space-y-2 shadow-inner">
           <div class="text-xs font-extrabold text-purple-950">📋 AI 歷史案例分析結果：</div>
-          <div class="text-xs sm:text-sm text-slate-800 whitespace-pre-line leading-relaxed max-h-80 overflow-y-auto pr-1">
-            {{ aiStandaloneResult }}
-          </div>
+          <div class="ai-markdown-body text-xs sm:text-sm text-slate-800 leading-relaxed max-h-[55vh] overflow-y-auto overflow-x-auto pr-1" v-html="renderMarkdownTable(aiStandaloneResult)"></div>
         </div>
       </div>
     </div>
@@ -567,9 +603,7 @@
             </span>
             <button type="button" @click="aiResult = ''" class="text-xs text-purple-400 hover:text-purple-700 font-bold">隱藏 ✕</button>
           </div>
-          <div class="text-xs text-slate-800 whitespace-pre-line leading-relaxed max-h-48 overflow-y-auto pr-1">
-            {{ aiResult }}
-          </div>
+          <div class="ai-markdown-body text-xs text-slate-800 leading-relaxed max-h-64 overflow-y-auto overflow-x-auto pr-1" v-html="renderMarkdownTable(aiResult)"></div>
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 bg-amber-50 border border-amber-300 p-2.5 rounded-2xl">
@@ -628,9 +662,20 @@
         const currentSheet = ref('Hitachi');
         const issues = ref([]);
         
+        const getLocalYearMonth = (d = new Date()) => {
+          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        };
+
+        const getLocalDateStr = (dateVal) => {
+          if (!dateVal) return '';
+          var d = new Date(dateVal);
+          if (isNaN(d.getTime())) return '';
+          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        };
+
         const dateFilterMode = ref('month');
         const selectedWeek = ref('');
-        const selectedMonth = ref(new Date().toISOString().substring(0, 7));
+        const selectedMonth = ref(getLocalYearMonth());
         const startDate = ref('');
         const endDate = ref('');
         const sortOrder = ref('desc');
@@ -717,6 +762,63 @@
           return String(catStr).split(',').map(function(s){ return s.trim(); }).filter(Boolean);
         };
 
+        // 將 AI 回傳的 Markdown 表格與標題轉換成美觀 HTML 表格
+        const renderMarkdownTable = (mdText) => {
+          if (!mdText) return '';
+          const escapeHtml = (str) => str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+
+          const formatInline = (str) => escapeHtml(str)
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+          const lines = String(mdText).split('\n');
+          let html = '';
+          let inTable = false;
+          let headerDone = false;
+
+          for (let i = 0; i < lines.length; i++) {
+            const raw = lines[i].trim();
+
+            if (raw.startsWith('|') && raw.endsWith('|')) {
+              const cells = raw.slice(1, -1).split('|').map(c => c.trim());
+              // 跳過分隔線 | :--- | :--- |
+              if (cells.every(c => /^:?-{2,}:?$/.test(c))) {
+                continue;
+              }
+              if (!inTable) {
+                html += '<table><thead><tr>';
+                cells.forEach(c => { html += `<th>${formatInline(c)}</th>`; });
+                html += '</tr></thead><tbody>';
+                inTable = true;
+                headerDone = true;
+              } else {
+                html += '<tr>';
+                cells.forEach(c => { html += `<td>${formatInline(c)}</td>`; });
+                html += '</tr>';
+              }
+            } else {
+              if (inTable) {
+                html += '</tbody></table>';
+                inTable = false;
+                headerDone = false;
+              }
+              if (raw.startsWith('### ')) {
+                html += `<h3>${formatInline(raw.slice(4))}</h3>`;
+              } else if (raw.startsWith('- ') || raw.startsWith('* ')) {
+                html += `<div class="pl-3 py-0.5">• ${formatInline(raw.slice(2))}</div>`;
+              } else if (raw !== '') {
+                html += `<div class="py-0.5">${formatInline(raw)}</div>`;
+              }
+            }
+          }
+          if (inTable) {
+            html += '</tbody></table>';
+          }
+          return html;
+        };
+
         const calculatedOnsiteHours = computed(() => {
           var count = Number(form.value.engineersCount || 0);
           var hrs = Number(form.value.onsiteHours || 0);
@@ -794,36 +896,37 @@
           fetchData();
         };
 
+        // 精準計算本地時區的 ISO Week (YYYY-Www)
         const getWeekString = (dateStr) => {
           if (!dateStr) return '';
           var d = new Date(dateStr);
           if (isNaN(d.getTime())) return '';
-          d.setHours(0, 0, 0, 0);
-          d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-          var yearStart = new Date(d.getFullYear(), 0, 1);
-          var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-          return `${d.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+          var target = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+          var dayNr = (target.getDay() + 6) % 7;
+          target.setDate(target.getDate() - dayNr + 3);
+          var firstThursday = new Date(target.getFullYear(), 0, 4);
+          var firstDayNr = (firstThursday.getDay() + 6) % 7;
+          firstThursday.setDate(firstThursday.getDate() - firstDayNr + 3);
+          var weekNo = 1 + Math.round((target - firstThursday) / 604800000);
+          return `${target.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
         };
 
+        // 修正：加上 .value 並使用本地時區日期比對，確保依週、依月份、區間即時連動
         const timeFilteredIssues = computed(() => {
-          if (dateFilterMode === 'week') {
+          if (dateFilterMode.value === 'week') {
             if (!selectedWeek.value) return issues.value;
             return issues.value.filter(i => getWeekString(i.Timestamp) === selectedWeek.value);
-          } else if (dateFilterMode === 'month') {
+          } else if (dateFilterMode.value === 'month') {
             if (!selectedMonth.value) return issues.value;
             return issues.value.filter(i => {
-              if (!i.Timestamp) return false;
-              var d = new Date(i.Timestamp);
-              if (isNaN(d.getTime())) return false;
-              return d.toISOString().substring(0, 7) === selectedMonth.value;
+              var localDate = getLocalDateStr(i.Timestamp);
+              return localDate && localDate.substring(0, 7) === selectedMonth.value;
             });
           } else {
             if (!startDate.value && !endDate.value) return issues.value;
             return issues.value.filter(i => {
-              if (!i.Timestamp) return false;
-              var itemDate = new Date(i.Timestamp);
-              if (isNaN(itemDate.getTime())) return false;
-              var itemDateStr = itemDate.toISOString().split('T')[0];
+              var itemDateStr = getLocalDateStr(i.Timestamp);
+              if (!itemDateStr) return false;
               if (startDate.value && endDate.value) return itemDateStr >= startDate.value && itemDateStr <= endDate.value;
               if (startDate.value) return itemDateStr >= startDate.value;
               if (endDate.value) return itemDateStr <= endDate.value;
@@ -1010,15 +1113,11 @@
               otHours: Number(getVal(item, 'OT Hours', 0))
             };
             selectedCategories.value = getCategories(getVal(item, 'Service Category', ''));
-            if (item.Timestamp) {
-              var d = new Date(item.Timestamp);
-              recordDate.value = !isNaN(d.getTime()) ? d.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-            } else {
-              recordDate.value = new Date().toISOString().split('T')[0];
-            }
+            var localD = getLocalDateStr(item.Timestamp);
+            recordDate.value = localD || getLocalDateStr(new Date());
           } else {
             isEdit.value = false;
-            recordDate.value = new Date().toISOString().split('T')[0];
+            recordDate.value = getLocalDateStr(new Date());
             selectedCategories.value = [];
             form.value = {
               ID: '',
@@ -1048,9 +1147,9 @@
           var action = isEdit.value ? 'update' : 'create';
           
           if (recordDate.value) {
-            var selectedD = new Date(recordDate.value);
+            var parts = recordDate.value.split('-');
             var now = new Date();
-            selectedD.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+            var selectedD = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), now.getHours(), now.getMinutes(), now.getSeconds());
             form.value.Timestamp = selectedD.toISOString();
           } else {
             form.value.Timestamp = new Date().toISOString();
@@ -1165,6 +1264,7 @@
           selectedCategories,
           getVal,
           getCategories,
+          renderMarkdownTable,
           calculatedOnsiteHours,
           calculatedOTHours,
           calculatedTotalHours,

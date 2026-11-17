@@ -13,6 +13,7 @@
     :root {
       --base-font-size: 14px;
       --table-font-size: 13px;
+      --header-offset: 235px;
     }
     body {
       font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -56,6 +57,14 @@
     }
     .resizer:hover, .resizer.resizing {
       background: #0284C7;
+    }
+    /* 凍結表格標題列（STATUS, TIMESTAMP...）緊貼在上方控制列正下方 */
+    .sticky-table-head th {
+      position: sticky;
+      top: var(--header-offset);
+      z-index: 20;
+      background-color: #f0f9ff;
+      box-shadow: 0 2px 4px -1px rgba(2, 132, 199, 0.12);
     }
     /* AI 表格樣式 */
     .ai-markdown-body table {
@@ -101,7 +110,7 @@
   <div id="app" class="w-full mx-auto space-y-3">
     
     <!-- 固定頂部區塊：往下拉 Slide Bar 時保持固定不動 -->
-    <div class="md:sticky md:top-0 md:z-30 bg-sky-100/95 backdrop-blur-md pt-1 pb-2.5 -mx-2 px-2 sm:-mx-4 sm:px-4 space-y-2.5 border-b border-sky-200/80 shadow-sm">
+    <div id="stickyTopHeader" class="md:sticky md:top-0 md:z-30 bg-sky-100/95 backdrop-blur-md pt-1 pb-2.5 -mx-2 px-2 sm:-mx-4 sm:px-4 space-y-2.5 border-b border-sky-200/80 shadow-sm">
       
       <!-- 頂部標題與產品切換 -->
       <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-white px-3 sm:px-4 py-2.5 rounded-xl shadow-sm border border-sky-200">
@@ -329,17 +338,17 @@
       </div>
     </div>
 
-    <!-- 電腦/平板滿版表格視圖 (Desktop View) -->
-    <div class="hidden md:block bg-white rounded-xl shadow-md border border-sky-200 overflow-hidden">
-      <div class="w-full overflow-hidden">
+    <!-- 電腦/平板滿版表格視圖 (Desktop View：移除 overflow-hidden 以確保表頭 sticky 凍結生效) -->
+    <div class="hidden md:block bg-white rounded-xl shadow-md border border-sky-200">
+      <div class="w-full">
         <table class="w-full text-left text-slate-800 border-collapse text-table-body" style="table-layout: fixed;">
-          <thead class="bg-sky-50/90 text-slate-700 font-bold uppercase tracking-wider text-[11px] border-b border-sky-200">
+          <thead class="sticky-table-head bg-sky-50 text-slate-700 font-bold uppercase tracking-wider text-[11px] border-b border-sky-300">
             <tr>
               <th 
                 v-for="(col, index) in columns" 
                 :key="index" 
                 :style="{ width: col.width + '%' }" 
-                :class="['relative py-2.5 px-2 border-r border-sky-100 select-none overflow-hidden text-ellipsis whitespace-nowrap', col.key === 'Timestamp' ? 'cursor-pointer hover:bg-sky-100/70 transition' : '', col.key === 'Status' ? 'text-center' : '']"
+                :class="['relative py-2.5 px-2 border-r border-sky-100 select-none overflow-hidden text-ellipsis whitespace-nowrap', col.key === 'Timestamp' ? 'cursor-pointer hover:bg-sky-100 transition' : '', col.key === 'Status' ? 'text-center' : '']"
                 @click="col.key === 'Timestamp' ? toggleSortOrder() : null">
                 <div class="flex items-center gap-1" :class="col.key === 'Status' ? 'justify-center' : ''">
                   <span>{{ col.label }}</span>
@@ -642,7 +651,7 @@
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbzUQywYcCUrRVT6tYzdRZJ2fRb1GfvpyIiimBOZwvN8N1oQWrKXjX90TbUJG8LsEi7J5w/exec";
 
-    const { createApp, ref, computed, onMounted } = Vue;
+    const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
 
     const DEFAULT_COLUMNS = [
       { key: 'Status', label: 'Status', width: 4 },
@@ -725,6 +734,15 @@
           sortOrder.value = sortOrder.value === 'desc' ? 'asc' : 'desc';
         };
 
+        // 動態計算上方固定控制列的實際高度，讓表頭精準貼齊不重疊、不留縫隙
+        const updateStickyHeaderOffset = () => {
+          const topEl = document.getElementById('stickyTopHeader');
+          if (topEl) {
+            const h = topEl.offsetHeight;
+            document.documentElement.style.setProperty('--header-offset', h + 'px');
+          }
+        };
+
         const form = ref({
           ID: '',
           Timestamp: '',
@@ -762,7 +780,6 @@
           return String(catStr).split(',').map(function(s){ return s.trim(); }).filter(Boolean);
         };
 
-        // 將 AI 回傳的 Markdown 表格與標題轉換成美觀 HTML 表格
         const renderMarkdownTable = (mdText) => {
           if (!mdText) return '';
           const escapeHtml = (str) => str
@@ -776,14 +793,12 @@
           const lines = String(mdText).split('\n');
           let html = '';
           let inTable = false;
-          let headerDone = false;
 
           for (let i = 0; i < lines.length; i++) {
             const raw = lines[i].trim();
 
             if (raw.startsWith('|') && raw.endsWith('|')) {
               const cells = raw.slice(1, -1).split('|').map(c => c.trim());
-              // 跳過分隔線 | :--- | :--- |
               if (cells.every(c => /^:?-{2,}:?$/.test(c))) {
                 continue;
               }
@@ -792,7 +807,6 @@
                 cells.forEach(c => { html += `<th>${formatInline(c)}</th>`; });
                 html += '</tr></thead><tbody>';
                 inTable = true;
-                headerDone = true;
               } else {
                 html += '<tr>';
                 cells.forEach(c => { html += `<td>${formatInline(c)}</td>`; });
@@ -802,7 +816,6 @@
               if (inTable) {
                 html += '</tbody></table>';
                 inTable = false;
-                headerDone = false;
               }
               if (raw.startsWith('### ')) {
                 html += `<h3>${formatInline(raw.slice(4))}</h3>`;
@@ -861,6 +874,7 @@
           fontSize.value = size;
           localStorage.setItem('ptw_font_size', size);
           applyFontSize(size);
+          setTimeout(updateStickyHeaderOffset, 50);
         };
 
         const applyFontSize = (size) => {
@@ -887,6 +901,7 @@
             console.error("讀取失敗:", e);
           } finally {
             loading.value = false;
+            setTimeout(updateStickyHeaderOffset, 50);
           }
         };
 
@@ -896,7 +911,6 @@
           fetchData();
         };
 
-        // 精準計算本地時區的 ISO Week (YYYY-Www)
         const getWeekString = (dateStr) => {
           if (!dateStr) return '';
           var d = new Date(dateStr);
@@ -911,7 +925,6 @@
           return `${target.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
         };
 
-        // 修正：加上 .value 並使用本地時區日期比對，確保依週、依月份、區間即時連動
         const timeFilteredIssues = computed(() => {
           if (dateFilterMode.value === 'week') {
             if (!selectedWeek.value) return issues.value;
@@ -1232,7 +1245,13 @@
 
         onMounted(() => {
           applyFontSize(fontSize.value);
+          updateStickyHeaderOffset();
+          window.addEventListener('resize', updateStickyHeaderOffset);
           fetchData();
+        });
+
+        onUnmounted(() => {
+          window.removeEventListener('resize', updateStickyHeaderOffset);
         });
 
         return {

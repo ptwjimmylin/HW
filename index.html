@@ -58,7 +58,6 @@
     .resizer:hover, .resizer.resizing {
       background: #0284C7;
     }
-    /* 凍結表格標題列（STATUS, TIMESTAMP...）緊貼在上方控制列正下方 */
     .sticky-table-head th {
       position: sticky;
       top: var(--header-offset);
@@ -66,12 +65,21 @@
       background-color: #f0f9ff;
       box-shadow: 0 2px 4px -1px rgba(2, 132, 199, 0.12);
     }
+    /* 可自由拖曳調整大小的超大 AI 視窗 */
+    .resizable-ai-dialog {
+      resize: both;
+      overflow: auto;
+      min-width: 340px;
+      min-height: 420px;
+      max-width: 98vw;
+      max-height: 96vh;
+    }
     /* AI 表格樣式 */
     .ai-markdown-body table {
       width: 100%;
       border-collapse: collapse;
-      margin: 8px 0 12px 0;
-      font-size: 12px;
+      margin: 10px 0 16px 0;
+      font-size: 13px;
       background: #ffffff;
       border-radius: 8px;
       overflow: hidden;
@@ -82,26 +90,26 @@
       color: #4c1d95;
       font-weight: 700;
       text-align: left;
-      padding: 8px 10px;
+      padding: 9px 12px;
       border: 1px solid #ddd6fe;
       white-space: nowrap;
     }
     .ai-markdown-body td {
-      padding: 7px 10px;
+      padding: 8px 12px;
       border: 1px solid #e2e8f0;
       color: #1e293b;
       vertical-align: top;
-      line-height: 1.45;
+      line-height: 1.5;
     }
     .ai-markdown-body tr:nth-child(even) td {
       background: #f8fafc;
     }
     .ai-markdown-body h3 {
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 800;
       color: #3b0764;
-      margin: 14px 0 6px 0;
-      padding-bottom: 4px;
+      margin: 16px 0 8px 0;
+      padding-bottom: 5px;
       border-bottom: 2px solid #ddd6fe;
     }
   </style>
@@ -215,7 +223,6 @@
             </div>
           </div>
 
-          <!-- 多條件搜尋框：支援 + 或空白分隔多個條件（如 UMC + image + 5P） -->
           <div class="relative flex-1 sm:w-64">
             <input 
               type="text" 
@@ -227,7 +234,6 @@
             <button @click="searchQuery = ''" v-if="searchQuery" class="absolute right-2 top-1 text-slate-400 hover:text-slate-600">✕</button>
           </div>
 
-          <!-- 多條件標籤即時顯示 -->
           <div v-if="parsedSearchTerms.length > 1" class="hidden xl:flex items-center gap-1">
             <span v-for="(term, idx) in parsedSearchTerms" :key="idx" class="px-1.5 py-0.5 bg-sky-100 text-sky-800 border border-sky-300 rounded text-[10px] font-bold">
               {{ term }}
@@ -238,7 +244,6 @@
             <span>{{ sortOrder === 'desc' ? '最新↓' : '最舊↑' }}</span>
           </button>
 
-          <!-- 字體大小按鈕 -->
           <div class="flex items-center gap-0.5 bg-sky-100/80 p-0.5 rounded-lg border border-sky-200">
             <span class="text-[9px] font-bold text-slate-600 px-1">字體</span>
             <button @click="changeFontSize('sm')" :class="['px-1.5 py-0.5 rounded text-[10px] font-bold', fontSize === 'sm' ? 'bg-sky-600 text-white shadow-sm' : 'bg-white text-slate-700']">小</button>
@@ -471,39 +476,50 @@
       </div>
     </div>
 
-    <!-- 獨立 AI 歷史案例查詢彈窗 -->
-    <div v-if="showAIModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
-      <div class="bg-white rounded-t-3xl sm:rounded-3xl max-w-5xl w-full p-5 sm:p-6 space-y-4 shadow-2xl border border-purple-200 max-h-[92vh] overflow-y-auto">
-        <div class="flex justify-between items-center border-b border-purple-100 pb-3">
+    <!-- 超大可拖曳調整大小 & 可獨立視窗彈出的 AI 歷史案例查詢彈窗 -->
+    <div v-if="showAIModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50">
+      <div class="resizable-ai-dialog bg-white rounded-3xl w-[96vw] h-[90vh] p-5 sm:p-6 flex flex-col space-y-4 shadow-2xl border border-purple-200">
+        <div class="flex flex-wrap justify-between items-center gap-2 border-b border-purple-100 pb-3 flex-shrink-0">
           <div>
-            <h3 class="text-lg font-black text-purple-950 flex items-center gap-2">
-              🤖 AI 歷史維修知識庫查詢
+            <h3 class="text-lg sm:text-xl font-black text-purple-950 flex items-center gap-2">
+              🤖 AI 歷史維修知識庫查詢（精選前 5 筆最相關案例）
             </h3>
-            <p class="text-xs text-slate-500 mt-0.5">自動檢索 Hitachi 與 SEZ_SpinTec 所有歷史案子，以中英文表格呈現過去解法與料號</p>
+            <p class="text-xs text-slate-500 mt-0.5">右下角可自由拖曳調整視窗大小，或點擊右上角彈出獨立新視窗</p>
           </div>
-          <button @click="showAIModal = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold p-1">✕</button>
+          <div class="flex items-center gap-2">
+            <button 
+              type="button" 
+              @click="popoutAIWindow()" 
+              class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 rounded-xl text-xs font-bold flex items-center gap-1 transition shadow-sm"
+              title="彈出獨立視窗（可移至雙螢幕並自由調整大小）">
+              <span>↗ 獨立新視窗開啟</span>
+            </button>
+            <button @click="showAIModal = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold px-2 py-1 rounded-lg hover:bg-slate-100">✕</button>
+          </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 flex-shrink-0">
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">機台型號 (Model Type，選填)</label>
-            <input v-model="aiSearchModel" placeholder="例如: S-9380" class="w-full bg-slate-50 border border-purple-200 rounded-xl px-3 py-2 text-xs font-semibold focus:bg-white focus:outline-none">
+            <input v-model="aiSearchModel" placeholder="例如: S-9200" class="w-full bg-slate-50 border border-purple-200 rounded-xl px-3 py-2 text-xs font-semibold focus:bg-white focus:outline-none">
           </div>
           <div class="sm:col-span-2">
             <label class="block text-xs font-bold text-slate-700 mb-1">異常現象、Alarm Code 或關鍵字</label>
-            <input v-model="aiSearchQuery" @keyup.enter="runStandaloneAIQuery()" placeholder="例如: Robot vacuum alarm、Sensor 異常、漏水..." class="w-full bg-slate-50 border border-purple-200 rounded-xl px-3 py-2 text-xs font-semibold focus:bg-white focus:outline-none">
+            <input v-model="aiSearchQuery" @keyup.enter="runStandaloneAIQuery()" placeholder="例如: image、Robot vacuum alarm、Sensor 異常..." class="w-full bg-slate-50 border border-purple-200 rounded-xl px-3 py-2 text-xs font-semibold focus:bg-white focus:outline-none">
+          </div>
+          <div class="flex items-end">
+            <button @click="runStandaloneAIQuery()" :disabled="aiStandaloneLoading" class="w-full px-5 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-md text-xs disabled:opacity-50">
+              {{ aiStandaloneLoading ? '⏳ 檢索最相關 5 筆中...' : '✨ 開始比對歷史案子' }}
+            </button>
           </div>
         </div>
 
-        <div class="flex justify-end">
-          <button @click="runStandaloneAIQuery()" :disabled="aiStandaloneLoading" class="w-full sm:w-auto px-5 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-md text-xs disabled:opacity-50">
-            {{ aiStandaloneLoading ? '⏳ 正在檢索所有歷史案件中...' : '✨ 開始比對歷史案子' }}
-          </button>
-        </div>
-
-        <div v-if="aiStandaloneResult" class="bg-purple-50/70 border border-purple-200 border-l-4 border-l-purple-600 p-4 rounded-2xl space-y-2 shadow-inner">
-          <div class="text-xs font-extrabold text-purple-950">📋 AI 歷史案例分析結果：</div>
-          <div class="ai-markdown-body text-xs sm:text-sm text-slate-800 leading-relaxed max-h-[55vh] overflow-y-auto overflow-x-auto pr-1" v-html="renderMarkdownTable(aiStandaloneResult)"></div>
+        <div v-if="aiStandaloneResult" class="flex-1 min-h-0 bg-purple-50/70 border border-purple-200 border-l-4 border-l-purple-600 p-4 rounded-2xl flex flex-col space-y-2 shadow-inner">
+          <div class="flex justify-between items-center flex-shrink-0">
+            <span class="text-xs font-extrabold text-purple-950">📋 AI 歷史案例分析結果（上下完整呈現繁體中文與英文報告）：</span>
+            <button type="button" @click="popoutAIWindow()" class="text-[11px] font-bold text-indigo-700 hover:underline">↗ 彈出獨立視窗檢視</button>
+          </div>
+          <div class="ai-markdown-body flex-1 overflow-y-auto overflow-x-auto text-xs sm:text-sm text-slate-800 leading-relaxed pr-1" v-html="renderMarkdownTable(aiStandaloneResult)"></div>
         </div>
       </div>
     </div>
@@ -579,7 +595,7 @@
           </div>
         </div>
 
-        <!-- 客戶公司與廠別選單區塊（支援快速點選廠別與彈性新增新公司） -->
+        <!-- 客戶公司與廠別選單區塊 -->
         <div class="bg-sky-50/50 border border-sky-200 p-3 rounded-2xl space-y-2.5">
           <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-start">
             <div class="md:col-span-5 space-y-1.5">
@@ -613,7 +629,6 @@
             </div>
           </div>
 
-          <!-- 廠別快速按鈕列（選擇 TSMC / UMC / PSMC 時展開） -->
           <div v-if="currentFabList.length > 0" class="flex flex-wrap items-center gap-1.5 pt-1 border-t border-sky-200/70">
             <span class="text-[10px] font-bold text-sky-800 mr-1">🏭 點選 {{ selectedCompanyGroup }} 廠別：</span>
             <button 
@@ -636,10 +651,10 @@
                 @click="askAIHistory()" 
                 :disabled="aiLoading"
                 class="px-2.5 py-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-lg text-[11px] shadow-sm transition flex items-center gap-1 disabled:opacity-50">
-                <span>{{ aiLoading ? '⏳ AI 分析歷史紀錄中...' : '✨ AI 歷史案例診斷' }}</span>
+                <span>{{ aiLoading ? '⏳ AI 分析前 5 筆最相關中...' : '✨ AI 歷史案例診斷' }}</span>
               </button>
             </div>
-            <textarea v-model="form['Issue Description']" rows="3" placeholder="輸入異常現象或 Alarm Code，可點擊右上角讓 AI 比對歷史案例..." class="w-full bg-slate-50 border border-sky-200 rounded-xl px-2.5 py-1.5 text-xs font-medium focus:bg-white focus:outline-none"></textarea>
+            <textarea v-model="form['Issue Description']" rows="3" placeholder="輸入異常現象或 Alarm Code，可點擊右上角讓 AI 比對最相關歷史案例..." class="w-full bg-slate-50 border border-sky-200 rounded-xl px-2.5 py-1.5 text-xs font-medium focus:bg-white focus:outline-none"></textarea>
           </div>
           <div>
             <label class="block text-[11px] font-bold text-slate-700 mb-1">處置步驟 (Actions Done)</label>
@@ -647,14 +662,17 @@
           </div>
         </div>
 
-        <div v-if="aiResult" class="bg-purple-50/90 border border-purple-200 border-l-4 border-l-purple-600 p-3.5 rounded-2xl space-y-1.5 shadow-inner">
+        <div v-if="aiResult" class="bg-purple-50/90 border border-purple-200 border-l-4 border-l-purple-600 p-4 rounded-2xl space-y-2 shadow-inner">
           <div class="flex justify-between items-center">
             <span class="text-xs font-extrabold text-purple-950 flex items-center gap-1.5">
-              🤖 Gemini 歷史知識庫診斷建議
+              🤖 Gemini 歷史知識庫診斷建議（前 5 筆最相關案例）
             </span>
-            <button type="button" @click="aiResult = ''" class="text-xs text-purple-400 hover:text-purple-700 font-bold">隱藏 ✕</button>
+            <div class="flex items-center gap-3">
+              <button type="button" @click="popoutAIWindow(aiResult, form['Model Type'], form['Issue Description'])" class="text-xs text-indigo-700 hover:underline font-bold">↗ 獨立新視窗開啟</button>
+              <button type="button" @click="aiResult = ''" class="text-xs text-purple-400 hover:text-purple-700 font-bold">隱藏 ✕</button>
+            </div>
           </div>
-          <div class="ai-markdown-body text-xs text-slate-800 leading-relaxed max-h-64 overflow-y-auto overflow-x-auto pr-1" v-html="renderMarkdownTable(aiResult)"></div>
+          <div class="ai-markdown-body text-xs sm:text-sm text-slate-800 leading-relaxed max-h-[45vh] overflow-y-auto overflow-x-auto pr-1" v-html="renderMarkdownTable(aiResult)"></div>
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 bg-amber-50 border border-amber-300 p-2.5 rounded-2xl">
@@ -751,7 +769,6 @@
         const recordDate = ref('');
         const selectedCategories = ref([]);
 
-        // 公司廠別選單與彈性自訂公司記憶
         const customCompanies = ref(JSON.parse(localStorage.getItem('ptw_custom_companies') || '[]'));
         const selectedCompanyGroup = ref('');
 
@@ -818,7 +835,6 @@
           }
         };
 
-        // 多條件搜尋解析器（支援 + 與空白分隔）
         const parsedSearchTerms = computed(() => {
           if (!searchQuery.value || searchQuery.value.trim() === '') return [];
           return searchQuery.value
@@ -956,6 +972,108 @@
           return html;
         };
 
+        // 彈出獨立新視窗（可自由調整大小、移到雙螢幕，並可在視窗內直接搜尋）
+        const popoutAIWindow = (customContent = null, customModel = null, customQuery = null) => {
+          const initialContent = customContent !== null ? customContent : aiStandaloneResult.value;
+          const initialModel = customModel !== null ? customModel : aiSearchModel.value;
+          const initialQuery = customQuery !== null ? customQuery : aiSearchQuery.value;
+          const renderedHtml = initialContent ? renderMarkdownTable(initialContent) : '<div style="color:#64748b;padding:12px;">請在上方輸入關鍵字後點擊「開始比對歷史案子」。</div>';
+
+          const popup = window.open('', 'PTW_AI_Knowledge_Window', 'width=1380,height=860,resizable=yes,scrollbars=yes');
+          if (!popup) {
+            alert('瀏覽器封鎖了彈出視窗，請在網址列右側允許彈出式視窗後再試！');
+            return;
+          }
+
+          popup.document.open();
+          popup.document.write(`<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>🤖 PTW AI 歷史維修知識庫（獨立視窗）</title>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; margin: 0; padding: 20px; }
+    .header { background: #fff; padding: 16px 20px; border-radius: 16px; border: 1px solid #ddd6fe; box-shadow: 0 2px 6px rgba(0,0,0,0.04); margin-bottom: 16px; }
+    .header h2 { margin: 0 0 10px 0; color: #3b0764; font-size: 18px; }
+    .search-bar { display: flex; gap: 10px; flex-wrap: wrap; }
+    .search-bar input { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 13px; }
+    .search-bar input.kw { flex: 1; min-width: 240px; }
+    .search-bar button { background: linear-gradient(to right, #4f46e5, #9333ea); color: #fff; border: none; padding: 8px 18px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 13px; }
+    .search-bar button:disabled { opacity: 0.6; cursor: wait; }
+    .result-box { background: #fff; padding: 20px; border-radius: 16px; border: 1px solid #ddd6fe; border-left: 5px solid #7c3aed; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; margin: 10px 0 18px 0; font-size: 13px; }
+    th { background: #ede9fe; color: #4c1d95; font-weight: 700; text-align: left; padding: 10px 12px; border: 1px solid #ddd6fe; white-space: nowrap; }
+    td { padding: 9px 12px; border: 1px solid #e2e8f0; vertical-align: top; line-height: 1.5; }
+    tr:nth-child(even) td { background: #f8fafc; }
+    h3 { font-size: 16px; font-weight: 800; color: #3b0764; margin: 18px 0 8px 0; padding-bottom: 5px; border-bottom: 2px solid #ddd6fe; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2>🤖 AI 歷史維修知識庫查詢（精選前 5 筆最相關案例 - 獨立視窗）</h2>
+    <div class="search-bar">
+      <input id="popModel" placeholder="機台型號 (例如: S-9200)" value="${String(initialModel || '').replace(/"/g, '&quot;')}">
+      <input id="popQuery" class="kw" placeholder="異常現象、Alarm Code 或關鍵字..." value="${String(initialQuery || '').replace(/"/g, '&quot;')}" onkeydown="if(event.key==='Enter') runPopQuery()">
+      <button id="popBtn" onclick="runPopQuery()">✨ 開始比對歷史案子</button>
+    </div>
+  </div>
+  <div id="popResult" class="result-box">${renderedHtml}</div>
+  <script>
+    const API_URL = "${API_URL}";
+    const SHEET_NAME = "${currentSheet.value}";
+    function renderMd(mdText) {
+      const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const fmt = s => esc(s).replace(/\\*\\*(.+?)\\*\\*/g, '<strong>$1</strong>');
+      const lines = String(mdText).split('\\n');
+      let html = '', inTable = false;
+      for (let i = 0; i < lines.length; i++) {
+        const raw = lines[i].trim();
+        if (raw.startsWith('|') && raw.endsWith('|')) {
+          const cells = raw.slice(1, -1).split('|').map(c => c.trim());
+          if (cells.every(c => /^:?-{2,}:?$/.test(c))) continue;
+          if (!inTable) { html += '<table><thead><tr>' + cells.map(c => '<th>'+fmt(c)+'</th>').join('') + '</tr></thead><tbody>'; inTable = true; }
+          else { html += '<tr>' + cells.map(c => '<td>'+fmt(c)+'</td>').join('') + '</tr>'; }
+        } else {
+          if (inTable) { html += '</tbody></table>'; inTable = false; }
+          if (raw.startsWith('### ')) html += '<h3>' + fmt(raw.slice(4)) + '</h3>';
+          else if (raw.startsWith('- ') || raw.startsWith('* ')) html += '<div style="padding:3px 0 3px 12px;">• ' + fmt(raw.slice(2)) + '</div>';
+          else if (raw !== '') html += '<div style="padding:3px 0;">' + fmt(raw) + '</div>';
+        }
+      }
+      if (inTable) html += '</tbody></table>';
+      return html;
+    }
+    async function runPopQuery() {
+      const q = document.getElementById('popQuery').value.trim();
+      const m = document.getElementById('popModel').value.trim();
+      if (!q) { alert('請輸入關鍵字！'); return; }
+      const btn = document.getElementById('popBtn');
+      const box = document.getElementById('popResult');
+      btn.disabled = true;
+      btn.textContent = '⏳ 檢索最相關 5 筆中...';
+      box.innerHTML = '<div style="color:#6b21a8;font-weight:bold;">正在檢索資料庫最相關前 5 筆案例，請稍候...</div>';
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'askAI', sheet: SHEET_NAME, data: { "Model Type": m, "Issue Description": q } })
+        });
+        const json = await res.json();
+        box.innerHTML = json.status === 'success' ? renderMd(json.reply) : ('❌ 錯誤：' + (json.message || '未知錯誤'));
+      } catch (e) {
+        box.innerHTML = '❌ 連線失敗，請稍後再試。';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '✨ 開始比對歷史案子';
+      }
+    }
+  <\/script>
+</body>
+</html>`);
+          popup.document.close();
+          popup.focus();
+        };
+
         const calculatedOnsiteHours = computed(() => {
           var count = Number(form.value.engineersCount || 0);
           var hrs = Number(form.value.onsiteHours || 0);
@@ -1086,7 +1204,6 @@
             );
           }
 
-          // 多條件交集比對（例如 UMC + image + 5P，所有條件都必須符合）
           if (parsedSearchTerms.value.length > 0) {
             const terms = parsedSearchTerms.value.map(t => t.toLowerCase());
             list = list.filter(i => {
@@ -1165,7 +1282,7 @@
           }
 
           aiLoading.value = true;
-          aiResult.value = "正在比對 Hitachi 與 SEZ_SpinTec 所有歷史案子，請稍候約 3~5 秒...";
+          aiResult.value = "正在比對 Hitachi 與 SEZ_SpinTec 歷史案子，篩選最相關前 5 筆中，請稍候...";
 
           try {
             var res = await fetch(API_URL, {
@@ -1207,7 +1324,7 @@
           }
 
           aiStandaloneLoading.value = true;
-          aiStandaloneResult.value = "正在搜尋過去所有歷史案子並進行交叉比對，請稍候約 3~5 秒...";
+          aiStandaloneResult.value = "正在檢索過去所有歷史案子並篩選最相關前 5 筆，請稍候...";
 
           try {
             var res = await fetch(API_URL, {
@@ -1427,6 +1544,7 @@
           getVal,
           getCategories,
           renderMarkdownTable,
+          popoutAIWindow,
           calculatedOnsiteHours,
           calculatedOTHours,
           calculatedTotalHours,

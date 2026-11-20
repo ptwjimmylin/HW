@@ -215,10 +215,23 @@
             </div>
           </div>
 
-          <div class="relative flex-1 sm:w-44">
-            <input type="text" v-model="searchQuery" placeholder="搜尋 Tool / 機況..." class="w-full bg-white border border-sky-200 rounded-lg pl-7 pr-6 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-sky-500 shadow-inner">
+          <!-- 多條件搜尋框：支援 + 或空白分隔多個條件（如 UMC + image + 5P） -->
+          <div class="relative flex-1 sm:w-64">
+            <input 
+              type="text" 
+              v-model="searchQuery" 
+              placeholder="多條件搜尋: UMC + image + 5P..." 
+              title="支援多條件交集搜尋，請用 + 或空白分隔關鍵字（例如: UMC + image + 5P）"
+              class="w-full bg-white border border-sky-200 rounded-lg pl-7 pr-6 py-1 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-sky-500 shadow-inner">
             <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             <button @click="searchQuery = ''" v-if="searchQuery" class="absolute right-2 top-1 text-slate-400 hover:text-slate-600">✕</button>
+          </div>
+
+          <!-- 多條件標籤即時顯示 -->
+          <div v-if="parsedSearchTerms.length > 1" class="hidden xl:flex items-center gap-1">
+            <span v-for="(term, idx) in parsedSearchTerms" :key="idx" class="px-1.5 py-0.5 bg-sky-100 text-sky-800 border border-sky-300 rounded text-[10px] font-bold">
+              {{ term }}
+            </span>
           </div>
 
           <button @click="toggleSortOrder()" class="flex items-center gap-1 font-bold px-2 py-1 rounded-lg border shadow-sm bg-white border-sky-300 text-sky-800 hover:bg-sky-50 text-[11px]">
@@ -338,7 +351,7 @@
       </div>
     </div>
 
-    <!-- 電腦/平板滿版表格視圖 (Desktop View：移除 overflow-hidden 以確保表頭 sticky 凍結生效) -->
+    <!-- 電腦/平板滿版表格視圖 (Desktop View) -->
     <div class="hidden md:block bg-white rounded-xl shadow-md border border-sky-200">
       <div class="w-full">
         <table class="w-full text-left text-slate-800 border-collapse text-table-body" style="table-layout: fixed;">
@@ -458,7 +471,7 @@
       </div>
     </div>
 
-    <!-- 獨立 AI 歷史案例查詢彈窗 (放大寬度以完整顯示雙語表格) -->
+    <!-- 獨立 AI 歷史案例查詢彈窗 -->
     <div v-if="showAIModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
       <div class="bg-white rounded-t-3xl sm:rounded-3xl max-w-5xl w-full p-5 sm:p-6 space-y-4 shadow-2xl border border-purple-200 max-h-[92vh] overflow-y-auto">
         <div class="flex justify-between items-center border-b border-purple-100 pb-3">
@@ -566,22 +579,51 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-          <div>
-            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">客戶公司 (Company)</label>
-            <input v-model="form.Company" class="w-full bg-slate-50 border border-sky-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold focus:bg-white focus:outline-none">
+        <!-- 客戶公司與廠別選單區塊（支援快速點選廠別與彈性新增新公司） -->
+        <div class="bg-sky-50/50 border border-sky-200 p-3 rounded-2xl space-y-2.5">
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-start">
+            <div class="md:col-span-5 space-y-1.5">
+              <label class="block text-[11px] font-bold text-slate-700">客戶公司與廠別 (Company / Fab)</label>
+              <div class="flex gap-1.5">
+                <select v-model="selectedCompanyGroup" @change="onCompanyGroupChange()" class="w-1/2 bg-white border border-sky-300 rounded-xl px-2 py-1.5 text-xs font-bold text-slate-800 focus:outline-none">
+                  <option value="">-- 選擇公司 --</option>
+                  <option v-for="comp in allCompanyNames" :key="comp" :value="comp">{{ comp }}</option>
+                  <option value="__CUSTOM__">➕ 新增／自訂公司...</option>
+                </select>
+                <input 
+                  v-model="form.Company" 
+                  placeholder="可選廠別或直接輸入新公司"
+                  class="w-1/2 bg-white border border-sky-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-sky-950 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+              </div>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-[11px] font-bold text-slate-700 mb-1.5">機台型號 (Model Type)</label>
+              <input v-model="form['Model Type']" class="w-full bg-white border border-sky-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold focus:outline-none">
+            </div>
+
+            <div class="md:col-span-3">
+              <label class="block text-[11px] font-bold text-slate-700 mb-1.5">機台編號 (Tool ID)</label>
+              <input v-model="form['Tool ID']" class="w-full bg-white border border-sky-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold focus:outline-none">
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-[11px] font-bold text-slate-700 mb-1.5">負責工程師 (Owner)</label>
+              <input v-model="form.Owner" class="w-full bg-white border border-sky-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold focus:outline-none">
+            </div>
           </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">機台型號 (Model Type)</label>
-            <input v-model="form['Model Type']" class="w-full bg-slate-50 border border-sky-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold focus:bg-white focus:outline-none">
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">機台編號 (Tool ID)</label>
-            <input v-model="form['Tool ID']" class="w-full bg-slate-50 border border-sky-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold focus:bg-white focus:outline-none">
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">負責工程師 (Owner)</label>
-            <input v-model="form.Owner" class="w-full bg-slate-50 border border-sky-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold focus:bg-white focus:outline-none">
+
+          <!-- 廠別快速按鈕列（選擇 TSMC / UMC / PSMC 時展開） -->
+          <div v-if="currentFabList.length > 0" class="flex flex-wrap items-center gap-1.5 pt-1 border-t border-sky-200/70">
+            <span class="text-[10px] font-bold text-sky-800 mr-1">🏭 點選 {{ selectedCompanyGroup }} 廠別：</span>
+            <button 
+              type="button"
+              v-for="fab in currentFabList" 
+              :key="fab"
+              @click="selectFab(fab)"
+              :class="['px-2 py-0.5 rounded-lg text-[11px] font-bold border transition', form.Company === (selectedCompanyGroup + ' ' + fab) ? 'bg-sky-600 text-white border-sky-700 shadow-sm' : 'bg-white text-slate-700 border-sky-200 hover:bg-sky-100']">
+              {{ fab }}
+            </button>
           </div>
         </div>
 
@@ -666,6 +708,13 @@
       { key: 'ReplaceParts', label: 'Parts Info', width: 6.5 }
     ];
 
+    const PRESET_COMPANY_FABS = {
+      'TSMC': ['12P1', '12P2', '12P3', '12P4', '3', '2', '5', '6', '8', '15A', '15B', '14A', '14B', '18A', '18B', '3E'],
+      'UMC': ['8AB', '8C', '8D', '8E', '8F', '12A'],
+      'Ennostar': [],
+      'PSMC': ['8A', '8B', '12P1', '12P2', '12P3', '12P4']
+    };
+
     createApp({
       setup() {
         const currentSheet = ref('Hitachi');
@@ -702,6 +751,82 @@
         const recordDate = ref('');
         const selectedCategories = ref([]);
 
+        // 公司廠別選單與彈性自訂公司記憶
+        const customCompanies = ref(JSON.parse(localStorage.getItem('ptw_custom_companies') || '[]'));
+        const selectedCompanyGroup = ref('');
+
+        const allCompanyNames = computed(() => {
+          const base = Object.keys(PRESET_COMPANY_FABS);
+          const merged = [...base];
+          customCompanies.value.forEach(c => {
+            if (c && !merged.some(m => m.toLowerCase() === c.toLowerCase())) {
+              merged.push(c);
+            }
+          });
+          return merged;
+        });
+
+        const currentFabList = computed(() => {
+          if (!selectedCompanyGroup.value || selectedCompanyGroup.value === '__CUSTOM__') return [];
+          return PRESET_COMPANY_FABS[selectedCompanyGroup.value] || [];
+        });
+
+        const onCompanyGroupChange = () => {
+          if (selectedCompanyGroup.value === '__CUSTOM__') {
+            form.value.Company = '';
+            return;
+          }
+          if (!selectedCompanyGroup.value) return;
+          const fabs = PRESET_COMPANY_FABS[selectedCompanyGroup.value];
+          if (fabs && fabs.length > 0) {
+            form.value.Company = selectedCompanyGroup.value + ' ';
+          } else {
+            form.value.Company = selectedCompanyGroup.value;
+          }
+        };
+
+        const selectFab = (fab) => {
+          if (selectedCompanyGroup.value && selectedCompanyGroup.value !== '__CUSTOM__') {
+            form.value.Company = `${selectedCompanyGroup.value} ${fab}`;
+          }
+        };
+
+        const syncCompanyGroupFromText = (companyStr) => {
+          const raw = String(companyStr || '').trim();
+          if (!raw) {
+            selectedCompanyGroup.value = '';
+            return;
+          }
+          const upper = raw.toUpperCase();
+          for (const key of allCompanyNames.value) {
+            if (upper === key.toUpperCase() || upper.startsWith(key.toUpperCase() + ' ') || upper.startsWith(key.toUpperCase() + 'FAB')) {
+              selectedCompanyGroup.value = key;
+              return;
+            }
+          }
+          selectedCompanyGroup.value = '__CUSTOM__';
+        };
+
+        const rememberCustomCompany = (companyStr) => {
+          const raw = String(companyStr || '').trim();
+          if (!raw) return;
+          const firstToken = raw.split(/\s+/)[0];
+          const exists = allCompanyNames.value.some(c => c.toLowerCase() === firstToken.toLowerCase() || c.toLowerCase() === raw.toLowerCase());
+          if (!exists && firstToken.length >= 2) {
+            customCompanies.value.push(firstToken);
+            localStorage.setItem('ptw_custom_companies', JSON.stringify(customCompanies.value));
+          }
+        };
+
+        // 多條件搜尋解析器（支援 + 與空白分隔）
+        const parsedSearchTerms = computed(() => {
+          if (!searchQuery.value || searchQuery.value.trim() === '') return [];
+          return searchQuery.value
+            .split(/[+\s]+/)
+            .map(t => t.trim())
+            .filter(Boolean);
+        });
+
         const aiLoading = ref(false);
         const aiResult = ref('');
 
@@ -734,7 +859,6 @@
           sortOrder.value = sortOrder.value === 'desc' ? 'asc' : 'desc';
         };
 
-        // 動態計算上方固定控制列的實際高度，讓表頭精準貼齊不重疊、不留縫隙
         const updateStickyHeaderOffset = () => {
           const topEl = document.getElementById('stickyTopHeader');
           if (topEl) {
@@ -962,17 +1086,26 @@
             );
           }
 
-          if (searchQuery.value.trim() !== '') {
-            var q = searchQuery.value.toLowerCase();
-            list = list.filter(i => 
-              String(i['Tool ID'] || '').toLowerCase().includes(q) ||
-              String(i.Company || '').toLowerCase().includes(q) ||
-              String(i.Owner || '').toLowerCase().includes(q) ||
-              String(i['Issue Description'] || '').toLowerCase().includes(q) ||
-              String(i['Actions Done'] || '').toLowerCase().includes(q) ||
-              String(i['Service Category'] || '').toLowerCase().includes(q) ||
-              String(i['Replace Parts PN'] || '').toLowerCase().includes(q)
-            );
+          // 多條件交集比對（例如 UMC + image + 5P，所有條件都必須符合）
+          if (parsedSearchTerms.value.length > 0) {
+            const terms = parsedSearchTerms.value.map(t => t.toLowerCase());
+            list = list.filter(i => {
+              const searchableBlob = [
+                i['Tool ID'],
+                i.Company,
+                i['Model Type'],
+                i.Owner,
+                i['Issue Description'],
+                i['Actions Done'],
+                i['Plan to Do'],
+                i['Remain Issue'],
+                i['Service Category'],
+                i['Replace Parts Category'],
+                i['Replace Parts PN']
+              ].map(v => String(v || '')).join(' ').toLowerCase();
+
+              return terms.every(term => searchableBlob.includes(term));
+            });
           }
 
           list.sort((a, b) => {
@@ -1125,6 +1258,7 @@
               contractHours: Number(getVal(item, 'Contract Regular Hours', 0)),
               otHours: Number(getVal(item, 'OT Hours', 0))
             };
+            syncCompanyGroupFromText(item.Company);
             selectedCategories.value = getCategories(getVal(item, 'Service Category', ''));
             var localD = getLocalDateStr(item.Timestamp);
             recordDate.value = localD || getLocalDateStr(new Date());
@@ -1132,6 +1266,7 @@
             isEdit.value = false;
             recordDate.value = getLocalDateStr(new Date());
             selectedCategories.value = [];
+            selectedCompanyGroup.value = '';
             form.value = {
               ID: '',
               Timestamp: '',
@@ -1159,6 +1294,8 @@
           submitting.value = true;
           var action = isEdit.value ? 'update' : 'create';
           
+          rememberCustomCompany(form.value.Company);
+
           if (recordDate.value) {
             var parts = recordDate.value.split('-');
             var now = new Date();
@@ -1173,7 +1310,7 @@
           var payload = {
             ID: form.value.ID,
             Timestamp: form.value.Timestamp,
-            Company: form.value.Company,
+            Company: String(form.value.Company || '').trim(),
             "Model Type": form.value['Model Type'],
             "Tool ID": form.value['Tool ID'],
             Owner: form.value.Owner,
@@ -1265,6 +1402,7 @@
           recordDate,
           sortOrder,
           searchQuery,
+          parsedSearchTerms,
           statusFilter,
           fontSize,
           columns,
@@ -1281,6 +1419,11 @@
           aiStandaloneResult,
           form,
           selectedCategories,
+          selectedCompanyGroup,
+          allCompanyNames,
+          currentFabList,
+          onCompanyGroupChange,
+          selectFab,
           getVal,
           getCategories,
           renderMarkdownTable,
